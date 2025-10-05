@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap');
+
+body {
+    font-family: "IBM Plex Sans Thai", sans-serif;
+    font-weight: bold;
+    background-color: #f5f7fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+form {
+    background: #fff;
+    padding: 40px 35px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    height: auto;
+    width: 30%;
+}
+
+.logo {
+    display: block;
+    margin: 0 auto 15px;
+    height: auto;
+    max-width: 100%;
+}
+
+h3 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-size: 24px;
+}
+
+div {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 0;
+    color: #000000;
+    font-weight: 500;
+    box-sizing: border-box;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #d9d9d9;
+    border-radius: 3px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+button {
+    font-family: "IBM Plex Sans Thai", sans-serif;  
+    background-color: #cc001f;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    width: 30%;
+    height: 43px;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    margin: 10px auto 0; 
+    display: block;
+    transition: background-color 0.2s ease-in-out;
+}
+
+button:hover {
+    background-color: #000000;
+}
