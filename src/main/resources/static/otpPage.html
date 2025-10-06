@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP</title>
+    <link rel="stylesheet" href="style/otpPage.css">
+</head>
+<body>
+    <div class="otp-container">
+        <h1>กรุณากรอกหมายเลข OTP<br>ที่ส่งไปยังอีเมลของท่าน</h1>    
+        <div class="otp-inputs">
+            <input type="text" maxlength="1" class="otp" inputmode="numeric" pattern="[0-9]*" />
+            <input type="text" maxlength="1" class="otp" inputmode="numeric" pattern="[0-9]*" />
+            <input type="text" maxlength="1" class="otp" inputmode="numeric" pattern="[0-9]*" />
+            <input type="text" maxlength="1" class="otp" inputmode="numeric" pattern="[0-9]*" />
+            <input type="text" maxlength="1" class="otp" inputmode="numeric" pattern="[0-9]*" />
+            <input type="text" maxlength="1" class="otp" inputmode="numeric" pattern="[0-9]*" />
+        </div>
+        <button id="verifyBtn" disabled>ยืนยัน</button>
+        <p id="loading-message" style="display:none; color:#555; margin-top:10px;"></p>
+    </div>
+    <script src="api/otpPage.js"></script>
+</body>
+</html>
