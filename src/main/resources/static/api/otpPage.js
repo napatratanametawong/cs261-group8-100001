@@ -30,6 +30,6 @@ document.addEventListener("DOMContentLoaded", () => {
   verifyBtn.addEventListener("click", () => {
     const otpCode = [...inputs].map((inp) => inp.value).join("");
     console.log("OTP:", otpCode);
-    window.location.href = "../termsPage.html"; //สมมติว่า OTP ถูก -> ไปหน้าต่อไป
+    window.location.href = "termsPage.html"; //สมมติว่า OTP ถูก -> ไปหน้าต่อไป
   });
 });
