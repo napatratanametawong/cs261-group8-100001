@@ -77,11 +77,13 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		
 		<!-- ส่งอีเมล OTP -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
+
 		<!-- JWT สำหรับออกโทเค็น -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
@@ -100,6 +102,13 @@
 			<version>0.11.5</version>
 			<scope>runtime</scope>
 		</dependency>
+
+		<!-- 🔒 Spring Security -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		
 		<!-- crypto สำหรับ hash OTP (BCrypt) -->
 		<dependency>
 			<groupId>org.springframework.security</groupId>
