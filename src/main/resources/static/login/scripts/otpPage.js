@@ -1,25 +1,64 @@
-// จำลอง flow การเปลี่ยนหน้า ยังไม่ได้เรียก API
+const BASE_URL = "http://localhost:8080";
 
 document.addEventListener("DOMContentLoaded", () => {
   const inputs = document.querySelectorAll(".otp");
   const verifyBtn = document.getElementById("verifyBtn");
+  const loadingMessage = document.getElementById("loading-message");
+  const email = sessionStorage.getItem("email");
 
   inputs.forEach((input, index) => {
     input.addEventListener("input", () => {
-      //อนุญาตเฉพาะตัวเลข
       input.value = input.value.replace(/[^0-9]/g, "");
-
-      if (input.value.length === 1 && index < inputs.length - 1) {
+      if (input.value && index < inputs.length - 1) {
         inputs[index + 1].focus();
       }
       checkAllFilled();
     });
 
     input.addEventListener("keydown", (e) => {
-      if (e.key === "Backspace" && input.value === "" && index > 0) {
+      if (e.key === "Backspace" && !input.value && index > 0) {
         inputs[index - 1].focus();
       }
     });
+  });
+
+  verifyBtn.addEventListener("click", async () => {
+    const otpCode = [...inputs].map((inp) => inp.value).join("");
+    if (otpCode.length < 6) {
+      showMessage("กรุณากรอกรหัส OTP ให้ครบ", "error");
+      return;
+    }
+
+    try {
+      showMessage("กำลังตรวจสอบรหัส OTP...", "loading");
+      verifyBtn.disabled = true;
+
+      const res = await fetch(`${BASE_URL}/auth/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp: otpCode }),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText);
+      }
+
+      const data = await res.json();
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+      localStorage.setItem("profile", JSON.stringify(data.profile));
+
+      if (data.role === "BUILDING_ADMIN") {
+        window.location.href = "/admin";
+      } else {
+        window.location.href = "termsPage.html";
+      }
+    } catch (err) {
+      showMessage(err.message || "OTP ไม่ถูกต้องหรือหมดอายุ", "error");
+    } finally {
+      verifyBtn.disabled = false;
+    }
   });
 
   function checkAllFilled() {
@@ -27,9 +66,9 @@ document.addEventListener("DOMContentLoaded", () => {
     verifyBtn.disabled = !allFilled;
   }
 
-  verifyBtn.addEventListener("click", () => {
-    const otpCode = [...inputs].map((inp) => inp.value).join("");
-    console.log("OTP:", otpCode);
-    window.location.href = "termsPage.html"; //สมมติว่า OTP ถูก -> ไปหน้าต่อไป
-  });
+  function showMessage(msg, type) {
+    loadingMessage.style.display = "block";
+    loadingMessage.textContent = msg;
+    loadingMessage.style.color = type === "error" ? "red" : "#333";
+  }
 });
