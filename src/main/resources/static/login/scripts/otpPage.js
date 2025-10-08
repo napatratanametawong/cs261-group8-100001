@@ -33,6 +33,18 @@ document.addEventListener("DOMContentLoaded", () => {
       showMessage("กำลังตรวจสอบรหัส OTP...", "loading");
       verifyBtn.disabled = true;
 
+       // เริ่มจับเวลา cooldown 60 วินาที
+      let countdown = 60;
+      const timer = setInterval(() => {
+        countdown--;
+        verifyBtn.textContent = `รอ ${countdown}s`;
+        if (countdown <= 0) {
+          clearInterval(timer);
+          verifyBtn.textContent = "ยืนยันรหัส OTP";
+          verifyBtn.disabled = false;
+        }
+      }, 1000);
+
       const res = await fetch(`${BASE_URL}/auth/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
