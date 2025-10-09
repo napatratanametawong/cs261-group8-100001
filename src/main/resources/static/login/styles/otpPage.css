@@ -71,3 +71,32 @@ button:disabled {
 button:hover:not(:disabled) {
   background-color: #000;
 }
+
+.resend-text {
+  color: gray;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.resend-link {
+  color: red;
+  cursor: pointer;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.resend-link:hover {
+  color: #b30000;
+}
+
+.back-link {
+  color: gray;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 6px;
+}
+
+.back-link:hover {
+  color: #555;
+}

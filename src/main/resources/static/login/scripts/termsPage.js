@@ -10,7 +10,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("acceptBtn");
 
   checkbox.addEventListener("change", () => {
-    btn.disabled = !checkbox.checked;
+    if (checkbox.checked) {
+      btn.disabled = false;
+      btn.classList.add("enabled");
+    } else {
+      btn.disabled = true;
+      btn.classList.remove("enabled");
+    }
   });
 
   btn.addEventListener("click", () => {
