@@ -31,12 +31,18 @@
   <!-- This header is now empty, but we can keep it for future sticky elements -->
   <header class="app"></header>
   <main class="main-content">
-    <h1>ระบบขอใช้ห้องอาคาร LC2</h1>
+    <div id="main-header">
+      <h1>ระบบขอใช้ห้องอาคาร LC2</h1>
+    </div>
 
-    <div class="tabs">
-      <button class="tab active">ห้องเรียน</button>
-      <button class="tab">ห้องประชุม</button>
-      <button class="tab">ห้องปฏิบัติการทางคอมพิวเตอร์</button>
+    <div id="breadcrumb" class="breadcrumb-container hidden">
+      <a href="#" id="breadcrumb-home">หน้าแรก</a> / <span id="breadcrumb-current"></span>
+    </div>
+
+    <div id="tabs-container" class="tabs">
+      <button class="tab active" data-category-name="ห้องเรียน">ห้องเรียน</button>
+      <button class="tab" data-category-name="ห้องประชุม">ห้องประชุม</button>
+      <button class="tab" data-category-name="ห้องปฏิบัติการทางคอมพิวเตอร์">ห้องปฏิบัติการทางคอมพิวเตอร์</button>
     </div>
 
     <div class="section-header">
@@ -65,7 +71,7 @@
     <div class="rooms">
 
       <!-- Row template duplicated per room -->
-      <div class="room-card">
+      <div class="room-card" data-category="ห้องปฏิบัติการทางคอมพิวเตอร์">
         <div class="media">🖼️</div>
         <div class="info">
           <div class="title">LC2-213  ห้องปฏิบัติการทางคอมพิวเตอร์ (Computer Lab)</div>
@@ -84,7 +90,7 @@
         <div class="cta"><button class="btn-book">จอง</button></div>
       </div>
 
-      <div class="room-card">
+      <div class="room-card" data-category="ห้องประชุม">
         <div class="media">🖼️</div>
         <div class="info">
           <div class="title">LC2-214  ห้องประชุม 1 (Conference Room I)</div>
@@ -101,7 +107,7 @@
         <div class="cta"><button class="btn-book">จอง</button></div>
       </div>
 
-      <div class="room-card">
+      <div class="room-card" data-category="ห้องประชุม">
         <div class="media">🖼️</div>
         <div class="info">
           <div class="title">LC2-215  ห้องประชุม 2 (Conference Room II)</div>
@@ -120,7 +126,7 @@
 
       <!-- Repeat for LC2-301..316 with same slot pattern -->
       <!-- 301 -->
-      <div class="room-card">
+      <div class="room-card" data-category="ห้องเรียน">
         <div class="media">🖼️</div>
         <div class="info">
           <div class="title">LC2-301</div>
@@ -138,7 +144,7 @@
       </div>
 
       <!-- 302 -->
-      <div class="room-card">
+      <div class="room-card" data-category="ห้องเรียน">
         <div class="media">🖼️</div>
         <div class="info">
           <div class="title">LC2-302</div>

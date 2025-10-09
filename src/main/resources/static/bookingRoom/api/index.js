@@ -4,6 +4,14 @@ const calTitle = document.getElementById('calTitle');
 const calGrid = document.getElementById('calGrid');
 const dpLabel = document.getElementById('dpLabel');
 
+// Elements for navigation
+const mainHeader = document.getElementById('main-header');
+const tabsContainer = document.getElementById('tabs-container');
+const breadcrumb = document.getElementById('breadcrumb');
+const breadcrumbHome = document.getElementById('breadcrumb-home');
+const breadcrumbCurrent = document.getElementById('breadcrumb-current');
+const allRooms = document.querySelectorAll('.room-card');
+
 let currentDate = new Date();
 
 function renderCalendar(date) {
@@ -65,4 +73,58 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('.book-btn')) {
     alert('เริ่มกระบวนการจอง — ฟังก์ชันนี้ยังไม่ได้เชื่อมต่อกับ backend');
   }
+});
+
+// --- Page Navigation Logic ---
+
+function showCategoryView(categoryName) {
+  // Hide main header and tabs
+  mainHeader.classList.add('hidden');
+  tabsContainer.classList.add('hidden');
+
+  // Show breadcrumb and set current category
+  breadcrumbCurrent.textContent = categoryName;
+  breadcrumb.classList.remove('hidden');
+
+  // Filter rooms based on categoryName
+  allRooms.forEach(room => {
+    if (room.dataset.category === categoryName) {
+      room.classList.remove('hidden');
+    } else {
+      room.classList.add('hidden');
+    }
+  });
+}
+
+function showHomeView() {
+  // Show main header and tabs
+  mainHeader.classList.remove('hidden');
+  tabsContainer.classList.remove('hidden');
+
+  // Hide breadcrumb
+  breadcrumb.classList.add('hidden');
+
+  // Show all rooms
+  allRooms.forEach(room => {
+    room.classList.remove('hidden');
+  });
+}
+
+// Event listener for tabs
+tabsContainer.addEventListener('click', (e) => {
+  const clickedTab = e.target.closest('.tab');
+  if (clickedTab) {
+    // Update active tab
+    tabsContainer.querySelector('.tab.active').classList.remove('active');
+    clickedTab.classList.add('active');
+
+    const categoryName = clickedTab.dataset.categoryName;
+    showCategoryView(categoryName);
+  }
+});
+
+// Event listener for breadcrumb home link
+breadcrumbHome.addEventListener('click', (e) => {
+  e.preventDefault(); // Prevent page reload
+  showHomeView();
 });

@@ -96,6 +96,23 @@ body {
   background-color: #e9ecef;
 }
 
+.hidden {
+  display: none !important;
+}
+
+.breadcrumb-container {
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0 0 32px;
+}
+
+.breadcrumb-container a {
+  color: var(--muted);
+  text-decoration: none;
+}
+.breadcrumb-container a:hover {
+  text-decoration: underline;
+}
 .main-content {
   max-width: 1440px;
   margin: 0 auto;
