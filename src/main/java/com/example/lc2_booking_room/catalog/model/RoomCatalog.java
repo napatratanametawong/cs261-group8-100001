@@ -1,4 +1,4 @@
-package com.example.lc2_booking_room.model;
+package com.example.lc2_booking_room.catalog.model;
 
 import jakarta.persistence.*;
 import java.util.List;
@@ -6,25 +6,23 @@ import java.util.List;
 @Entity
 @Table(
     name = "rooms",
-    indexes = {
-        @Index(name = "uk_rooms_code", columnList = "code", unique = true)
-    }
+    indexes = @Index(name = "uk_rooms_code", columnList = "code", unique = true)
 )
-public class Room {
+public class RoomCatalog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "room_id")
-    private Long roomId;                     // internal PK (kept for your friend's repository)
+    private Long roomId;
 
     @Column(name = "code", length = 20, nullable = false, unique = true)
-    private String code;                     // public code, e.g. "LC2-101"
+    private String code;
 
     @Column(name = "room_name", nullable = false)
-    private String roomName;                 // e.g. "ห้องประชุมใหญ่"
+    private String roomName;
 
     @Column(name = "room_type", nullable = false)
-    private String roomType;                 // e.g. "ห้องประชุม"
+    private String roomType;
 
     @Column(name = "min_capacity")
     private int minCapacity;
@@ -40,9 +38,9 @@ public class Room {
     @Column(name = "active")
     private boolean active;
 
-    public Room() {}
+    public RoomCatalog() {}
 
-    public Room(String code, String roomName, String roomType, int minCapacity, int maxCapacity, List<String> features, boolean active) {
+    public RoomCatalog(String code, String roomName, String roomType, int minCapacity, int maxCapacity, List<String> features, boolean active) {
         this.code = code;
         this.roomName = roomName;
         this.roomType = roomType;
@@ -52,7 +50,7 @@ public class Room {
         this.active = active;
     }
 
-    // Getters & Setters
+    // Getters/Setters
     public Long getRoomId() { return roomId; }
     public String getCode() { return code; }
     public void setCode(String code) { this.code = code; }
