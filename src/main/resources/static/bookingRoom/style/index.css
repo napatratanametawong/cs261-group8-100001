@@ -197,7 +197,14 @@ h1 {
 }
 
 .date-trigger .date-trigger-caret {
-  opacity: 0.7
+  opacity: 0.7;
+  width: 18px;
+  height: 18px;
+}
+
+.date-trigger:hover .date-trigger-caret {
+  /* เปลี่ยน SVG สีดำให้เป็นสีขาว */
+  filter: brightness(0) invert(1);
 }
 
 .calendar-card {
@@ -209,11 +216,17 @@ h1 {
   padding: 16px;
   box-shadow: 0 8px 24px rgba(16, 24, 40, 0.12);
   z-index: 999;
-  display: none
+  /* เปลี่ยนจากการใช้ display มาเป็น opacity และ transform เพื่อทำ animation */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
 }
 
 .calendar-card.show {
-  display: block
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .cal-head {
