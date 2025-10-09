@@ -74,3 +74,108 @@ button.enabled {
 button:hover.enabled {
   background-color: #000;
 }
+
+
+/* --------Responsive-------- */
+/* สำหรับจอขนาดกลาง (Tablet) */
+@media (max-width: 1024px) {
+  .terms-container {
+    width: 60%;
+    padding: 30px 40px 70px;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+
+  .terms-box {
+    height: 200px;
+    font-size: 14px;
+  }
+
+  button {
+    width: 110px;
+  }
+}
+
+/* สำหรับมือถือแนวตั้ง */
+@media (max-width: 768px) {
+  .terms-container {
+    width: 80%;
+    padding: 25px 25px 60px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  .terms-box {
+    height: 180px;
+    font-size: 13px;
+  }
+
+  .agree-section {
+    font-size: 13px;
+    gap: 6px;
+  }
+
+  button {
+    width: 100px;
+    font-size: 15px;
+  }
+}
+
+/* สำหรับมือถือขนาดเล็ก (ต่ำกว่า 480px) */
+@media (max-width: 480px) {
+  body {
+    align-items: center;
+    padding-top: 0;
+    height: 100vh;
+  }
+
+  .terms-container {
+    width: 90%;
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 18px;
+    margin-bottom: 15px;
+  }
+
+  .terms-box {
+    height: 160px;
+    font-size: 12.5px;
+    padding: 12px;
+  }
+
+  .agree-section {
+    font-size: 12.5px;
+    gap: 5px;
+  }
+
+  button {
+    width: 100%;
+    font-size: 15px;
+    align-self: center;
+    height: 42px;
+  }
+}
+
+/* สำหรับมือถือแนวนอน (Landscape) */
+@media (max-height: 480px) and (orientation: landscape) {
+  .terms-container {
+    width: 55%;
+    padding: 20px 25px;
+  }
+
+  .terms-box {
+    height: 140px;
+  }
+
+  button {
+    width: 90px;
+    height: 40px;
+    font-size: 14px;
+  }
+}

@@ -79,3 +79,93 @@ button {
 button:hover {
     background-color: #000000;
 }
+
+
+/* --------Responsive-------- */
+/* สำหรับจอขนาดกลาง (Tablet แนวนอน หรือ iPad) */
+@media (max-width: 1024px) {
+  form {
+    width: 60%;
+    padding: 30px 40px 60px;
+    transform: none;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+}
+
+/* สำหรับจอเล็ก (Tablet แนวตั้ง / มือถือใหญ่) */
+@media (max-width: 768px) {
+  form {
+    width: 70%;
+    padding: 20px 30px 50px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  button {
+    width: 35%;
+    height: 45px;
+    display:block;
+    margin: 35px auto 0;
+  }
+}
+
+/* สำหรับมือถือเล็ก (ต่ำกว่า 480px) */
+@media (max-width: 480px) {
+  body {
+    align-items: center;
+    padding-top: 0;
+    height: 100vh;
+  }
+
+  form {
+    width: 88%;
+    padding: 20px;
+    margin: 0 auto;
+  }
+
+  .logo {
+    max-width: 70%;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+
+  input {
+    height: 42px;
+    font-size: 13px;
+  }
+
+  button {
+    width: 35%;
+    height: 42px;
+    font-size: 15px;
+  }
+}
+
+/* สำหรับมือถือแนวนอน (Landscape) */
+@media (max-height: 480px) and (orientation: landscape) {
+  form {
+    width: 35%; /* จำกัดไม่ให้เต็มจอ */
+    padding: 15px 25px;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+
+  input {
+    height: 38px;
+  }
+
+  button {
+    width: 35%;
+    height: 40px;
+    font-size: 14px;
+  }
+}
