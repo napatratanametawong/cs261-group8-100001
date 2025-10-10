@@ -30,7 +30,7 @@ body {
 .top-bar {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 18px 48px;
+  padding: 0px 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -41,7 +41,9 @@ body {
 }
 
 .brand-logo img {
-  height: 175px
+  height: 175px;
+  margin-left: -16px;
+  padding-top: 20px;
 }
 
 .toolbar {
@@ -116,7 +118,61 @@ body {
 .main-content {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 0px 48px;
+  padding: 0px 32px;
+}
+
+#main-header {
+  position: relative;
+  max-width: 100%;
+  margin-bottom: 180px; /* ให้พื้นที่สำหรับกล่องซ้อน */
+}
+
+#main-header h1 {
+  position: relative;
+  z-index: 2; /* อยู่เหนือ background */
+  text-align: center;
+  padding: 20px 32px 0px 32px;
+  font-size: 78px;
+  font-weight: 800;
+  color: #fff;
+  transform: translateY(50px);
+  text-shadow: 5px 5px 0px #F0A202; /* เงาเล็ก */
+}
+
+#main-header .sub-header {
+  position: relative; /* อยู่บนภาพ */
+  z-index: 2; /* เหนือ background */
+  text-align: center;
+  font-size: 24px; /* ขนาดเล็กลง */
+  color: #fff;
+  margin-top: -10px; /* เว้นระยะจาก h1 */
+  transform: translateY(20px);
+  font-weight: 700;
+  text-shadow: 1px 1px 3px #00000080; /* เงาเล็ก */
+}
+
+
+#main-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0px;   /* same as main-content padding */
+  right: 0px;
+  bottom: -160px; /* ขยายลงมาด้านล่างเพื่อให้กล่องซ้อน */
+  background-image: url('../resource/Banner.png');
+  background-size: cover;
+  background-position: center;
+  border-radius: 5px;
+  opacity: 1; /* ไม่จาง */
+  z-index: 1; /* อยู่หลังข้อความ */
+}
+
+/* tabs และ cards ซ้อนบนภาพ */
+.tabs,
+.rooms {
+  position: relative;
+  z-index: 2; /* อยู่เหนือ background */
+  margin-top: -90px; /* ซ้อนครึ่งหนึ่งบนภาพ */
 }
 
 h1 {
@@ -355,7 +411,7 @@ h1 {
 
 .slot {
   padding: 8px 12px;
-  border-radius: 10px;
+  border-radius: 5px;
   font-size: 13px;
   line-height: 1;
   border: 1px solid transparent;
@@ -378,13 +434,14 @@ h1 {
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  margin-top: 60px;
 }
 
 .btn-book {
   width: 72px;
   height: 36px;
   border: none;
-  border-radius: 10px;
+  border-radius: 5px;
   background: var(--accent);
   color: #fff;
   font-weight: 700;
