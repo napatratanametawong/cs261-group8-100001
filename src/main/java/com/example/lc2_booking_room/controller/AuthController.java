@@ -4,8 +4,11 @@ import com.example.lc2_booking_room.dto.*;
 import com.example.lc2_booking_room.service.*;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.HttpHeaders;
 
 import java.time.Instant;
 import java.util.Objects;
@@ -15,7 +18,6 @@ import java.util.regex.Pattern;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-
     private static final Pattern DOME_EMAIL = Pattern.compile("^[A-Za-z0-9._%+-]+@dome\\.tu\\.ac\\.th$",
             Pattern.CASE_INSENSITIVE);
 
@@ -118,39 +120,41 @@ public class AuthController {
             return ResponseEntity.badRequest().body("OTP ไม่ถูกต้องหรือหมดอายุ");
         }
 
+        // role
         String role = isAdminEmail(email) ? "BUILDING_ADMIN" : "USER";
+
+        // username & profile
         String username = otpStore.getUsernameFor(email);
         if (username == null)
             username = "";
 
-        UserProfile profile = null;
-
-        if ("USER".equals(role)) {
-            // ✅ USER ต้องมี username (ได้จาก /auth/tucheck)
-            if (username.isBlank()) {
-                return ResponseEntity.badRequest()
-                        .body("ไม่พบ username ที่ผูกไว้ กรุณาเรียก /auth/tucheck ก่อน แล้วจึงขอ/ยืนยัน OTP");
-            }
-            // ดึงโปรไฟล์จาก TU ด้วย "username"
+        com.example.lc2_booking_room.dto.UserProfile profile = null;
+        if ("USER".equals(role) && !username.isBlank()) {
             profile = tuDirectory.getStudentProfile(username);
-            if (profile == null) {
-                // กันเคส TU ล่ม/คีย์ไม่ตรง → ตอบแบบมีข้อมูลเท่าที่รู้
-                profile = new UserProfile(username, null, email, null, null);
-            } else if (profile.getEmail() == null || profile.getEmail().isBlank()) {
+            if (profile != null && (profile.getEmail() == null || profile.getEmail().isBlank())) {
                 profile.setEmail(email);
             }
-        } else {
-            // ✅ ADMIN: ใช้ username ที่กรอกไว้ตอน tucheck (ถ้าเว้นว่างได้ก็โอเค)
-            profile = new UserProfile(
-                    username,
-                    null,
-                    email,
-                    "ฝ่ายดูแลอาคาร บร.2",
-                    "คณะวิทยาศาสตร์และเทคโนโลยี");
+        } else if ("BUILDING_ADMIN".equals(role)) {
+            profile = new com.example.lc2_booking_room.dto.UserProfile(
+                    username, null, email, null, null);
         }
 
+        // 🟩 Create JWT
         String token = jwtService.issueToken(email, role, username);
-        return ResponseEntity.ok(new TokenResponse(token, role, username, profile));
+
+        // 🟨 Create HttpOnly cookie (name=AUTH)
+        ResponseCookie cookie = ResponseCookie.from("AUTH", token)
+                .httpOnly(true)
+                .secure(false) // change to true if using HTTPS
+                .path("/")
+                .sameSite("Lax") // use "None" + secure(true) if frontend on different domain
+                .maxAge(24 * 60 * 60) // 1 day
+                .build();
+
+        // 🟦 Return response + cookie header
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(new TokenResponse(token, role, username, profile));
     }
 
     // ---------- Helpers ----------
@@ -175,5 +179,17 @@ public class AuthController {
             local = local.replace(".", "");
         }
         return local + "@" + domain;
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        ResponseCookie cookie = ResponseCookie.from("AUTH", "")
+                .path("/")
+                .httpOnly(true)
+                .maxAge(0)
+                .build();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body("Logged out");
     }
 }

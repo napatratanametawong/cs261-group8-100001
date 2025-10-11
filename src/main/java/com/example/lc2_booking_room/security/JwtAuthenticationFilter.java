@@ -33,21 +33,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws ServletException, IOException {
-        try {
-            String auth = req.getHeader("Authorization");
-            if (auth != null && auth.startsWith("Bearer ")) {
-                String token = auth.substring(7).trim();
-                if (jwtService.validate(token)) {
-                    String email = jwtService.getSubject(token);
-                    String role = jwtService.getRole(token); // "USER" หรือ "BUILDING_ADMIN"
-                    var authToken = new UsernamePasswordAuthenticationToken(
-                            email, null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+
+        String token = null;
+        String authHeader = req.getHeader("Authorization");
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        } else if (req.getCookies() != null) {
+            for (var cookie : req.getCookies()) {
+                if ("AUTH".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
                 }
             }
-        } catch (Exception ignore) {
-            // อย่าส่ง 401 ที่นี่ ปล่อยให้ไปตาม rules
         }
+
+        if (token != null && jwtService.validate(token)) {
+            var username = jwtService.getSubject(token);
+            var role = jwtService.getRole(token);
+
+            var auth = new UsernamePasswordAuthenticationToken(
+                    username, null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
+            SecurityContextHolder.getContext().setAuthentication(auth);
+        }
+
         chain.doFilter(req, res);
     }
 }

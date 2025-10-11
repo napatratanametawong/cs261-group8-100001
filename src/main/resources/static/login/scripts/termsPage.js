@@ -20,6 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   btn.addEventListener("click", () => {
-    window.location.href = "/app";
+    window.location.href = "../../bookingRoom/homepage_user.html";
   });
 });

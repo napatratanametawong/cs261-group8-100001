@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("profile", JSON.stringify(data.profile));
 
       if (data.role === "BUILDING_ADMIN") {
-        window.location.href = "/admin";
+        window.location.href = "../../admin/homepage_admin.html";
       } else {
         window.location.href = "termsPage.html";
       }
