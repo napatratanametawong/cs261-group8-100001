@@ -1,0 +1,7 @@
+target/
+.git/
+.gitignore
+**/*.iml
+.idea/
+.mvn/wrapper/MavenWrapperDownloader.java
+.DS_Store

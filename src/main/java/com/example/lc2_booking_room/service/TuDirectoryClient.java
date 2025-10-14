@@ -16,7 +16,7 @@ public class TuDirectoryClient {
     private final RestTemplate restTemplate;
 
     @Value("${app.tu.base-url}")
-    private String baseUrl; // e.g. https://restapi.tu.ac.th/api/
+    private String baseUrl; 
 
     // ใช้ Application-Key (จากที่คุณเทสแล้วเวิร์ค)
     @Value("${app.tu.application-key:}")
@@ -30,7 +30,7 @@ public class TuDirectoryClient {
         this.restTemplate = restTemplate;
     }
 
-    /** ดึงอีเมลทั้งหมดของนิสิตจาก userName (ใช้สำหรับ /auth/tucheck เทียบกับอีเมลที่ผู้ใช้กรอก) */
+    /** ดึงอีเมลทั้งหมดของ นศ. จาก userName (ใช้สำหรับ /auth/tucheck เทียบกับอีเมลที่ผู้ใช้กรอก) */
     public Set<String> findStudentEmails(String userName) {
         Set<String> emails = new HashSet<>();
         JsonNode data = callStdProfileByUsername(userName);

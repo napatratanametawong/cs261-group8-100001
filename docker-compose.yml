@@ -1,15 +1,64 @@
 version: "3.9"
+
 services:
   mssql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: mssql
+    image: mcr.microsoft.com/mssql/server:2022-CU16-ubuntu-22.04
+    container_name: booking-mssql
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong@Passw0rd   
+      - SA_PASSWORD=YourStrong@Passw0rd!
       - MSSQL_PID=Developer
     ports:
       - "11433:1433"
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Passw0rd!" -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 30
     volumes:
-      - mssql-data:/var/opt/mssql
+      - mssql_data:/var/opt/mssql
+    restart: unless-stopped
+
+  db-init:
+    image: mcr.microsoft.com/mssql-tools:latest
+    depends_on:
+      mssql:
+        condition: service_healthy
+    volumes:
+      - ./docker/sql:/sql:ro
+    entrypoint: ["/bin/sh","-c"]
+    command: >
+      set -e;
+      echo '--- List /sql ---'; ls -la /sql;
+      echo '--- Running 00_init.sql ---';
+      /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P 'YourStrong@Passw0rd!' -d master -i /sql/00_init.sql;
+      echo 'DB init done.'
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile       
+    container_name: booking-app
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
+      APP_MAIL_ENABLED: ${APP_MAIL_ENABLED:-false}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:?APP_JWT_SECRET is required}
+      APP_TU_APPLICATION_KEY: ${APP_TU_APPLICATION_KEY:-}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:?required}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:?required}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?required}
+
+    depends_on:
+      mssql:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
 volumes:
-  mssql-data:
+  mssql_data:

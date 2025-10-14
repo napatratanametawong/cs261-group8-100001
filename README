@@ -1,0 +1,14 @@
+## Running with Docker
+1. Copy env template and set secrets:
+   ```bash
+   cp .env.example .env
+   # แก้ค่าด้านใน .env ให้เรียบร้อย (โดยเฉพาะ SPRING_DATASOURCE_PASSWORD, SPRING_MAIL_PASSWORD, APP_JWT_SECRET, APP_TU_APPLICATION_KEY)
+2.Build & run:
+    docker compose up -d --build
+    docker compose logs -f app
+3. Health check:
+    App: http://localhost:8080/actuator/health 
+    SQL Server listens on localhost:11433 (ถ้าตั้งพอร์ตไว้อย่างนั้นใน compose)
+
+# Base64 (48 bytes)
+cmd: [Convert]::ToBase64String((1..48 | % { Get-Random -Max 256 }))
