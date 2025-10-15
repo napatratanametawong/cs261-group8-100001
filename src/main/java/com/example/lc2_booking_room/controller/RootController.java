@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class RootController {
     @GetMapping("/")
     public String root() {
-        // ให้ตรงกับ SmartAuthEntryPoint ด้านบน
         return "redirect:/login/pages/loginPage.html";
     }
 }
