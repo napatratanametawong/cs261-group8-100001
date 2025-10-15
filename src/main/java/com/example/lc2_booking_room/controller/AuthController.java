@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.HttpHeaders;
 
 import java.time.Instant;
@@ -20,7 +19,6 @@ import java.util.regex.Pattern;
 public class AuthController {
     private static final Pattern DOME_EMAIL = Pattern.compile("^[A-Za-z0-9._%+-]+@dome\\.tu\\.ac\\.th$",
             Pattern.CASE_INSENSITIVE);
-
     private final EmailService emailService;
     private final OtpService otpService;
     private final OtpStore otpStore;
@@ -54,14 +52,14 @@ public class AuthController {
         String userName = req.getUserName().trim();
         String email = req.getEmail().trim().toLowerCase();
 
-        // ✅ ถ้าเป็นอีเมล admin ข้าม TU check
+        //ถ้าเป็นอีเมล admin ข้าม TU check
         if (isAdminEmail(email)) {
             otpStore.markTuCheckPassed(email);
             otpStore.setUsernameFor(email, userName);
             return ResponseEntity.ok("ผ่านการตรวจสอบแล้ว (admin)");
         }
 
-        // ✅ สำหรับนักศึกษา ต้องเช็คกับ TU API
+        //สำหรับนักศึกษา ต้องเช็คกับ TU API
         Set<String> tuEmails = tuDirectory.findStudentEmails(userName);
         if (tuEmails.isEmpty()) {
             return ResponseEntity.badRequest().body("ไม่พบข้อมูลจาก TU API");
@@ -83,7 +81,7 @@ public class AuthController {
         return ResponseEntity.ok("ผ่านการตรวจสอบแล้ว");
     }
 
-    /** ขั้นที่ 2: ขอ OTP */
+    /** Request OTP */
     @PostMapping("/request-otp")
     public ResponseEntity<?> requestOtp(@Valid @RequestBody RequestOtpDto req) {
         String emailInput = req.getEmail().trim().toLowerCase();
@@ -110,7 +108,7 @@ public class AuthController {
         return ResponseEntity.ok("ส่ง OTP ไปที่อีเมลแล้ว (อายุ " + (otpTtl / 60) + " นาที)");
     }
 
-    /** ขั้นที่ 3: ยืนยัน OTP → ออก JWT + role + profile */
+    /** ยืนยัน OTP → ออก JWT + role + profile */
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@Valid @RequestBody VerifyOtpDto req) {
         String email = req.getEmail().trim().toLowerCase();
