@@ -32,5 +32,10 @@ build/
 ### VS Code ###
 .vscode/
 
-### Password files ###
-.env
+# Ignore env files (root + any subfolders)
+**/.env
+**/.env.*
+
+# …but keep example templates
+!**/.env.example
+!**/.env*.example
