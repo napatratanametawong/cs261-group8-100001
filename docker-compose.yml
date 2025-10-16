@@ -11,10 +11,11 @@ services:
     ports:
       - "11433:1433"
     healthcheck:
-      test: /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Passw0rd!" -Q "SELECT 1" || exit 1
+      test: /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Passw0rd!" -Q "SELECT 1"
       interval: 10s
       timeout: 5s
       retries: 30
+      start_period: 40s
     volumes:
       - mssql_data:/var/opt/mssql
     restart: unless-stopped
@@ -29,27 +30,29 @@ services:
     entrypoint: ["/bin/sh","-c"]
     command: >
       set -e;
-      echo '--- List /sql ---'; ls -la /sql;
-      echo '--- Running 00_init.sql ---';
-      /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P 'YourStrong@Passw0rd!' -d master -i /sql/00_init.sql;
-      echo 'DB init done.'
+      SQLCMD=$([ -x /opt/mssql-tools/bin/sqlcmd ] && echo /opt/mssql-tools/bin/sqlcmd || echo /opt/mssql-tools18/bin/sqlcmd);
+      echo "--- using $$SQLCMD ---";
+      echo "--- list /sql ---"; ls -la /sql;
+      echo "--- run 00_init.sql ---";
+      $$SQLCMD -S mssql -U sa -P 'YourStrong@Passw0rd!' -d master -b -i /sql/00_init.sql;
+      echo "DB init done."
     restart: "no"
 
   app:
     build:
       context: .
-      dockerfile: Dockerfile       
+      dockerfile: Dockerfile
     container_name: booking-app
     env_file:
       - .env
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
       APP_MAIL_ENABLED: ${APP_MAIL_ENABLED:-false}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:?APP_JWT_SECRET is required}
       APP_TU_APPLICATION_KEY: ${APP_TU_APPLICATION_KEY:-}
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:?required}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:?required}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?required}
     depends_on:
       mssql:
         condition: service_healthy
@@ -58,5 +61,8 @@ services:
     ports:
       - "8080:8080"
     restart: unless-stopped
+
 volumes:
   mssql_data:
+
+

@@ -11,4 +11,4 @@
     SQL Server listens on localhost:11433 (ถ้าตั้งพอร์ตไว้อย่างนั้นใน compose)
 
 # Base64 (48 bytes)
-cmd: [Convert]::ToBase64String((1..48 | % { Get-Random -Max 256 }))
+https://onlinebase64tools.com/generate-random-base64
