@@ -30,9 +30,15 @@ public class RoomService {
 
     public Boolean createRoom(CreateRoomRequest request) {
         Room newRoom = new Room();
-        newRoom.setRoomName(request.getRoomName());
-        newRoom.setRoomType(request.getRoomType());
-        newRoom.setCapacity(request.getCapacity());
+
+    newRoom.setRoomName(request.getRoomName());
+    newRoom.setRoomType(request.getRoomType());
+    newRoom.setMinCapacity(request.getMinCapacity());
+    newRoom.setMaxCapacity(request.getMaxCapacity());
+    request.getFeaturesJson();
+
+
+        newRoom.setActive(true);
 
         roomRepository.save(newRoom);
         return true;
