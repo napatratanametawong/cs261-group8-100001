@@ -10,6 +10,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.Map;
+
 
 @Repository
 public class RoomRepositoryCustom {
@@ -19,21 +22,28 @@ public class RoomRepositoryCustom {
 
     public List<Map<String, Object>> getRoomStatuses(String date) {
         try {
-            // โหลด query จากไฟล์ SQL
+            // โหลด SQL จากไฟล์
             String sql = Files.readString(Path.of("src/main/resources/sql/room_status.sql"));
             Query query = entityManager.createNativeQuery(sql);
 
-            // ตั้งค่า parameter
+            // ใส่ parameter ชื่อ date
             query.setParameter("date", date);
 
-            // แปลงผลลัพธ์เป็น List<Map<String,Object>>
+            // แปลงผลลัพธ์เป็น List<Map<String, Object>>
             query.unwrap(org.hibernate.query.NativeQuery.class)
-                 .setResultTransformer(org.hibernate.transform.AliasToEntityMapResultTransformer.INSTANCE);
+                 .setTupleTransformer((tuple, aliases) -> {
+                     Map<String, Object> map = new HashMap<>();
+                     for (int i = 0; i < aliases.length; i++) {
+                         map.put(aliases[i], tuple[i]);
+                     }
+                     return map;
+                 });
 
             return query.getResultList();
 
         } catch (IOException e) {
-            throw new RuntimeException("❌ ไม่สามารถโหลดไฟล์ room_status.sql ได้", e);
+            throw new RuntimeException("อ่านไฟล์ SQL ไม่ได้: " + e.getMessage());
         }
     }
 }
+
