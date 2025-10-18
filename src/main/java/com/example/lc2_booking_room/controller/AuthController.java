@@ -52,14 +52,14 @@ public class AuthController {
         String userName = req.getUserName().trim();
         String email = req.getEmail().trim().toLowerCase();
 
-        //ถ้าเป็นอีเมล admin ข้าม TU check
+        // ถ้าเป็นอีเมล admin ข้าม TU check
         if (isAdminEmail(email)) {
             otpStore.markTuCheckPassed(email);
             otpStore.setUsernameFor(email, userName);
             return ResponseEntity.ok("ผ่านการตรวจสอบแล้ว (admin)");
         }
 
-        //สำหรับนักศึกษา ต้องเช็คกับ TU API
+        // สำหรับนักศึกษา ต้องเช็คกับ TU API
         Set<String> tuEmails = tuDirectory.findStudentEmails(userName);
         if (tuEmails.isEmpty()) {
             return ResponseEntity.badRequest().body("ไม่พบข้อมูลจาก TU API");
@@ -189,5 +189,51 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body("Logged out");
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> me(
+            @CookieValue(name = "AUTH", required = false) String authCookie,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        // 1) ดึง token จาก Cookie AUTH หรือ Header Bearer
+        String token = null;
+        if (authCookie != null && !authCookie.isBlank()) {
+            token = authCookie.trim();
+        } else if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
+            token = authHeader.substring("bearer ".length()).trim();
+        }
+        if (token == null || token.isBlank()) {
+            return ResponseEntity.status(401).body("{\"error\":\"Unauthorized\"}");
+        }
+
+        // 2) อ่าน claims จาก JWT
+        String email = jwtService.getEmail(token);
+        String role = jwtService.getRole(token);
+        String username = jwtService.getUsername(token);
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.status(401).body("{\"error\":\"Invalid token\"}");
+        }
+        if (role == null || role.isBlank())
+            role = "USER";
+        if (username == null)
+            username = "";
+
+        // 3) เตรียมโปรไฟล์
+        UserProfile profile = null;
+        if ("USER".equals(role) && !username.isBlank()) {
+            // นักศึกษา → ดึงข้อมูลสดจาก TU API
+            profile = tuDirectory.getStudentProfile(username);
+            if (profile == null) {
+                // กัน null: อย่างน้อยส่ง email/username กลับไป
+                profile = new UserProfile(username, null, email, null, null);
+            } else if (profile.getEmail() == null || profile.getEmail().isBlank()) {
+                profile.setEmail(email);
+            }
+        } else {
+            // แอดมิน (gmail) หรือกรณีไม่มี username ใน token
+            profile = new UserProfile(username, null, email, null, null);
+        }
+        // 4) ตอบกลับ
+        return ResponseEntity.ok(new MeResponse(email, role, username, profile));
     }
 }
