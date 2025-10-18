@@ -1,6 +1,7 @@
 package com.example.lc2_booking_room.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import java.util.List;
 
 @Entity
@@ -9,6 +10,7 @@ import java.util.List;
     name = "rooms",
     indexes = @Index(name = "uk_rooms_code", columnList = "code", unique = true)
 )
+@Data
 public class Room {
 
     @Id
@@ -52,29 +54,4 @@ public class Room {
         this.features = features;
         this.active = active;
     }
-
-    // ----- Getters/Setters -----
-    public Long getRoomId() { return roomId; }
-    public void setRoomId(Long roomId) { this.roomId = roomId; }
-
-    public String getCode() { return code; }
-    public void setCode(String code) { this.code = code; }
-
-    public String getRoomName() { return roomName; }
-    public void setRoomName(String roomName) { this.roomName = roomName; }
-
-    public String getRoomType() { return roomType; }
-    public void setRoomType(String roomType) { this.roomType = roomType; }
-
-    public int getMinCapacity() { return minCapacity; }
-    public void setMinCapacity(int minCapacity) { this.minCapacity = minCapacity; }
-
-    public int getMaxCapacity() { return maxCapacity; }
-    public void setMaxCapacity(int maxCapacity) { this.maxCapacity = maxCapacity; }
-
-    public List<String> getFeatures() { return features; }
-    public void setFeatures(List<String> features) { this.features = features; }
-
-    public boolean isActive() { return active; }
-    public void setActive(boolean active) { this.active = active; }
 }
