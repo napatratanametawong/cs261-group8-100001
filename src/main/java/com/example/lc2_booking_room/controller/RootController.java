@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class RootController {
     @GetMapping("/")
     public String root() {
-        return "redirect:/login/pages/loginPage.html";
+        return "redirect:/login/pages/LoginPage.html";
     }
 }

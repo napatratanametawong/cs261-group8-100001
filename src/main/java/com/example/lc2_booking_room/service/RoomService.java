@@ -60,7 +60,7 @@ public class RoomService {
 
     // ✅ get room status (new feature)
     public List<Map<String, Object>> getRoomStatus(String date) {
-        return roomRepositoryCustom.getRoomStatus(date);
+        return roomRepositoryCustom.getRoomStatuses(date);
     }
 
     // ✅ create room from request DTO

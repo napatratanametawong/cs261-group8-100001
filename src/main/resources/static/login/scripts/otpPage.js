@@ -108,3 +108,22 @@ document.addEventListener("DOMContentLoaded", () => {
     loadingMessage.style.color = type === "error" ? "red" : "#333";
   }
 });
+
+// แยก role 
+fetch('/api/auth/verify-otp', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email, otp })
+})
+.then(res => res.json())
+.then(data => {
+  localStorage.setItem('jwt_token', data.token);
+  localStorage.setItem('user_email', data.email);
+  localStorage.setItem('is_admin', data.isAdmin); // เก็บสถานะ admin
+
+  if (data.isAdmin) {
+    window.location.href = '/admin/homepage_admin.html';
+  } else {
+    window.location.href = '/bookingRoom/homepage_user.html';
+  }
+});

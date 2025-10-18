@@ -30,7 +30,7 @@ public class SecurityConfig {
     @Bean
     public SmartAuthEntryPoint smartAuthEntryPoint() {
         // เปลี่ยน path ให้ตรงกับไฟล์จริง
-        return new SmartAuthEntryPoint("/login/pages/loginPage.html");
+        return new SmartAuthEntryPoint("/login/pages/LoginPage.html");
     }
 
     @Bean
@@ -54,7 +54,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                 // ✅ Protected
-                .requestMatchers(HttpMethod.GET, "/rooms/**").hasAnyRole("USER", "BUILDING_ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/rooms/**").hasAnyRole("USER", "BUILDING_ADMIN")
                 .requestMatchers("/bookingRoom/**").hasRole("USER")
                 .requestMatchers("/admin/**").hasRole("BUILDING_ADMIN")
 
@@ -88,3 +88,4 @@ public class SecurityConfig {
         return source;
     }
 }
+

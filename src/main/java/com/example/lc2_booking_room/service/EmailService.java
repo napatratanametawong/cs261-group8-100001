@@ -1,5 +1,6 @@
 package com.example.lc2_booking_room.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -8,6 +9,8 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private final JavaMailSender mail;
+    @Value("${app.mail.enabled:true}")
+    private boolean mailEnabled;
 
     public EmailService(JavaMailSender mail) {
         this.mail = mail;
@@ -15,6 +18,10 @@ public class EmailService {
 
     /** ส่ง OTP แบบข้อความล้วน */
     public void sendOtp(String toEmail, String otp) {
+        if (!mailEnabled) {
+            System.out.println("[DEV] OTP for " + toEmail + ": " + otp);
+            return;
+        }
         SimpleMailMessage msg = new SimpleMailMessage();
         msg.setTo(toEmail);
 

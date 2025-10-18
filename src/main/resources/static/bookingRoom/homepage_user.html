@@ -7,6 +7,39 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style/index.css" />
   <script src="api/index.js" defer></script>
+
+  <script>
+    // ตรวจสอบ token และแสดงชื่อผู้ใช้
+    document.addEventListener('DOMContentLoaded', async () => {
+      const token = localStorage.getItem('jwt_token');
+      if (!token) {
+        window.location.href = '/login/pages/LoginPage.html';
+        return;
+      }
+      try {
+        const res = await fetch('/api/user/profile', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('userName').textContent = data.displayName || data.email;
+        } else {
+          window.location.href = '/login/pages/LoginPage.html';
+        }
+      } catch (e) {
+        window.location.href = '/login/pages/LoginPage.html';
+      }
+    });
+
+    // ปุ่มออกจากระบบ
+    function logout() {
+      localStorage.removeItem('jwt_token');
+      localStorage.removeItem('user_email');
+      localStorage.removeItem('is_admin');
+      window.location.href = '/login/pages/LoginPage.html';
+    }
+  </script>
+
 </head>
 <body>
   <header class="app">
