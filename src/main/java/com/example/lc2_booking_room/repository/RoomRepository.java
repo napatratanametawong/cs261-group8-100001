@@ -7,10 +7,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Map;
-
 import com.example.lc2_booking_room.model.Room;
+
 @Repository
-public interface RoomRepository extends JpaRepository<Room, Long> {
+public interface RoomRepository extends JpaRepository<Room, Long>, RoomRepositoryCustom {
 
     @Query(value = """
         SELECT r.room_name, t.slot_code,
