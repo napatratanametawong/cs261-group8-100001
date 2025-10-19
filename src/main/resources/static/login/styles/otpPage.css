@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap');
+
+body {
+  font-family: "IBM Plex Sans Thai", sans-serif;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.otp-container {
+  background-color: #fff;
+  width: 450px;
+  padding: 30px 40px;
+  border-radius: 5px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+p {
+  margin-bottom: 30px;
+  color: #333;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.otp-inputs {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.otp {
+  width: 45px;
+  height: 55px;
+  text-align: center;
+  font-size: 24px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.otp:focus {
+  border-color: #cc001f;
+  outline: none;
+}
+
+button {
+  font-family: "IBM Plex Sans Thai", sans-serif;  
+  background-color: #cc001f;
+  color: #fff;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+  background-color: #000;
+}
+
+.resend-text {
+  color: gray;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.resend-link {
+  color: red;
+  cursor: pointer;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.resend-link:hover {
+  color: #b30000;
+}
+
+.back-link {
+  color: gray;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 6px;
+  display: inline-block;
+}
+
+.back-link:hover {
+  color: #555;
+}
+
+
+/* --------Responsive-------- */
+/* สำหรับจอขนาดกลาง (Tablet) */
+@media (max-width: 1024px) {
+  .otp-container {
+    width: 60%;
+    padding: 25px 30px;
+  }
+  h1 {
+    font-size: 22px;
+  }
+  .otp {
+    width: 42px;
+    height: 50px;
+  }
+}
+
+/* สำหรับจอมือถือทั่วไป (แนวตั้ง) */
+@media (max-width: 768px) {
+  .otp-container {
+    width: 80%;
+    padding: 20px 25px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  p {
+    font-size: 15px;
+    margin-bottom: 25px;
+  }
+
+  .otp-inputs {
+    gap: 8px;
+  }
+
+  .otp {
+    width: 40px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  button {
+    width: 60%;
+    height: 45px;
+    font-size: 15px;
+  }
+
+  .resend-text,
+  .back-link {
+    font-size: 13px;
+  }
+}
+
+/* สำหรับมือถือขนาดเล็ก (ต่ำกว่า 480px) */
+@media (max-width: 480px) {
+  body {
+    align-items: center;
+    padding-top: 0;
+    height: 100vh;
+  }
+
+  .otp-container {
+    width: 90%;
+    padding: 18px 15px;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+
+  p {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .otp-inputs {
+    gap: 6px;
+  }
+
+  .otp {
+    width: 35px;
+    height: 45px;
+    font-size: 18px;
+  }
+
+  button {
+    width: 70%;
+    height: 42px;
+    font-size: 15px;
+  }
+
+  .resend-text,
+  .back-link {
+    font-size: 12px;
+  }
+}
+
+/* สำหรับมือถือแนวนอน (landscape) */
+@media (max-height: 480px) and (orientation: landscape) {
+  .otp-container {
+    width: 55%;
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+
+  .otp {
+    width: 35px;
+    height: 42px;
+  }
+
+  button {
+    width: 50%;
+    height: 40px;
+    font-size: 14px;
+  }
+}
