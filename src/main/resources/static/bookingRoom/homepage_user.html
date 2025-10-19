@@ -1,14 +1,16 @@
 <!doctype html>
 <html lang="th">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LC2 Booking</title>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@700&display=swap" rel="stylesheet">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="page-title" content="Log-in Page">
   <link rel="stylesheet" href="style/index.css" />
   <script src="api/index.js" defer></script>
+  <script src="api/profile.js"></script>
+  <script src="api/logout.js" type="module"></script>
+  <script src="../../global-head.js" defer></script>
 </head>
+
 <body>
   <div class="top-bar">
     <div class="brand-logo">
@@ -19,10 +21,10 @@
         <img src="../resource/bell.svg" alt="แจ้งเตือน" />
       </button>
       <div class="chip">
-        <span id="displayName" class="displayName">นางสาว XXX XXXXXXXXX</span>
+        <span id="displayName" class="displayName"></span>
         <img class="avatar-img" src="../resource/user.svg" alt="User" />
       </div>
-      <button class="icon-btn" title="ออก">
+      <button class="icon-btn" id="logout_btn" title="ออก">
         <img src="../resource/logout.svg" alt="ออก" />
       </button>
     </div>
@@ -161,9 +163,7 @@
         </div>
         <div class="cta"><button class="btn-book">จอง</button></div>
       </div>
-
     </div>
-
   </main>
 </body>
 </html>

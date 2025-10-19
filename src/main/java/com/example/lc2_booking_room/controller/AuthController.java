@@ -220,7 +220,6 @@ public class AuthController {
 
         // 3) เตรียมโปรไฟล์
         UserProfile profile = null;
-
         if ("USER".equals(role) && !username.isBlank()) {
             // นักศึกษา → ดึงข้อมูลสดจาก TU API
             profile = tuDirectory.getStudentProfile(username);
@@ -234,7 +233,6 @@ public class AuthController {
             // แอดมิน (gmail) หรือกรณีไม่มี username ใน token
             profile = new UserProfile(username, null, email, null, null);
         }
-
         // 4) ตอบกลับ
         return ResponseEntity.ok(new MeResponse(email, role, username, profile));
     }
