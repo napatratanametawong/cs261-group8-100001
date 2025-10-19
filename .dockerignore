@@ -1,0 +1,32 @@
+# VCS
+.git
+.gitignore
+
+# Env (อย่าส่งเข้า build context)
+.env
+*.env
+!.env.example
+
+# IDE / OS
+.idea
+.vscode
+*.iml
+.project
+.classpath
+.settings
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Build outputs (เราสร้างใน image เอง)
+target
+**/target
+
+# ไฟล์ที่ไม่จำเป็นต่อการ build image ของแอป
+README.md
+LICENSE
+docker-compose*.yml
+docker/          # ใช้ตอน compose mount ไม่ต้องอยู่ใน app image
