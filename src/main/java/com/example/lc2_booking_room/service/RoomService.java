@@ -16,12 +16,16 @@ import com.example.lc2_booking_room.dto.room.CreateRoomRequest;
 
 @Service
 public class RoomService {
+    private final RoomRepositoryCustom roomRepositoryCustom;
+    private final RoomRepository roomRepository;
 
-    @Autowired
-    @Qualifier("roomRepositoryCustomImpl")
-    private RoomRepositoryCustom roomRepositoryCustom;
-    @Autowired
-    private RoomRepository roomRepository;
+    public RoomService(
+        @Qualifier("roomRepositoryCustomImpl") RoomRepositoryCustom roomRepositoryCustom,
+        RoomRepository roomRepository
+    ) {
+        this.roomRepositoryCustom = roomRepositoryCustom;
+        this.roomRepository = roomRepository;
+    }
 
     public List<Map<String, Object>> getRoomStatus(String date) {
         return roomRepositoryCustom.getRoomStatuses(date);
@@ -39,10 +43,6 @@ public class RoomService {
         newRoom.setRoomType(request.getRoomType());
         newRoom.setMinCapacity(request.getMinCapacity());
         newRoom.setMaxCapacity(request.getMaxCapacity());
-
-        ObjectMapper mapper = new ObjectMapper();
-        String featuresJson = mapper.writeValueAsString(request.getFeaturesJson());
-        newRoom.setFeaturesJson(featuresJson); //set แบบ String
 
         newRoom.setActive(true);
         roomRepository.save(newRoom);

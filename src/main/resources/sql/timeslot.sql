@@ -6,12 +6,9 @@ CREATE TABLE dbo.time_slots (
   end_time TIME NOT NULL
 );
 
--- ลบข้อมูลเก่าเพื่อความแน่นอน
-DELETE FROM dbo.time_slots;
-
 -- เพิ่มช่วงเวลา
-INSERT INTO dbo.time_slots (slot_code, start_time, end_time)
-VALUES 
+IF NOT EXISTS (SELECT 1 FROM dbo.time_slots)
+INSERT INTO dbo.time_slots (slot_code, start_time, end_time) VALUES
   ('S0800_0930', '08:00', '09:30'),
   ('S0930_1100', '09:30', '11:00'),
   ('S1100_1230', '11:00', '12:30'),

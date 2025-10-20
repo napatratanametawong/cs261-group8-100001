@@ -1,6 +1,5 @@
 package com.example.lc2_booking_room.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,11 +12,10 @@ import com.example.lc2_booking_room.service.RoomService;
 @RestController
 @RequestMapping("/api/rooms")
 public class RoomController {
+    private final RoomService roomService;
+    public RoomController(RoomService roomService) { this.roomService = roomService; }
 
-    @Autowired
-    private RoomService roomService;
-
-    @GetMapping("/")
+    @GetMapping({"/"})  
     public List<Room> getAllRooms() {
         return roomService.getAllRooms();
     }
@@ -27,8 +25,8 @@ public class RoomController {
         return "hello";
     }
 
-    @PostMapping("/")
-    public Boolean craeteRoom(@RequestBody CreateRoomRequest request) {
+    @PostMapping("/createRoom")
+    public Boolean createRoom(@RequestBody CreateRoomRequest request) {
         return roomService.createRoom(request);
     }
 

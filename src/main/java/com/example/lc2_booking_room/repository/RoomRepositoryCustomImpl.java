@@ -1,42 +1,43 @@
 package com.example.lc2_booking_room.repository;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.Map;
 
 @Repository("roomRepositoryCustomImpl")
 public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final NamedParameterJdbcTemplate npJdbc;
 
+    public RoomRepositoryCustomImpl(NamedParameterJdbcTemplate npJdbc) {
+        this.npJdbc = npJdbc;
+    }
+
+    private static final String SQL = """
+            SELECT
+                r.code       AS roomCode,
+                r.room_name  AS roomName,
+                ts.slot_code AS slotCode,
+                CASE WHEN b.reservation_id IS NOT NULL THEN 'Booked' ELSE 'Available' END AS roomStatus
+            FROM dbo.rooms r
+            CROSS JOIN dbo.time_slots ts
+            LEFT JOIN dbo.reservations b
+                   ON b.room_id = r.room_id
+                  AND b.slot_id = ts.slot_id
+                  AND CAST(b.[date] AS date) = CAST(:date AS date)
+            WHERE r.active = 1
+            ORDER BY r.code, ts.start_time
+            """;
     @Override
-    public List<Map<String, Object>> getRoomStatuses(String date) {
-        try {
-            String sql = new String(Files.readAllBytes(Paths.get("src/main/resources/sql/room_status.sql")));
-            Query query = entityManager.createNativeQuery(sql);
-
-            query.setParameter("date", date);
-
-            query.unwrap(org.hibernate.query.NativeQuery.class)
-                    .setTupleTransformer((tuple, aliases) -> {
-                        Map<String, Object> map = new HashMap<>();
-                        for (int i = 0; i < aliases.length; i++) {
-                            map.put(aliases[i], tuple[i]);
-                        }
-                        return map;
-                    });
-
-            return query.getResultList();
-
-        } catch (IOException e) {
-            throw new RuntimeException("อ่านไฟล์ SQL ไม่ได้: " + e.getMessage());
-        }
+    public List<Map<String, Object>> getRoomStatuses(String dateIso) {
+        var effective = (dateIso == null || dateIso.isBlank())
+            ? LocalDate.now(ZoneId.of("Asia/Bangkok"))
+            : LocalDate.parse(dateIso);
+        return npJdbc.queryForList(SQL, new MapSqlParameterSource().addValue("date", effective));
     }
 }

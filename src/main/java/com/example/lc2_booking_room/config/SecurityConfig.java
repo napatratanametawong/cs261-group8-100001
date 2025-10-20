@@ -35,42 +35,41 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain api(HttpSecurity http,
-                            JwtAuthenticationFilter jwtFilter,
-                            SmartAuthEntryPoint smartEntryPoint) throws Exception {
+            JwtAuthenticationFilter jwtFilter,
+            SmartAuthEntryPoint smartEntryPoint) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(Customizer.withDefaults())
-            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                // ✅ หน้า public
-                .requestMatchers(HttpMethod.GET,
-                        "/", 
-                        "/login/**",
-                        "/styles/**", "/scripts/**",  "/webjars/**").permitAll()
+                .csrf(csrf -> csrf.disable())
+                .cors(Customizer.withDefaults())
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        // ✅ หน้า public
+                        .requestMatchers(HttpMethod.GET,
+                                "/",
+                                "/login/**",
+                                "/styles/**", "/scripts/**", "/webjars/**")
+                        .permitAll()
 
-                // ✅ auth endpoints และ health
-                .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // ✅ auth endpoints และ health
+                        .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // ✅ Protected
-                .requestMatchers(HttpMethod.GET, "/rooms/**").hasAnyRole("USER", "BUILDING_ADMIN")
-                .requestMatchers("/bookingRoom/**").hasRole("USER")
-                .requestMatchers("/admin/**").hasRole("BUILDING_ADMIN")
+                        // ✅ Protected
+                        .requestMatchers(HttpMethod.GET, "/api/rooms/**").hasAnyRole("USER", "BUILDING_ADMIN")
+                        .requestMatchers("/bookingRoom/**").hasRole("USER")
+                        .requestMatchers("/admin/**").hasRole("BUILDING_ADMIN")
 
-                //resorce
-                .requestMatchers("/resource/**" , "/global-head.js").permitAll()   
-                .anyRequest().authenticated()
-            )
-            .exceptionHandling(ex -> ex
-                .authenticationEntryPoint(smartEntryPoint)
-                .accessDeniedHandler((req, res, e) -> {
-                    res.setStatus(403);
-                    res.setContentType("application/json;charset=UTF-8");
-                    res.getWriter().write("{\"error\":\"Forbidden\"}");
-                })
-            )
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                        // resorce
+                        .requestMatchers("/resource/**", "/global-head.js").permitAll()
+                        .anyRequest().authenticated())
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(smartEntryPoint)
+                        .accessDeniedHandler((req, res, e) -> {
+                            res.setStatus(403);
+                            res.setContentType("application/json;charset=UTF-8");
+                            res.getWriter().write("{\"error\":\"Forbidden\"}");
+                        }))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -79,7 +78,7 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration c = new CorsConfiguration();
         c.setAllowedOriginPatterns(List.of("*"));
-        c.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
+        c.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         c.setAllowedHeaders(List.of("*"));
         c.setAllowCredentials(true);
 
