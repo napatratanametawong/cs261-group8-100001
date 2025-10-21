@@ -16,29 +16,27 @@ services:
     image: mcr.microsoft.com/mssql-tools:latest
     depends_on:
       mssql:
-        condition: service_started
+        condition: service_started   # ไม่อ้าง healthy อีกต่อไป
     env_file: [.env]
     volumes:
       - ./docker/sql:/sql:ro
-    entrypoint: ["/bin/sh","-c"]
+    entrypoint: ["/bin/sh","-lc"]
     command: >
       set -e;
-      echo '== waiting for mssql ==';
-      for i in $(seq 1 60); do
-        /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P "${SA_PASSWORD}" -Q "SELECT 1" && break;
-        echo "waiting... ($i/60)"; sleep 5;
+      echo "== waiting for SQL Server on mssql:1433 ==";
+      for i in $(seq 1 120); do
+        /opt/mssql-tools/bin/sqlcmd -S mssql,1433 -U sa -P "${SA_PASSWORD}" -Q "SELECT 1" -l 2 && break;
+        echo "waiting... ($i/120)"; sleep 2;
       done;
-      echo '== running 00_init.sql ==';
-      /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P "${SA_PASSWORD}" -d master -i /sql/00_init.sql;
-      echo 'DB init done.';
+      echo "== running 00_init.sql ==";
+      /opt/mssql-tools/bin/sqlcmd -S mssql,1433 -U sa -P "${SA_PASSWORD}" -d master -b -V16 -i /sql/00_init.sql;
+      echo "DB init done.";
     restart: "no"
 
   app:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        TU_HOST: ${TU_HOST:-restapi.tu.ac.th}
     container_name: booking-app
     env_file: [.env]
     environment:
@@ -46,23 +44,17 @@ services:
       SPRING_DATASOURCE_URL: "${SPRING_DATASOURCE_URL}"
       SPRING_DATASOURCE_USERNAME: "${SPRING_DATASOURCE_USERNAME}"
       SPRING_DATASOURCE_PASSWORD: "${SPRING_DATASOURCE_PASSWORD}"
-
       SPRING_MAIL_HOST: "${SPRING_MAIL_HOST}"
       SPRING_MAIL_PORT: "${SPRING_MAIL_PORT}"
       SPRING_MAIL_USERNAME: "${SPRING_MAIL_USERNAME}"
       SPRING_MAIL_PASSWORD: "${SPRING_MAIL_PASSWORD}"
-
       APP_ADMIN_EMAILS: "${APP_ADMIN_EMAILS}"
       APP_OTP_TTL_SECONDS: "${APP_OTP_TTL_SECONDS}"
       APP_OTP_COOLDOWN: "${APP_OTP_COOLDOWN}"
       APP_JWT_SECRET: "${APP_JWT_SECRET}"
       APP_JWT_EXPIRY: "${APP_JWT_EXPIRY}"
-
-      # TU API (ผูกกับโค้ดคุณที่อ่าน APP_TU_*)
       APP_TU_BASE_URL: "${APP_TU_BASE_URL}"
       APP_TU_APPLICATION_KEY: "${APP_TU_APPLICATION_KEY}"
-
-      # กัน protocol TLS
       JAVA_TOOL_OPTIONS: >-
         -Djdk.tls.client.protocols=TLSv1.2
         -Dhttps.protocols=TLSv1.2
