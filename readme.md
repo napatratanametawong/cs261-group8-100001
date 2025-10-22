@@ -24,15 +24,32 @@ cp .env.example .env
 ### Generate a secure JWT secret (≥ 32 bytes):
 Online link: https://onlinebase64tools.com/generate-random-base64
 
+## Optional
+```bash
+docker compose down -v --remove-orphans
+docker builder prune -f
+docker system prune -f
+```
 ## 2) Run with Docker (DB + App)
 1) build 
 ```bash
-docker compose up -d --build
+docker compose build --no-cache --progress=plain app
 ```
 2) Run Application
+
 ```bash
 docker compose logs -f app
+docker compose up -d mssql
+docker compose up --abort-on-container-exit db-init
 ```
+
+```bash
+docker compose up -d app
+```
+### Link Website
+
+http://localhost:8080/login/pages/loginPage.html
+
 ### In case of 00_init.sql can't run by docker-compose.yml
 # 1) ตั้งรหัส SA (หรือแก้เป็นของคุณ)
 ```bash
