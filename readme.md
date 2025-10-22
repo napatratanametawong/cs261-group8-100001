@@ -63,3 +63,21 @@ docker run --rm `
   mcr.microsoft.com/mssql-tools:latest `
   /bin/sh -lc "/opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P '$($env:SA_PASSWORD)' -d master -b -V16 -i /sql/00_init.sql"
 ```
+
+### แก้ค่าให้เป็นคีย์จริง (แทน YOUR_REAL_KEY)
+perl -pi -e 's/^APP_TU_APPLICATION_KEY=.*/APP_TU_APPLICATION_KEY=YOUR_REAL_KEY/' .env
+
+### ลบ CRLF ออก (กัน parse เพี้ยนบน Windows)
+sed -i 's/\r$//' .env
+
+### ตรวจว่าบรรทัดถูกต้อง (ต้องไม่เห็น $ ท้ายบรรทัด)
+grep -n "APP_TU_APPLICATION_KEY" .env | cat -A
+
+docker compose --env-file .env config | grep -n -A2 -B2 APP_TU_APPLICATION_KEY
+
+docker compose up -d --force-recreate app
+
+docker compose exec app env | grep APP_TU_APPLICATION_KEY
+
+
+
