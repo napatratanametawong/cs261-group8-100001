@@ -29,4 +29,4 @@ target
 README.md
 LICENSE
 docker-compose*.yml
-docker/          # ใช้ตอน compose mount ไม่ต้องอยู่ใน app image
+docker/          

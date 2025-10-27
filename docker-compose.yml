@@ -3,9 +3,9 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-CU16-ubuntu-22.04
     container_name: booking-mssql
     environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=${SA_PASSWORD:?set SA_PASSWORD in .env}
-      - MSSQL_PID=Developer
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: ${SA_PASSWORD:?set SA_PASSWORD in .env}
+      MSSQL_PID: Developer
     ports:
       - "11433:1433"
     volumes:
@@ -14,23 +14,14 @@ services:
 
   db-init:
     image: mcr.microsoft.com/mssql-tools:latest
+    container_name: db-init
     depends_on:
-      mssql:
-        condition: service_started   # ไม่อ้าง healthy อีกต่อไป
+      - mssql
     env_file: [.env]
     volumes:
       - ./docker/sql:/sql:ro
-    entrypoint: ["/bin/sh","-lc"]
-    command: >
-      set -e;
-      echo "== waiting for SQL Server on mssql:1433 ==";
-      for i in $(seq 1 120); do
-        /opt/mssql-tools/bin/sqlcmd -S mssql,1433 -U sa -P "${SA_PASSWORD}" -Q "SELECT 1" -l 2 && break;
-        echo "waiting... ($i/120)"; sleep 2;
-      done;
-      echo "== running 00_init.sql ==";
-      /opt/mssql-tools/bin/sqlcmd -S mssql,1433 -U sa -P "${SA_PASSWORD}" -d master -b -V16 -i /sql/00_init.sql;
-      echo "DB init done.";
+    entrypoint: ["/bin/bash","-c"]
+    command: "set -euo pipefail; echo '== waiting for SQL Server on mssql:1433 =='; for i in {1..120}; do /opt/mssql-tools/bin/sqlcmd -S mssql,1433 -U sa -P \"${SA_PASSWORD}\" -Q \"SELECT 1\" -l 2 && break; echo \"waiting... ($$i/120)\"; sleep 2; done; echo '== prepare /tmp/init_core.sql with password =='; PW_ESC=\"$(printf \"%s\" \"${SPRING_DATASOURCE_PASSWORD}\" | sed \"s/'/''/g\")\"; sed \"s/__APPPASS__/$$PW_ESC/g\" /sql/init_core.sql > /tmp/init_core.sql; echo '== run init_core.sql =='; /opt/mssql-tools/bin/sqlcmd -S mssql,1433 -U sa -P \"${SA_PASSWORD}\" -b -V 16 -l 5 -i /tmp/init_core.sql; echo '== seed rooms =='; /opt/mssql-tools/bin/sqlcmd -S mssql,1433 -U sa -P \"${SA_PASSWORD}\" -b -V 16 -l 5 -d bookingDB -i /sql/seed_rooms.sql; echo '== seed timeslots =='; /opt/mssql-tools/bin/sqlcmd -S mssql,1433 -U sa -P \"${SA_PASSWORD}\" -b -V 16 -l 5 -d bookingDB -i /sql/seed_timeslots.sql; echo 'DB init + seed done.'"
     restart: "no"
 
   app:
@@ -40,29 +31,27 @@ services:
     container_name: booking-app
     env_file: [.env]
     environment:
-      SPRING_PROFILES_ACTIVE: "${SPRING_PROFILES_ACTIVE}"
-      SPRING_DATASOURCE_URL: "${SPRING_DATASOURCE_URL}"
-      SPRING_DATASOURCE_USERNAME: "${SPRING_DATASOURCE_USERNAME}"
-      SPRING_DATASOURCE_PASSWORD: "${SPRING_DATASOURCE_PASSWORD}"
-      SPRING_MAIL_HOST: "${SPRING_MAIL_HOST}"
-      SPRING_MAIL_PORT: "${SPRING_MAIL_PORT}"
-      SPRING_MAIL_USERNAME: "${SPRING_MAIL_USERNAME}"
-      SPRING_MAIL_PASSWORD: "${SPRING_MAIL_PASSWORD}"
-      APP_ADMIN_EMAILS: "${APP_ADMIN_EMAILS}"
-      APP_OTP_TTL_SECONDS: "${APP_OTP_TTL_SECONDS}"
-      APP_OTP_COOLDOWN: "${APP_OTP_COOLDOWN}"
-      APP_JWT_SECRET: "${APP_JWT_SECRET}"
-      APP_JWT_EXPIRY: "${APP_JWT_EXPIRY}"
-      APP_TU_BASE_URL: "${APP_TU_BASE_URL}"
-      APP_TU_APPLICATION_KEY: "${APP_TU_APPLICATION_KEY}"
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
+      APP_ADMIN_EMAILS: ${APP_ADMIN_EMAILS}
+      APP_OTP_TTL_SECONDS: ${APP_OTP_TTL_SECONDS}
+      APP_OTP_COOLDOWN: ${APP_OTP_COOLDOWN}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
+      APP_JWT_EXPIRY: ${APP_JWT_EXPIRY}
+      APP_TU_BASE_URL: ${APP_TU_BASE_URL}
+      APP_TU_APPLICATION_KEY: ${APP_TU_APPLICATION_KEY}
       JAVA_TOOL_OPTIONS: >-
         -Djdk.tls.client.protocols=TLSv1.2
         -Dhttps.protocols=TLSv1.2
     depends_on:
-      mssql:
-        condition: service_started
-      db-init:
-        condition: service_completed_successfully
+      - mssql
+      - db-init
     ports:
       - "8080:8080"
     restart: unless-stopped

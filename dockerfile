@@ -1,20 +1,16 @@
 # -------- Build WAR --------
 FROM maven:3.9.9-eclipse-temurin-17 AS build
 WORKDIR /app
-
-# cache deps
 COPY pom.xml .
 RUN mvn -B -DskipTests dependency:go-offline
-
-# build
 COPY src ./src
 RUN mvn -B -DskipTests package
 
-# -------- Runtime: Tomcat (JRE 17) --------
+# -------- Runtime: Tomcat --------
 FROM tomcat:10.1.44-jre17
-
-# clean default apps & deploy
+# ลบแอประเริ่มต้นออก
 RUN rm -rf /usr/local/tomcat/webapps/*
+# คัดลอก WAR เป็น ROOT.war
 COPY --from=build /app/target/*.war /usr/local/tomcat/webapps/ROOT.war
 
 # === Pull TU server cert during build (no repo files needed) ===
