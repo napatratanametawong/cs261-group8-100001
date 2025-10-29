@@ -35,8 +35,25 @@ services:
         exec /tmp/run-init.sh
     restart: "no"
 
-
-
+  app-dev:
+    image: maven:3.9.9-eclipse-temurin-17
+    container_name: booking-app-dev
+    working_dir: /app
+    env_file: [.env]
+    environment:
+      SPRING_PROFILES_ACTIVE: "docker"
+      MAVEN_OPTS: "-XX:MaxRAMPercentage=75"
+    depends_on:
+      - mssql
+    volumes:
+      - ./:/app                
+      - ~/.m2:/root/.m2        
+    command: >
+      mvn -B -DskipTests
+      spring-boot:run
+    ports:
+      - "8080:8080"
+    restart: "no"
 
   app:
     build:

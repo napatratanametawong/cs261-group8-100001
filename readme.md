@@ -36,7 +36,7 @@ docker builder prune -f
 docker system prune -f
 ```
 ## 2) Run with Docker (DB + App)
-# 2.1) Run Application
+### 2.1) Run Application
 
 ```bash
 docker compose up -d mssql
@@ -52,6 +52,19 @@ docker compose build --no-cache --progress=plain app
 
 ```bash
 docker compose up -d app
+```
+## For development
+
+```bash
+docker compose up -d mssql
+```
+
+```bash
+docker compose up db-init
+```
+
+```bash
+docker compose up app-dev
 ```
 
 ## Link Website
