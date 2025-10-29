@@ -1,4 +1,4 @@
-package com.example.lc2_booking_room.service;
+package com.example.lc2_booking_room.service.room;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

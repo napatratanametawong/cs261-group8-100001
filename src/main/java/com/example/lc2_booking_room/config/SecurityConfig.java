@@ -2,7 +2,8 @@ package com.example.lc2_booking_room.config;
 
 import com.example.lc2_booking_room.security.JwtAuthenticationFilter;
 import com.example.lc2_booking_room.security.SmartAuthEntryPoint;
-import com.example.lc2_booking_room.service.JwtService;
+import com.example.lc2_booking_room.service.login.JwtService;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;

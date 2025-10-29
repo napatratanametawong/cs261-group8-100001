@@ -1,6 +1,6 @@
-package com.example.lc2_booking_room.service;
+package com.example.lc2_booking_room.service.login;
 
-import com.example.lc2_booking_room.dto.UserProfile;
+import com.example.lc2_booking_room.dto.login.UserProfile;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;

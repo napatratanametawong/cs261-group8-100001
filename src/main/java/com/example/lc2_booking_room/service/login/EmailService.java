@@ -1,4 +1,4 @@
-package com.example.lc2_booking_room.service;
+package com.example.lc2_booking_room.service.login;
 
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;

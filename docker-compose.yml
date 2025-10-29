@@ -17,12 +17,26 @@ services:
     container_name: db-init
     depends_on:
       - mssql
-    env_file: [.env]
+    env_file: [.env]                 # ต้องมี SA_PASSWORD และ SPRING_DATASOURCE_PASSWORD
     volumes:
       - ./docker/sql:/sql:ro
-    entrypoint: ["/bin/bash","-c"]
-    command: "set -euo pipefail; echo '== waiting for SQL Server on mssql:1433 =='; for i in {1..120}; do /opt/mssql-tools/bin/sqlcmd -S mssql,1433 -U sa -P \"${SA_PASSWORD}\" -Q \"SELECT 1\" -l 2 && break; echo \"waiting... ($$i/120)\"; sleep 2; done; echo '== prepare /tmp/init_core.sql with password =='; PW_ESC=\"$(printf \"%s\" \"${SPRING_DATASOURCE_PASSWORD}\" | sed \"s/'/''/g\")\"; sed \"s/__APPPASS__/$$PW_ESC/g\" /sql/init_core.sql > /tmp/init_core.sql; echo '== run init_core.sql =='; /opt/mssql-tools/bin/sqlcmd -S mssql,1433 -U sa -P \"${SA_PASSWORD}\" -b -V 16 -l 5 -i /tmp/init_core.sql; echo '== seed rooms =='; /opt/mssql-tools/bin/sqlcmd -S mssql,1433 -U sa -P \"${SA_PASSWORD}\" -b -V 16 -l 5 -d bookingDB -i /sql/seed_rooms.sql; echo '== seed timeslots =='; /opt/mssql-tools/bin/sqlcmd -S mssql,1433 -U sa -P \"${SA_PASSWORD}\" -b -V 16 -l 5 -d bookingDB -i /sql/seed_timeslots.sql; echo 'DB init + seed done.'"
+    entrypoint:
+      - /bin/bash
+      - -lc
+      - |
+        set -euo pipefail
+        echo "== list /sql =="; ls -la /sql
+        test -f /sql/run-init.sh || { echo "FATAL: /sql/run-init.sh not found"; exit 44; }
+        # โวลุ่มเป็น :ro → คัดลอกไป /tmp แล้ว normalize LF
+        cp /sql/run-init.sh /tmp/run-init.sh
+        sed -i 's/\r$//' /tmp/run-init.sh || true
+        chmod +x /tmp/run-init.sh
+        echo "== invoking run-init.sh =="
+        exec /tmp/run-init.sh
     restart: "no"
+
+
+
 
   app:
     build:

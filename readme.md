@@ -25,24 +25,4 @@ cp .env.example .env
 Online link: https://onlinebase64tools.com/generate-random-base64
 
 ## 2) Run with Docker (DB + App)
-1) build 
-```bash
-docker compose up -d --build
-```
-2) Run Application
-```bash
-docker compose logs -f app
-```
-### In case of 00_init.sql can't run by docker-compose.yml
-# 1) ตั้งรหัส SA (หรือแก้เป็นของคุณ)
-```bash
-$env:SA_PASSWORD = 'YourStrong@Passw0rd!'
-```
-# 2) รัน sqlcmd จากคอนเทนเนอร์ mssql-tools บนเน็ตเวิร์กของ compose
-```bash
-docker run --rm `
-  --network cs261-group8-100001_default `
-  -v "${PWD}/docker/sql:/sql:ro" `
-  mcr.microsoft.com/mssql-tools:latest `
-  /bin/sh -lc "/opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P '$($env:SA_PASSWORD)' -d master -b -V16 -i /sql/00_init.sql"
-```
+
