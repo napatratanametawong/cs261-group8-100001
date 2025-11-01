@@ -1,7 +1,19 @@
 package com.example.lc2_booking_room.controller;
 
-import com.example.lc2_booking_room.dto.*;
-import com.example.lc2_booking_room.service.*;
+import com.example.lc2_booking_room.dto.login.*;
+import com.example.lc2_booking_room.dto.login.MeResponse;
+import com.example.lc2_booking_room.dto.login.RequestOtpDto;
+import com.example.lc2_booking_room.dto.login.TokenResponse;
+import com.example.lc2_booking_room.dto.login.TuCheckDto;
+import com.example.lc2_booking_room.dto.login.UserProfile;
+import com.example.lc2_booking_room.dto.login.VerifyOtpDto;
+import com.example.lc2_booking_room.service.login.*;
+import com.example.lc2_booking_room.service.login.EmailService;
+import com.example.lc2_booking_room.service.login.JwtService;
+import com.example.lc2_booking_room.service.login.OtpService;
+import com.example.lc2_booking_room.service.login.OtpStore;
+import com.example.lc2_booking_room.service.login.TuDirectoryClient;
+
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
@@ -126,14 +138,14 @@ public class AuthController {
         if (username == null)
             username = "";
 
-        com.example.lc2_booking_room.dto.UserProfile profile = null;
+        com.example.lc2_booking_room.dto.login.UserProfile profile = null;
         if ("USER".equals(role) && !username.isBlank()) {
             profile = tuDirectory.getStudentProfile(username);
             if (profile != null && (profile.getEmail() == null || profile.getEmail().isBlank())) {
                 profile.setEmail(email);
             }
         } else if ("BUILDING_ADMIN".equals(role)) {
-            profile = new com.example.lc2_booking_room.dto.UserProfile(
+            profile = new com.example.lc2_booking_room.dto.login.UserProfile(
                     username, null, email, null, null);
         }
 

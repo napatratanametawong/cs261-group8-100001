@@ -1,5 +1,4 @@
-// src/main/java/com/example/lc2_booking_room/service/JwtService.java
-package com.example.lc2_booking_room.service;
+package com.example.lc2_booking_room.service.login;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

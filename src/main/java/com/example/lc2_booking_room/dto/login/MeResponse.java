@@ -1,4 +1,4 @@
-package com.example.lc2_booking_room.dto;
+package com.example.lc2_booking_room.dto.login;
 
 public class MeResponse {
     private String email;     

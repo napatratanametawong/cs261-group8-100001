@@ -1,19 +1,8 @@
-IF OBJECT_ID('dbo.rooms','U') IS NULL EXEC(N'
-  CREATE TABLE dbo.rooms(
-    room_id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    code VARCHAR(20) NOT NULL UNIQUE,
-    room_name NVARCHAR(200) NOT NULL,
-    room_type NVARCHAR(100) NOT NULL,
-    min_capacity INT NOT NULL DEFAULT 1,
-    max_capacity INT NOT NULL,
-    features_json NVARCHAR(MAX) NULL,
-    active BIT NOT NULL DEFAULT 1,
-    CONSTRAINT ck_rooms_capacity CHECK (max_capacity >= min_capacity AND max_capacity > 0)
-  );
-  CREATE UNIQUE INDEX uk_rooms_code ON dbo.rooms(code);
-');
-;
--- Floor: 1 --
+-- docker/sql/seed_rooms.sql
+-- Seed rooms (idempotent): UPDATE ถ้าเจอ, INSERT ถ้าไม่เจอ
+USE [bookingDB];
+SET NOCOUNT ON;
+
 -- Rooms(LC2-107)
 UPDATE dbo.rooms
   SET room_name      = N'ห้องปฏิบัติการคอมพิวเตอร์(Computer Lab)',

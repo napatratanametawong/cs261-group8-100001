@@ -7,7 +7,7 @@ import java.util.Map;
 
 import com.example.lc2_booking_room.dto.room.CreateRoomRequest;
 import com.example.lc2_booking_room.model.Room;
-import com.example.lc2_booking_room.service.RoomService;
+import com.example.lc2_booking_room.service.room.RoomService;
 
 @RestController
 @RequestMapping("/api/rooms")

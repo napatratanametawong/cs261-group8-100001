@@ -1,12 +1,8 @@
-IF OBJECT_ID('dbo.time_slots', 'U') IS NULL
-CREATE TABLE dbo.time_slots (
-  slot_id BIGINT IDENTITY(1,1) PRIMARY KEY,
-  slot_code VARCHAR(20) NOT NULL UNIQUE,
-  start_time TIME NOT NULL,
-  end_time TIME NOT NULL
-);
+-- docker/sql/seed_timeslots.sql
+USE [bookingDB];
+SET NOCOUNT ON;
 
--- เพิ่มช่วงเวลา
+-- ถ้าตารางยังว่างอยู่ ให้ใส่ชุดค่าเริ่มต้น
 IF NOT EXISTS (SELECT 1 FROM dbo.time_slots)
 INSERT INTO dbo.time_slots (slot_code, start_time, end_time) VALUES
   ('S0800_0930', '08:00', '09:30'),

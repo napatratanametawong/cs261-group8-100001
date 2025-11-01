@@ -1,15 +1,91 @@
-version: "3.9"
 services:
   mssql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: mssql
+    image: mcr.microsoft.com/mssql/server:2022-CU16-ubuntu-22.04
+    container_name: booking-mssql
     environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong@Passw0rd   
-      - MSSQL_PID=Developer
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: ${SA_PASSWORD:?set SA_PASSWORD in .env}
+      MSSQL_PID: Developer
     ports:
       - "11433:1433"
     volumes:
-      - mssql-data:/var/opt/mssql
+      - mssql_data:/var/opt/mssql
+    restart: unless-stopped
+
+  db-init:
+    image: mcr.microsoft.com/mssql-tools:latest
+    container_name: db-init
+    depends_on:
+      - mssql
+    env_file: [.env]                 # ต้องมี SA_PASSWORD และ SPRING_DATASOURCE_PASSWORD
+    volumes:
+      - ./docker/sql:/sql:ro
+    entrypoint:
+      - /bin/bash
+      - -lc
+      - |
+        set -euo pipefail
+        echo "== list /sql =="; ls -la /sql
+        test -f /sql/run-init.sh || { echo "FATAL: /sql/run-init.sh not found"; exit 44; }
+        # โวลุ่มเป็น :ro → คัดลอกไป /tmp แล้ว normalize LF
+        cp /sql/run-init.sh /tmp/run-init.sh
+        sed -i 's/\r$//' /tmp/run-init.sh || true
+        chmod +x /tmp/run-init.sh
+        echo "== invoking run-init.sh =="
+        exec /tmp/run-init.sh
+    restart: "no"
+
+  app-dev:
+    image: maven:3.9.9-eclipse-temurin-17
+    container_name: booking-app-dev
+    working_dir: /app
+    env_file: [.env]
+    environment:
+      SPRING_PROFILES_ACTIVE: "docker"
+      MAVEN_OPTS: "-XX:MaxRAMPercentage=75"
+    depends_on:
+      - mssql
+    volumes:
+      - ./:/app                
+      - ~/.m2:/root/.m2        
+    command: >
+      mvn -B -DskipTests
+      spring-boot:run
+    ports:
+      - "8080:8080"
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: booking-app
+    env_file: [.env]
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
+      APP_ADMIN_EMAILS: ${APP_ADMIN_EMAILS}
+      APP_OTP_TTL_SECONDS: ${APP_OTP_TTL_SECONDS}
+      APP_OTP_COOLDOWN: ${APP_OTP_COOLDOWN}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
+      APP_JWT_EXPIRY: ${APP_JWT_EXPIRY}
+      APP_TU_BASE_URL: ${APP_TU_BASE_URL}
+      APP_TU_APPLICATION_KEY: ${APP_TU_APPLICATION_KEY}
+      JAVA_TOOL_OPTIONS: >-
+        -Djdk.tls.client.protocols=TLSv1.2
+        -Dhttps.protocols=TLSv1.2
+    depends_on:
+      - mssql
+      - db-init
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
 volumes:
-  mssql-data:
+  mssql_data:
