@@ -288,7 +288,6 @@ h1 {
   padding: 16px;
   box-shadow: 0 8px 24px rgba(16, 24, 40, 0.12);
   z-index: 999;
-  /* เปลี่ยนจากการใช้ display มาเป็น opacity และ transform เพื่อทำ animation */
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
@@ -348,15 +347,42 @@ h1 {
   background-color: #e9ecef;
 }
 
+.cal-grid .blank {
+  pointer-events: none;
+  background: transparent;
+  cursor: default;
+}
+
+/* ไฮไลต์ "วันนี้" */
+.cal-grid .is-today {
+  background: #FFF8EA;
+  outline: 2px solid #f0a202;       
+  border-radius: 8px;
+}
+
+
+.cal-grid .is-selected {
+  font-weight: 700;
+  background: #FFD591;        
+  outline: 2px solid #f0a202;
+  border-radius: 8px;
+}
+
+
+/* ===== Rooms grid ===== */
 .rooms {
   margin-top: 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px
-}
-.room-card {
   display: grid;
-  grid-template-columns: 88px 1fr 96px;
+  grid-template-columns: 1fr;   
+  width: 100%;
+  gap: 20px;
+}
+
+/* ===== Room card ===== */
+.room-card {
+  grid-column: 1 / -1;          
+  display: flex;
+  flex-direction: row;
   gap: 20px;
   align-items: center;
   background: var(--card);
@@ -364,29 +390,35 @@ h1 {
   border-radius: 14px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
   padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 160px;           
 }
 
-.media {
-  width: 88px;
-  height: 88px;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-  background: #F0F0F0;
-  border: 1px solid #E0E0E0;
-  color: #7A7A7A;
-  font-size: 24px;
+/* เนื้อหาด้านซ้ายยืดกินพื้นที่ที่เหลือทั้งหมด */
+.room-card .info {
+  flex: 1 1 auto;
+  min-width: 0;                 
 }
 
-.info {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+/* ปุ่มชิดขวาและจัดตำแหน่งกลางแนวตั้ง */
+.room-card .cta {
+  margin-left: auto;
+  align-self: center;          
+}
+
+.room-card .media {
+  display: none;              
+}
+
+/*Last Room card */
+.room-card:last-child {
+  margin-bottom: 80px;
 }
 
 .title {
   font-weight: 700;
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1.2;
 }
 
@@ -395,11 +427,36 @@ h1 {
   gap: 16px;
   align-items: center;
   color: #7B7B7B;
-  font-size: 13px;
+  font-size: 16px;
+  margin-top: 16px;
+}
+.meta .capacity {
+  display: flex;
+  align-items: center;
 }
 
-.meta .icon {
-  font-size: 16px;
+.meta .capacity .cap_icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.features {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 16px 0;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.features li {
+  background: #F4F6F9;
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-size: 14px;
+  color: #555;
 }
 
 .slots {
@@ -411,7 +468,7 @@ h1 {
 .slot {
   padding: 8px 12px;
   border-radius: 5px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1;
   border: 1px solid transparent;
   user-select: none;
@@ -479,11 +536,8 @@ h1 {
 
   .room-card {
     flex-direction: column;
-    align-items: flex-start
-  }
-
-  .media {
-    width: 100%
+    align-items: stretch;
+    width: 100%;
   }
 
   .cta {
