@@ -1,7 +1,4 @@
 (function () {
-  const SITE_NAME = "LC2 Booking";
-  document.title = SITE_NAME;
-
   const head = document.head;
   head.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]').forEach(el => el.remove());
 

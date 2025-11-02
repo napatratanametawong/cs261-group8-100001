@@ -1,12 +1,18 @@
 <!doctype html>
 <html lang="th">
+
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="page-title" content="Log-in Page">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LC2 Booking Rooms</title>
+  <meta name="description" content="จองห้องเรียน ห้องประชุม ห้องปฏิบัติการ – อาคาร LC2" />
   <link rel="stylesheet" href="style/index.css" />
-  <script src="api/index.js" defer></script>
-  <script src="api/profile.js"></script>
+  <!-- All scripts deferred so DOM is ready -->
+  <script src="api/calendar.js" defer></script>
+  <script src="api/room.js" defer></script>
+  <script src="api/bookings.js" defer></script>
+  <script src="api/timeSelect.js" defer></script>
+  <script src="api/profile.js" defer></script>
   <script src="api/logout.js" type="module"></script>
   <script src="../../global-head.js" defer></script>
 </head>
@@ -14,7 +20,7 @@
 <body>
   <div class="top-bar">
     <div class="brand-logo">
-      <img src="../resource/Logo_header.png" alt="Logo" height="150"/>
+      <img src="../resource/Logo_header.png" alt="Logo" height="56" />
     </div>
     <div class="toolbar">
       <button class="icon-btn" title="แจ้งเตือน">
@@ -22,7 +28,6 @@
       </button>
       <div class="chip">
         <span id="displayName" class="displayName"></span>
-        <img class="avatar-img" src="../resource/user.svg" alt="User" />
       </div>
       <button class="icon-btn" id="logout_btn" title="ออก">
         <img src="../resource/logout.svg" alt="ออก" />
@@ -30,8 +35,8 @@
     </div>
   </div>
 
-  <!-- This header is now empty, but we can keep it for future sticky elements -->
   <header class="app"></header>
+
   <main class="main-content">
     <div id="main-header">
       <h1>LC2 Booking Rooms</h1>
@@ -43,25 +48,28 @@
     </div>
 
     <div id="tabs-container" class="tabs">
-      <button class="tab active" data-category-name="ห้องเรียน">ห้องเรียน</button>
+      <button class="tab" data-category-name="ห้องเรียน">ห้องเรียน</button>
       <button class="tab" data-category-name="ห้องประชุม">ห้องประชุม</button>
       <button class="tab" data-category-name="ห้องปฏิบัติการทางคอมพิวเตอร์">ห้องปฏิบัติการทางคอมพิวเตอร์</button>
     </div>
 
+
     <div class="section-header">
       <h2>ห้องภายในอาคาร LC2</h2>
       <div class="divider"></div>
+
       <div class="date-wrapper">
-        <button id="dpToggle" class="date-trigger">
+        <button id="dpToggle" class="date-trigger" aria-haspopup="dialog" aria-expanded="false">
           <img src="../resource/calendar.svg" alt="Calendar" class="date-trigger-icon" />
           <span id="dpLabel">วัน/เดือน/ปี</span>
           <img src="../resource/chevron-down.svg" alt="Dropdown" class="date-trigger-caret" />
         </button>
+
         <div id="dpPanel" class="calendar-card" aria-hidden="true">
           <div class="cal-head">
-            <button class="cal-nav" data-dir="-1">‹</button>
+            <button class="cal-nav" data-dir="-1" aria-label="เดือนก่อนหน้า">‹</button>
             <div class="cal-title" id="calTitle"></div>
-            <button class="cal-nav" data-dir="1">›</button>
+            <button class="cal-nav" data-dir="1" aria-label="เดือนถัดไป">›</button>
           </div>
           <div class="cal-dow">
             <span>อา</span><span>จ</span><span>อ</span><span>พ</span><span>พฤ</span><span>ศ</span><span>ส</span>
@@ -72,98 +80,27 @@
     </div>
 
     <div class="rooms">
-
-      <!-- Row template duplicated per room -->
-      <div class="room-card" data-category="ห้องปฏิบัติการทางคอมพิวเตอร์">
-        <div class="media">🖼️</div>
-        <div class="info">
-          <div class="title">LC2-213  ห้องปฏิบัติการทางคอมพิวเตอร์ (Computer Lab)</div>
-          <div class="meta">
-            <span class="icon">👤</span><span> x - xx คน</span>
-          </div>
-          <div class="slots">
-            <span class="slot busy">08:00-09:30</span>
-            <span class="slot busy">09:30-11:00</span>
-            <span class="slot busy">11:00-12:30</span>
-            <span class="slot free">13:30-15:00</span>
-            <span class="slot free">15:00-16:30</span>
-            <span class="slot busy">16:30-18:00</span>
-          </div>
-        </div>
-        <div class="cta"><button class="btn-book">จอง</button></div>
-      </div>
-
-      <div class="room-card" data-category="ห้องประชุม">
-        <div class="media">🖼️</div>
-        <div class="info">
-          <div class="title">LC2-214  ห้องประชุม 1 (Conference Room I)</div>
-          <div class="meta"><span class="icon">👤</span><span> x - xx คน</span></div>
-          <div class="slots">
-            <span class="slot busy">08:00-09:30</span>
-            <span class="slot busy">09:30-11:00</span>
-            <span class="slot busy">11:00-12:30</span>
-            <span class="slot free">13:30-15:00</span>
-            <span class="slot free">15:00-16:30</span>
-            <span class="slot busy">16:30-18:00</span>
-          </div>
-        </div>
-        <div class="cta"><button class="btn-book">จอง</button></div>
-      </div>
-
-      <div class="room-card" data-category="ห้องประชุม">
-        <div class="media">🖼️</div>
-        <div class="info">
-          <div class="title">LC2-215  ห้องประชุม 2 (Conference Room II)</div>
-          <div class="meta"><span class="icon">👤</span><span> x - xx คน</span></div>
-          <div class="slots">
-            <span class="slot busy">08:00-09:30</span>
-            <span class="slot busy">09:30-11:00</span>
-            <span class="slot busy">11:00-12:30</span>
-            <span class="slot free">13:30-15:00</span>
-            <span class="slot free">15:00-16:30</span>
-            <span class="slot busy">16:30-18:00</span>
-          </div>
-        </div>
-        <div class="cta"><button class="btn-book">จอง</button></div>
-      </div>
-
-      <!-- Repeat for LC2-301..316 with same slot pattern -->
-      <!-- 301 -->
-      <div class="room-card" data-category="ห้องเรียน">
-        <div class="media">🖼️</div>
-        <div class="info">
-          <div class="title">LC2-301</div>
-          <div class="meta"><span class="icon">👤</span><span> x - xx คน</span></div>
-          <div class="slots">
-            <span class="slot busy">08:00-09:30</span>
-            <span class="slot busy">09:30-11:00</span>
-            <span class="slot busy">11:00-12:30</span>
-            <span class="slot free">13:30-15:00</span>
-            <span class="slot free">15:00-16:30</span>
-            <span class="slot busy">16:30-18:00</span>
-          </div>
-        </div>
-        <div class="cta"><button class="btn-book">จอง</button></div>
-      </div>
-
-      <!-- 302 -->
-      <div class="room-card" data-category="ห้องเรียน">
-        <div class="media">🖼️</div>
-        <div class="info">
-          <div class="title">LC2-302</div>
-          <div class="meta"><span class="icon">👤</span><span> x - xx คน</span></div>
-          <div class="slots">
-            <span class="slot busy">08:00-09:30</span>
-            <span class="slot busy">09:30-11:00</span>
-            <span class="slot busy">11:00-12:30</span>
-            <span class="slot free">13:30-15:00</span>
-            <span class="slot free">15:00-16:30</span>
-            <span class="slot busy">16:30-18:00</span>
-          </div>
-        </div>
-        <div class="cta"><button class="btn-book">จอง</button></div>
-      </div>
     </div>
   </main>
 </body>
+
+<footer>
+  <div class="footer-content">
+    <div class="content">
+        <img src="../resource/Logo_footer.png" alt="">
+    </div>
+    <div class="content">
+      <p><span>ที่อยู่</span></p>
+      <p>อาคารบรรยายรวม 2 มหาวิทยาลัยธรรมศาสตร์ ศูนย์รังสิต</p>
+      <p>99 หมู่ 18 ตำบลคลองหนึ่ง อำเภอคลองหลวง</p>
+      <p>จังหวัดปทุมธานี  12121</p>
+    </div>
+    <div class="content">
+      <p><span>ติดต่อเรา</span></p>
+      <p><span>โทร. </span> 061 013 6135</p>
+      <p><span>Email: </span>scitu_cs@sci.tu.ac.th</p>
+    </div>
+  </div>
+</footer>
+
 </html>

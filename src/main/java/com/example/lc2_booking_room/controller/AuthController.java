@@ -1,13 +1,11 @@
 package com.example.lc2_booking_room.controller;
 
-import com.example.lc2_booking_room.dto.login.*;
 import com.example.lc2_booking_room.dto.login.MeResponse;
 import com.example.lc2_booking_room.dto.login.RequestOtpDto;
 import com.example.lc2_booking_room.dto.login.TokenResponse;
 import com.example.lc2_booking_room.dto.login.TuCheckDto;
 import com.example.lc2_booking_room.dto.login.UserProfile;
 import com.example.lc2_booking_room.dto.login.VerifyOtpDto;
-import com.example.lc2_booking_room.service.login.*;
 import com.example.lc2_booking_room.service.login.EmailService;
 import com.example.lc2_booking_room.service.login.JwtService;
 import com.example.lc2_booking_room.service.login.OtpService;
@@ -149,10 +147,10 @@ public class AuthController {
                     username, null, email, null, null);
         }
 
-        // 🟩 Create JWT
+        //Create JWT
         String token = jwtService.issueToken(email, role, username);
 
-        // 🟨 Create HttpOnly cookie (name=AUTH)
+        //Create HttpOnly cookie (name=AUTH)
         ResponseCookie cookie = ResponseCookie.from("AUTH", token)
                 .httpOnly(true)
                 .secure(false) // change to true if using HTTPS
@@ -161,7 +159,7 @@ public class AuthController {
                 .maxAge(24 * 60 * 60) // 1 day
                 .build();
 
-        // 🟦 Return response + cookie header
+        //Return response + cookie header
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new TokenResponse(token, role, username, profile));
@@ -207,7 +205,7 @@ public class AuthController {
     public ResponseEntity<?> me(
             @CookieValue(name = "AUTH", required = false) String authCookie,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
-        // 1) ดึง token จาก Cookie AUTH หรือ Header Bearer
+        //ดึง token จาก Cookie AUTH หรือ Header Bearer
         String token = null;
         if (authCookie != null && !authCookie.isBlank()) {
             token = authCookie.trim();
@@ -218,7 +216,7 @@ public class AuthController {
             return ResponseEntity.status(401).body("{\"error\":\"Unauthorized\"}");
         }
 
-        // 2) อ่าน claims จาก JWT
+        //อ่าน claims จาก JWT
         String email = jwtService.getEmail(token);
         String role = jwtService.getRole(token);
         String username = jwtService.getUsername(token);
@@ -230,7 +228,7 @@ public class AuthController {
         if (username == null)
             username = "";
 
-        // 3) เตรียมโปรไฟล์
+        //เตรียมโปรไฟล์
         UserProfile profile = null;
         if ("USER".equals(role) && !username.isBlank()) {
             // นักศึกษา → ดึงข้อมูลสดจาก TU API
