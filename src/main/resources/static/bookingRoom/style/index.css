@@ -607,7 +607,7 @@ h1 {
   content: "";
   width: var(--slot-check-size);
   height: var(--slot-check-size);
-  background: url('/resource/check.svg') center / contain no-repeat;
+  background: url('../../resource/check.svg') center / contain no-repeat;
 }
 
 .clear-all-btn {

@@ -80,7 +80,7 @@
     const end   = SLOT_TIME[last ]?.end   || '';
 
     if (start && end) {
-      rangeEl.textContent = `เวลาเลือก: ${start} – ${end}`;
+      rangeEl.textContent = `เวลาที่เลือก: ${start} – ${end}`;
       rangeEl.style.display = '';
     } else {
       rangeEl.textContent = '';
