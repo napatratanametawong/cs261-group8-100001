@@ -1,98 +1,66 @@
 package com.example.lc2_booking_room.service.room;
 
 import com.example.lc2_booking_room.dto.room.RoomWithSlotsDTO;
+import com.example.lc2_booking_room.model.Room;
+import com.example.lc2_booking_room.model.TimeSlot;
 import com.example.lc2_booking_room.repository.RoomStatusRepository;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.OffsetDateTime;
 import java.util.*;
 
 @Service
 public class RoomStatusService {
 
     private final RoomStatusRepository repo;
-    private final ObjectMapper objectMapper;
 
-    private static final ZoneId BANGKOK = ZoneId.of("Asia/Bangkok");
-    private static final DateTimeFormatter ISO_OFFSET = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-
-    public RoomStatusService(RoomStatusRepository repo, ObjectMapper objectMapper) {
+    public RoomStatusService(RoomStatusRepository repo) {
         this.repo = repo;
-        this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper();
     }
-    public List<RoomWithSlotsDTO> getRoomsWithStatus(LocalDate date) {
-        List<Object[]> rows = repo.findRoomSlotStatuses(date);
 
-        // Keep insertion order (rooms sorted by code in query)
-        Map<Long, RoomWithSlotsDTO> map = new LinkedHashMap<>();
+    public List<RoomWithSlotsDTO> getStatusFor(LocalDate date) {
+        List<Room> rooms = repo.findActiveRooms();
+        List<TimeSlot> slots = repo.findAllOrderedSlots();
 
-        // One timestamp per response, Bangkok time, ISO with offset
-        String generatedAt = ZonedDateTime.now(BANGKOK).format(ISO_OFFSET);
-
-        for (Object[] r : rows) {
-            Long roomId       = toLong(r[0]);
-            String code       = str(r[1]);
-            String roomName   = str(r[2]);
-            String roomType   = str(r[3]);
-            Integer minCap    = toInt(r[4]);
-            Integer maxCap    = toInt(r[5]);
-            String featuresJs = str(r[6]);
-            String slotCode   = str(r[7]);
-            String status     = str(r[8]);
-
-            RoomWithSlotsDTO dto = map.get(roomId);
-            if (dto == null) {
-                List<String> features = parseFeatures(featuresJs);
-                dto = new RoomWithSlotsDTO(
-                        code,
-                        roomName,
-                        roomType,
-                        minCap,
-                        maxCap,
-                        features,
-                        new LinkedHashMap<>(), // slotCode -> status
-                        generatedAt
-                );
-                map.put(roomId, dto);
-            }
-
-            if (slotCode != null && !slotCode.isBlank()) {
-                dto.getSlots().put(slotCode, status);
+        List<Object[]> pairs = repo.findBookedPairs(date);
+        Map<String, Set<String>> bookedByRoom = new HashMap<>();
+        for (Object[] row : pairs) {
+            String roomCode = Objects.toString(row[0], "");
+            String slotCode = Objects.toString(row[1], "");
+            if (!roomCode.isEmpty() && !slotCode.isEmpty()) {
+                bookedByRoom.computeIfAbsent(roomCode, k -> new HashSet<>()).add(slotCode);
             }
         }
 
-        return new ArrayList<>(map.values());
-    }
+        OffsetDateTime now = OffsetDateTime.now();
+        List<RoomWithSlotsDTO> out = new ArrayList<>(rooms.size());
 
-    // ---------- helpers ----------
+        for (Room r : rooms) {
+            Map<String, String> slotStatus = new LinkedHashMap<>();
+            Set<String> bookedForThisRoom = bookedByRoom.getOrDefault(r.getCode(), Collections.emptySet());
 
-    private static String str(Object o) {
-        return (o == null) ? null : String.valueOf(o);
-    }
+            for (TimeSlot s : slots) {
+                boolean isBooked = bookedForThisRoom.contains(s.getSlotCode());
+                slotStatus.put(s.getSlotCode(), isBooked ? "booked" : "available");
+            }
 
-    private static Integer toInt(Object o) {
-        if (o == null) return null;
-        if (o instanceof Number n) return n.intValue();
-        try { return Integer.parseInt(o.toString()); } catch (Exception e) { return null; }
-    }
+            // ใช้ค่าที่ converter แปลงให้แล้ว
+            List<String> features = r.getFeatures() != null ? r.getFeatures() : Collections.emptyList();
 
-    private static Long toLong(Object o) {
-        if (o == null) return null;
-        if (o instanceof Number n) return n.longValue();
-        try { return Long.parseLong(o.toString()); } catch (Exception e) { return null; }
-    }
-
-    private List<String> parseFeatures(String json) {
-        if (json == null || json.isBlank()) return List.of();
-        try {
-            return objectMapper.readValue(json, new TypeReference<List<String>>() {});
-        } catch (Exception e) {
-            return List.of(); // fail-soft
+            RoomWithSlotsDTO dto = new RoomWithSlotsDTO(
+                    r.getCode(),
+                    r.getRoomName(),
+                    r.getRoomType(),
+                    r.getMinCapacity(),
+                    r.getMaxCapacity(),
+                    features,
+                    slotStatus,
+                    now
+            );
+            out.add(dto);
         }
+
+        return out;
     }
 }

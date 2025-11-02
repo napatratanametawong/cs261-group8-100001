@@ -18,10 +18,12 @@ public class RoomStatusController {
         this.service = service;
     }
 
+    // GET /api/rooms/status?date=2025-11-02
     @GetMapping("/status")
     public List<RoomWithSlotsDTO> getStatus(
-            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+            @RequestParam("date")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
-        return service.getRoomsWithStatus(date);
+        return service.getStatusFor(date);
     }
 }

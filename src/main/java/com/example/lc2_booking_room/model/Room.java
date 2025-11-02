@@ -4,30 +4,22 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.hibernate.annotations.Nationalized;
 import java.util.List;
 
+@Entity
 @Getter
 @Setter
-@Entity
-@Table(schema = "dbo", name = "rooms",
-       indexes = @Index(name = "uk_rooms_code", columnList = "code", unique = true))
+@Table(schema = "dbo", name = "rooms")
 public class Room {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "room_id")
-    private Long roomId;
+    @Column(name = "code", length = 20, nullable = false)
+    private String code;                 // ← ใช้ code เป็น @Id
 
-    @Column(name = "code", length = 20, nullable = false, unique = true)
-    private String code;
-
-    @Nationalized
-    @Column(name = "room_name", nullable = false, length = 200)
+    @Column(name = "room_name", nullable = false)
     private String roomName;
 
-    @Nationalized
-    @Column(name = "room_type", nullable = false, length = 100)
+    @Column(name = "room_type", nullable = false)
     private String roomType;
 
     @Column(name = "min_capacity", nullable = false)
@@ -37,8 +29,7 @@ public class Room {
     private int maxCapacity;
 
     @Convert(converter = FeaturesConverter.class)
-    @Nationalized
-    @Column(name = "features_json", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "features_json")
     private List<String> features;
 
     @Column(name = "active", nullable = false)
