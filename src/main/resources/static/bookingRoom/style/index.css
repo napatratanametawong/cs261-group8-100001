@@ -726,3 +726,29 @@ h1 {
     margin-top: 12px
   }
 }
+
+/* ==================footer====================== */
+footer {
+  background-color: #443f46;
+  padding: 20px 20px;
+  margin-top: 80px;
+  width: 100%;
+  height: auto;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+}
+
+.footer-content .content {
+  color: #ffffff;
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  font-weight: var(--weight-medium);
+  font-size: var(--font-detail);
+}
+
+.footer-content .content span {
+  font-size: var(--font-main-detail);
+  font-weight: var(--weight-bold);
+}
