@@ -4,8 +4,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LC2 Booking Rooms</title>
-  <meta name="description" content="จองห้องเรียน ห้องประชุม ห้องปฏิบัติการ – อาคาร LC2" />
+  <title>Admin Dashboard</title>
+  <meta name="description" content="ระบบจัดการคำร้องสำหรับเจ้าหน้าที่" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style/AdminDashboard.css" />
   <!-- All scripts deferred so DOM is ready -->
   <script src="api/calendar.js" defer></script>
@@ -14,18 +17,49 @@
   <script src="api/timeSelect.js" defer></script>
   <script src="api/profile.js" defer></script>
   <script src="api/logout.js" type="module"></script>
+  <script src="scripts/dashboard.js" defer></script>
+  <script src="scripts/sideMenu.js" defer></script>
+  <script src="scripts/notifications.js" defer></script>
+  <script src="scripts/modals.js" defer></script>
   <script src="../../global-head.js" defer></script>
 </head>
 
 <body>
   <div class="top-bar">
-    <div class="brand-logo">
+    <div class="brand-logo" id="menu-toggle" role="button" aria-label="เปิดเมนู" tabindex="0">
       <img src="../resource/Logo_header.png" alt="Logo" height="56" />
     </div>
     <div class="toolbar">
-      <button class="icon-btn" title="แจ้งเตือน">
-        <img src="../resource/bell.svg" alt="แจ้งเตือน" />
-      </button>
+        <!-- Notification toggle & panel (วางใน .toolbar) -->
+        <div class="notif-wrapper">
+          <button class="icon-btn" id="notifToggle" aria-haspopup="true" aria-expanded="false" title="แจ้งเตือน">
+            <img src="../resource/bell.svg" alt="แจ้งเตือน" />
+            <span class="badge-dot" aria-hidden="true"></span>
+          </button>
+      
+          <div id="notifPanel" role="dialog" aria-label="การแจ้งเตือน">
+            <div class="notif-header">การแจ้งเตือน</div>
+            <div class="notif-list">
+              <button class="notif-item unread" data-id="1">
+                <div class="title"><span class="dot" aria-hidden="true"></span> มีคำร้องใหม่ถูกส่งเข้ามา กรุณาตรวจสอบรายละเอียดคำร้อง</div>
+                <div class="meta">5 นาทีที่แล้ว</div>
+              </button>
+          
+              <button class="notif-item" data-id="2">
+                <div class="title">ผู้ใช้ได้ส่งคำร้องฉบับแก้ไขกลับมาใหม่</div>
+                <div class="meta">12 ชั่วโมงที่แล้ว</div>
+              </button>
+          
+              <button class="notif-item" data-id="3">
+                <div class="title">หมายเลขการจอง xxxx ได้ยกเลิกคำร้อง</div>
+                <div class="meta">14/09/2569</div>
+              </button>
+          
+              <div class="notif-item empty" aria-hidden="true">ดูการแจ้งเตือนทั้งหมด</div>
+            </div>
+          </div>
+        </div>
+        <!-- end notification -->
       <div class="chip">
         <span id="displayName" class="displayName"></span>
       </div>
@@ -35,20 +69,50 @@
     </div>
   </div>
 
+  <!-- Mobile side menu (assistant) -->
+    <aside class="side-menu" id="sideMenu" aria-hidden="true">
+      <div class="side-menu-inner">
+        <div class="side-top">
+          <img id="siteLogo" src="../resource/Logo_header.png" alt="LC2 Booking Room" class="side-logo" />
+          <hr class="side-sep" />
+        </div>
+
+        <nav class="side-nav" aria-label="เมนูหลัก">
+          <button class="side-item" data-route="manage">
+            <span>จัดการคำร้อง</span>
+          </button>
+
+          <button class="side-item" data-route="history">
+            <span>ดูประวัติคำร้อง</span>
+          </button>
+        </nav>
+
+        <div class="side-bottom">
+          <hr class="side-sep" />
+          <button class="side-item side-item--settings" id="openSettings">
+            <span>การตั้งค่า</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+    <!-- backdrop to close when clicking outside -->
+    <button class="side-backdrop" id="sideBackdrop" aria-hidden="true"></button>
+
+
   <main class="main">
       <div class="container">
         <div class="title-row">
           <h1 class="page-title">ระบบจัดการคำร้องสำหรับเจ้าหน้าที่</h1>
           <div class="title-underline"></div>
         </div>
-    
+
         <!-- tabs -->
         <nav class="tabs" role="tablist" aria-label="คำร้อง">
-          <button class="tab tab--active" role="tab">คำร้องใหม่</button>
-          <button class="tab" role="tab">กำลังตรวจสอบ</button>
-          <button class="tab" role="tab">เสร็จสิ้น</button>
+          <button class="tab tab--active" role="tab" data-tab-key="new">คำร้องใหม่</button>
+          <button class="tab" role="tab" data-tab-key="pending">กำลังตรวจสอบ</button>
+          <button class="tab" role="tab" data-tab-key="completed">เสร็จสิ้น</button>
         </nav>
-    
+
         <!-- table header -->
         <div class="table">
           <div class="table-header">
@@ -58,51 +122,44 @@
             <div>รายชื่อห้อง</div>
             <div>ช่วงเวลา</div>
           </div>
-      
+
           <!-- list of requests (ตัวอย่างรายการ 3 แถว) -->
-          <div class="list">
-            <div class="list-item">
-              <div class="item-grid">
-                <div class="item-cell">04/08/2569</div>
-                <div class="item-cell">123453609</div>
-                <div class="item-cell">นางสาวxxxx xxxxxxxxxxxx</div>
-                <div class="item-cell">LC2-209</div>
-                <div class="item-cell item-right">
-                  <span class="time">13:30-18:00</span>
-                  <button class="chev" aria-label="รายละเอียด">▾</button>
-                </div>
-              </div>
-            </div>
-        
-            <div class="list-item">
-              <div class="item-grid">
-                <div class="item-cell">02/04/2569</div>
-                <div class="item-cell">123773609</div>
-                <div class="item-cell">นางสาวxxxx xxxxxxxxxxxx</div>
-                <div class="item-cell">LC2-209</div>
-                <div class="item-cell item-right">
-                  <span class="time">13:30-18:00</span>
-                  <button class="chev" aria-label="รายละเอียด">▾</button>
-                </div>
-              </div>
-            </div>
-        
-            <div class="list-item">
-              <div class="item-grid">
-                <div class="item-cell">24/01/2569</div>
-                <div class="item-cell">123453609</div>
-                <div class="item-cell">นางสาวxxxx xxxxxxxxxxxx</div>
-                <div class="item-cell">LC2-209</div>
-                <div class="item-cell item-right">
-                  <span class="time">13:30-18:00</span>
-                  <button class="chev" aria-label="รายละเอียด">▾</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div><!-- .table -->
+          <div class="list"></div>  <!-- รายการจะถูกสร้างโดย JavaScript -->
       </div><!-- .container -->
     </main>
+    <!-- ===== modals: approve & reject (วางก่อน </body>) ===== -->
+    <div id="modals" aria-hidden="true">
+
+      <!-- Reject modal -->
+      <div class="modal-backdrop" id="modalBackdrop" hidden></div>
+
+      <div class="modal" id="rejectModal" role="dialog" aria-modal="true" aria-labelledby="rejectTitle" hidden>
+        <div class="modal-card">
+          <h2 id="rejectTitle">ท่านต้องการตีกลับคำร้องใช่หรือไม่</h2>
+          <label class="label">เหตุผลการตีกลับ <span class="required-star">*</span></label>
+          <textarea id="rejectReason" class="input-textarea" rows="6" placeholder="กรุณาระบุเหตุผลการตีกลับ" required></textarea>
+
+          <div class="modal-actions">
+            <button class="btn btn-outline" id="rejectCancel">ยกเลิก</button>
+            <button class="btn btn-danger" id="rejectConfirm">ยืนยัน</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Approve modal -->
+      <div class="modal" id="approveModal" role="dialog" aria-modal="true" aria-labelledby="approveTitle" hidden>
+        <div class="modal-card small">
+          <h2 id="approveTitle">ท่านต้องการอนุมัติคำร้องใช่หรือไม่</h2>
+
+          <div class="modal-actions" style="justify-content:center;">
+            <button class="btn btn-outline" id="approveCancel">ยกเลิก</button>
+            <button class="btn btn-primary" id="approveConfirm">ยืนยัน</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- ===== end modals ===== -->
 </body>
 
 <footer>
