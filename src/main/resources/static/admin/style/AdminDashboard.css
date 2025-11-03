@@ -1,0 +1,338 @@
+/* ===================== Root Variables ===================== */
+:root {
+  --bg: #F4F6F9;
+  --card: #FFFFFF;
+  --muted: #6E6E6E;
+  --accent: #CC001F;
+  --accent-dark: #A80018;
+  --yellow: #F0A202;
+  --green: #C6F0D6;
+  --pink: #FFD6D9;
+  --title: #111;
+  --meta: #7B7B7B;
+  --capacity: #7B7B7B;
+  --feature: #6E6E6E;
+  --feature-bg: #F4F6F9;
+  --slot: #111;
+  --busy: #C82B2B;
+  --busy-bg: #FFD6D6;
+  --busy-border: #FF9EA8;
+  --free: #1E8F52;
+  --free-bg: #D9F7E5;
+  --free-border: #B7EBCF;
+  --btn-text: #fff;
+  --btn-hover: #111;
+  --divider: #D9D9D9;
+  --font-main: #111;
+  --font-muted: #6E6E6E;
+  --font-accent: #CC001F;
+  --font-warning: #F0A202;
+  --font-success: #1E8F52;
+  --font-danger: #C82B2B;
+  --font-white: #fff;
+}
+
+/* ===================== Font Sizes & Weights ===================== */
+:root {
+  --font-header: 48px;
+  --font-main-title: 32px;
+  --font-title1: 28px;
+  --font-title2: 24px;
+  --font-main-detail: 20px;
+  --font-detail: 16px;
+
+  --weight-bold: 700;
+  --weight-semi-bold: 600;
+  --weight-medium: 500;
+}
+
+/* ===================== Base & Layout ===================== */
+* {
+  box-sizing: border-box
+}
+
+body {
+  margin: 0;
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  background-color: var(--bg);
+  color: #111;
+}
+
+/* ===================== Top Bar & Toolbar ===================== */
+.top-bar {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand-logo img {
+  height: 130px;
+  margin-left: -16px;
+  padding-top: 20px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 20px
+}
+
+.icon-btn {
+  background: #fff;
+  border: none;
+  padding: 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 24px;
+  box-shadow: 0 4px 10px rgba(16, 24, 40, 0.06);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.icon-btn img {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.icon-btn:hover {
+  background-color: #111;
+  color: #fff;
+}
+
+.icon-btn:hover img {
+  filter: brightness(0) invert(1);
+}
+
+.chip {
+  background: #fff;
+  border-radius: 999px;
+  padding: 16px 24px;
+  font-weight: 600;
+  font-size: 18px;
+  box-shadow: 0 4px 10px rgba(16, 24, 40, 0.06);
+  display: flex;
+  align-items: center;
+  gap: 14px
+}
+
+/* ==================footer====================== */
+footer {
+  background-color: #443f46;
+  padding: 20px 20px;
+  margin-top: 80px;
+  width: 100%;
+  height: auto;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+}
+
+.footer-content .content {
+  color: #ffffff;
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  font-weight: var(--weight-medium);
+  font-size: var(--font-detail);
+}
+
+.footer-content .content span {
+  font-size: var(--font-main-detail);
+  font-weight: var(--weight-bold);
+}
+
+/* ===== Main content layout ===== */
+.main {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px 32px 48px;
+}
+
+/* container to keep content aligned with top-bar */
+.container {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+/* title and yellow underline */
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin: 16px 0 24px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: var(--font-main-title);
+  font-weight: var(--weight-bold);
+  color: var(--title);
+  white-space: nowrap;
+}
+
+.title-underline {
+  flex: 1 1 auto;
+  height: 6px;
+  background: var(--yellow);
+  border-radius: 6px;
+  min-width: 180px;
+  max-width: calc(100% - 360px);
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 28px;
+  margin-top: 8px;
+  border-bottom: 1px solid var(--divider);
+  padding-bottom: 12px;
+  align-items: center;
+}
+
+.tab {
+  background: transparent;
+  border: none;
+  padding: 10px 6px;
+  font-size: var(--font-detail);
+  font-weight: var(--weight-medium);
+  color: var(--font-muted);
+  cursor: pointer;
+  position: relative;
+}
+
+.tab--active {
+  color: var(--font-accent);
+  border-bottom: 3px solid var(--font-accent);
+  padding-bottom: 8px;
+}
+
+/* Table header (grey row) */
+.table {
+  margin-top: 20px;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 160px 200px 1fr 180px 160px;
+  gap: 16px;
+  align-items: center;
+  background: #EDEDED;
+  padding: 18px 22px;
+  border-radius: 8px;
+  color: var(--font-muted);
+  font-weight: var(--weight-semi-bold);
+  font-size: var(--font-detail);
+}
+
+/* List (cards) */
+.list {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Individual row style (card) */
+.list-item {
+  background: var(--card);
+  padding: 18px 22px;
+  border-radius: 8px;
+  box-shadow: 0 10px 20px rgba(16,24,40,0.06);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.list-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 26px rgba(16,24,40,0.08);
+}
+
+.item-grid {
+  display: grid;
+  grid-template-columns: 160px 200px 1fr 180px 160px;
+  gap: 16px;
+  align-items: center;
+}
+
+/* cells */
+.item-cell {
+  font-size: var(--font-detail);
+  color: var(--font-main);
+  padding: 6px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* rightmost cell: time + chevron */
+.item-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* time text */
+.time {
+  font-weight: 600;
+  color: var(--feature);
+}
+
+/* chevron button */
+.chev {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transform: rotate(0deg);
+  transition: transform .12s ease;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+
+.chev:hover {
+  background: rgba(16,24,40,0.03);
+}
+
+.chev:active {
+  transform: translateY(1px);
+}
+
+/* responsive tweaks */
+@media (max-width: 1100px) {
+  .table-header,
+  .item-grid {
+    grid-template-columns: 140px 160px 1fr 140px 120px;
+  }
+
+  .title-underline {
+    max-width: calc(100% - 320px);
+  }
+}
+
+@media (max-width: 820px) {
+  .table-header,
+  .item-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: auto;
+  }
+
+  .table-header > div:nth-child(3),
+  .item-grid > .item-cell:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .table-header > div:nth-child(4),
+  .table-header > div:nth-child(5),
+  .item-grid > .item-cell:nth-child(4),
+  .item-grid > .item-cell:nth-child(5) {
+    justify-self: end;
+  }
+
+  .title-underline {
+    display: none;
+  }
+}
