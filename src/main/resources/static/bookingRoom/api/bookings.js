@@ -33,15 +33,10 @@
     document.addEventListener('DOMContentLoaded', initAll);
   }
 
-  function getSelectedRangeText(card){
+  function getSelectedLabels(card){
     const selected = Array.from(card.querySelectorAll('.slots .slot-label.is-selected'));
-    if(!selected.length) return { start:'', end:'', text:'' };
-    const first = selected[0].querySelector('.slot-text')?.textContent || selected[0].textContent || '';
-    const last  = selected[selected.length-1].querySelector('.slot-text')?.textContent || selected[selected.length-1].textContent || '';
-    const start = (first.split('-')[0] || '').trim();
-    const end   = (last.split('-')[1]  || '').trim();
-    const text  = (start && end) ? `${start} - ${end}` : (first || '');
-    return { start, end, text };
+    const texts = selected.map(el => (el.querySelector('.slot-text')?.textContent || el.textContent || '').trim()).filter(Boolean);
+    return texts;
   }
 
   // Navigate to the form when clicking Book (only if enabled)
@@ -60,7 +55,7 @@
       if(!dateISO) return '';
       try{ const d=new Date(dateISO); return d.toLocaleDateString('th-TH'); }catch{ return dateISO; }
     })();
-    const range = getSelectedRangeText(card);
+    const labels = getSelectedLabels(card);
     const sel = {
       roomCode: btn.dataset.roomCode || '',
       roomName: btn.dataset.roomName || '',
@@ -68,9 +63,8 @@
       slots: picks,
       dateISO,
       dateText,
-      timeStart: range.start,
-      timeEnd: range.end,
-      timeText: range.text
+      timeText: labels.join(', '),
+      timeList: labels
     };
     try{ sessionStorage.setItem('bookingSelection', JSON.stringify(sel)); }catch{}
 

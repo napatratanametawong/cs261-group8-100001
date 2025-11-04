@@ -377,20 +377,20 @@ h1 {
 /* ซ้าย: รายละเอียดการจอง */
 .booking-card .kv{
   display: grid;
-  grid-template-columns: 140px 1fr; /* ขยายคอลัมน์ label เล็กน้อยให้อ่านง่าย */
+  grid-template-columns: 190px 1fr; /* ขยายคอลัมน์ label เล็กน้อยให้อ่านง่าย */
   row-gap: 16px;
   column-gap: 16px;
 }
 
 .booking-card .kv{
   color:#585858;
-  font-size: 16px;      /* 2) ใหญ่ขึ้นเล็กน้อย */
+  font-size: 16px;      
   line-height: 1.35;
-  grid-gap: 40px;
+  grid-gap: 50px;
 }
 
 .booking-card .kv .i{
-  font-size: 16px;      /* 2) ใหญ่ขึ้นเล็กน้อย */
+  font-size: 16px;      
   color:#3f3f3f;
   font-weight: 550;
 }

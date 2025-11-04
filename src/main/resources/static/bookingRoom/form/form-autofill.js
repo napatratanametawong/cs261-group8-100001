@@ -156,6 +156,15 @@
     persist(phoneInput,   STORAGE_KEYS.phone);
     persist(purposeInput, STORAGE_KEYS.purpose);
 
+    // ====== 5) Breadcrumb home: go back to homepage ======
+    const bcHome = document.getElementById('breadcrumb-home');
+    if (bcHome) {
+      bcHome.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = '../homepage_user.html';
+      });
+    }
+  
     // ====== 3) Dropzone: click-to-upload + drag & drop ======
     const renderFileList = (files) => {
       if (!files || files.length === 0) {
@@ -243,4 +252,3 @@
     });
   });
 })();
-
