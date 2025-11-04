@@ -448,6 +448,7 @@ h1 {
   color: #747474;
   text-align:center;
   padding: 14px;
+  cursor: pointer;
 }
 
 /* ปุ่ม (scoped) */
@@ -474,7 +475,14 @@ h1 {
   color: #444;
   border: 1px solid var(--divider, #E7E7E7);
 }
+
 .booking-card .btn-ghost:hover{ background: #fafafa; }
+
+.booking-card .dropzone.is-dragover {
+  outline: 3px dashed #bbb;
+  outline-offset: 2px;
+  background: #f0f6ff;
+}
 
 /* Responsive: จอเล็ก ซ้อนคอลัมน์ */
 @media (max-width: 992px){

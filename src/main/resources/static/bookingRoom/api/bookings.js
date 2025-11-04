@@ -1,0 +1,57 @@
+// bookings.js — enable Book only when at least one slot is selected
+(function(){
+  function cardFromRoomCode(code){
+    return document.querySelector(`.room-card .btn-book[data-room-code="${CSS.escape(code)}"]`)?.closest('.room-card') || null;
+  }
+
+  function updateButtonStateForCard(card){
+    if(!card) return;
+    const btn = card.querySelector('.btn-book');
+    if(!btn) return;
+    const anyPick = card.querySelector('.slots .slot-label.is-selected') !== null;
+    btn.disabled = !anyPick;
+    btn.setAttribute('aria-disabled', btn.disabled ? 'true' : 'false');
+  }
+
+  // When slots are rendered/enhanced, ensure initial disabled state
+  function initAll(){
+    document.querySelectorAll('.room-card').forEach(updateButtonStateForCard);
+  }
+
+  // React to any change in a room's selection
+  window.addEventListener('timeslot:change', (ev)=>{
+    const code = ev?.detail?.roomCode || '';
+    const card = code ? cardFromRoomCode(code) : null;
+    if(card){ updateButtonStateForCard(card); }
+  });
+
+  // Also run after rooms are (re)rendered
+  window.addEventListener('rooms:rendered', initAll);
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initAll();
+  } else {
+    document.addEventListener('DOMContentLoaded', initAll);
+  }
+
+  // Navigate to the form when clicking Book (only if enabled)
+  document.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.btn-book');
+    if(!btn) return;
+    if(btn.disabled) return; // guard
+    const card = btn.closest('.room-card');
+    const picks = Array.from(card.querySelectorAll('.slots .slot-label.is-selected'))
+      .map(el=>el.dataset.slotCode).filter(Boolean);
+    if(!picks.length) return;
+
+    const sel = {
+      roomCode: btn.dataset.roomCode || '',
+      roomName: btn.dataset.roomName || '',
+      slots: picks,
+    };
+    try{ sessionStorage.setItem('bookingSelection', JSON.stringify(sel)); }catch{}
+
+    // go to the form page relative to homepage_user.html
+    location.href = 'form/index.html';
+  });
+})();
+

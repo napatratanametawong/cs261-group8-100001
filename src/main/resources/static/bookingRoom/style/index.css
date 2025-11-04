@@ -683,6 +683,12 @@ h1 {
   cursor: pointer;
   transition: transform .06s ease, background .15s ease;
 }
+.btn-book:disabled,
+.btn-book[aria-disabled="true"]{
+  opacity: .55;
+  cursor: not-allowed;
+  filter: grayscale(0.15);
+}
 
 .btn-book:hover {
   background: var(--btn-hover, #111);
