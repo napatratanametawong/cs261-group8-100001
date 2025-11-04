@@ -33,6 +33,17 @@
     document.addEventListener('DOMContentLoaded', initAll);
   }
 
+  function getSelectedRangeText(card){
+    const selected = Array.from(card.querySelectorAll('.slots .slot-label.is-selected'));
+    if(!selected.length) return { start:'', end:'', text:'' };
+    const first = selected[0].querySelector('.slot-text')?.textContent || selected[0].textContent || '';
+    const last  = selected[selected.length-1].querySelector('.slot-text')?.textContent || selected[selected.length-1].textContent || '';
+    const start = (first.split('-')[0] || '').trim();
+    const end   = (last.split('-')[1]  || '').trim();
+    const text  = (start && end) ? `${start} - ${end}` : (first || '');
+    return { start, end, text };
+  }
+
   // Navigate to the form when clicking Book (only if enabled)
   document.addEventListener('click', (e)=>{
     const btn = e.target.closest('.btn-book');
@@ -43,10 +54,23 @@
       .map(el=>el.dataset.slotCode).filter(Boolean);
     if(!picks.length) return;
 
+    const dateISO = (window.CalendarAPI && typeof window.CalendarAPI.getSelectedISO==='function')
+      ? window.CalendarAPI.getSelectedISO() : '';
+    const dateText = (function(){
+      if(!dateISO) return '';
+      try{ const d=new Date(dateISO); return d.toLocaleDateString('th-TH'); }catch{ return dateISO; }
+    })();
+    const range = getSelectedRangeText(card);
     const sel = {
       roomCode: btn.dataset.roomCode || '',
       roomName: btn.dataset.roomName || '',
+      roomType: (card?.dataset?.category || ''),
       slots: picks,
+      dateISO,
+      dateText,
+      timeStart: range.start,
+      timeEnd: range.end,
+      timeText: range.text
     };
     try{ sessionStorage.setItem('bookingSelection', JSON.stringify(sel)); }catch{}
 
@@ -54,4 +78,3 @@
     location.href = 'form/index.html';
   });
 })();
-

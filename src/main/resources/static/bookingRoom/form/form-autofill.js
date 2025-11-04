@@ -9,7 +9,39 @@
     const groupInput   = card.querySelector('input[type="text"]'); // บรรทัด 76
     const phoneInput   = card.querySelector('input[type="tel"]');  // บรรทัด 81
     const purposeInput = card.querySelector('textarea');           // บรรทัด 86
-    const dropzone     = card.querySelector('.dropzone');          // บรรทัด 91
+    const dropzone     = card.querySelector('.dropzone');
+    // ====== Fill left summary (name, email, date, time, type, room) ======
+    (function fillSummary(){
+      const kv = card.querySelector('.kv');
+      if(!kv) return;
+      const items = kv.querySelectorAll('.i');
+      if(items.length < 6) return;
+
+      const safeTrim = (s)=> typeof s==='string'? s.trim(): '';
+      let profile={};
+      try{ const raw=localStorage.getItem('profile'); profile= raw? JSON.parse(raw): {}; }catch{}
+      const nameCandidates = [
+        profile?.displayname_th,
+        profile?.userName,
+        profile?.username,
+        document.getElementById('displayName')?.textContent
+      ].map(safeTrim).filter(Boolean);
+      const emailStr = safeTrim(profile?.email);
+
+      let sel={};
+      try{ sel = JSON.parse(sessionStorage.getItem('bookingSelection')||'{}'); }catch{}
+      const dateText = safeTrim(sel.dateText) || safeTrim(sel.dateISO);
+      const timeText = safeTrim(sel.timeText) || (sel.timeStart && sel.timeEnd ? `${sel.timeStart} - ${sel.timeEnd}` : '');
+      const roomType = safeTrim(sel.roomType);
+      const roomCode = safeTrim(sel.roomCode || sel.roomName);
+
+      items[0].textContent = nameCandidates[0] || items[0].textContent || '';
+      items[1].textContent = emailStr || items[1].textContent || '';
+      items[2].textContent = dateText || items[2].textContent || '';
+      items[3].textContent = timeText || items[3].textContent || '';
+      items[4].textContent = roomType || items[4].textContent || '';
+      items[5].textContent = roomCode || items[5].textContent || '';
+    })();          // บรรทัด 91
 
     // สร้าง input file ที่ซ่อนสำหรับ dropzone (multiple)
     const fileInput = document.createElement('input');
@@ -211,3 +243,4 @@
     });
   });
 })();
+
