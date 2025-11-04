@@ -1,100 +1,168 @@
-// service/ReservationServiceBySlots.java
 package com.example.lc2_booking_room.service;
 
 import com.example.lc2_booking_room.dto.reservation.CreateReservationBySlotsRequest;
 import com.example.lc2_booking_room.dto.reservation.ReservationResponse;
 import com.example.lc2_booking_room.model.Reservation;
-import com.example.lc2_booking_room.model.Room;
+import com.example.lc2_booking_room.model.ReservationSlot;
 import com.example.lc2_booking_room.model.TimeSlot;
-import com.example.lc2_booking_room.repository.ReservationRepository;
 import com.example.lc2_booking_room.repository.RoomRepository;
 import com.example.lc2_booking_room.repository.TimeSlotRepository;
+import com.example.lc2_booking_room.repository.ReservationRepository;
+import com.example.lc2_booking_room.repository.ReservationSlotRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ReservationServiceBySlots {
 
-    private final ReservationRepository reservationRepo;
-    private final TimeSlotRepository timeSlotRepo;
-    private final RoomRepository roomRepo;
+    private final RoomRepository roomRepository;
+    private final TimeSlotRepository timeSlotRepository;
+    private final ReservationRepository reservationRepository;
+    private final ReservationSlotRepository reservationSlotRepository;
 
-    private static final DateTimeFormatter TH_TIME = DateTimeFormatter.ofPattern("HH.mm");
-
-    public ReservationServiceBySlots(
-            ReservationRepository reservationRepo,
-            TimeSlotRepository timeSlotRepo,
-            RoomRepository roomRepo
-    ) {
-        this.reservationRepo = reservationRepo;
-        this.timeSlotRepo = timeSlotRepo;
-        this.roomRepo = roomRepo;
-    }
-
+    /**
+     * Flow ตาม ERD:
+     * 1) validate room + slot
+     * 2) กันชน (roomCode + reservationDate + slotCode && isActive)
+     * 3) สร้าง Reservation
+     * 4) สร้าง ReservationSlot หลายแถว
+     * 5) map → ReservationResponse
+     */
     @Transactional
-    public ReservationResponse create(CreateReservationBySlotsRequest req) {
-        if (req.slotIds() == null || req.slotIds().isEmpty()) {
-            throw new IllegalArgumentException("Please select at least 1 time slot.");
+    public ReservationResponse createReservationBySlots(CreateReservationBySlotsRequest req) {
+
+        // ---- 0) sanitize ----
+        final String roomCode = req.getRoomCode().trim();
+        final LocalDate date = req.getReservationDate();
+        final List<String> requestedSlotCodes = req.getSlotCodes().stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .distinct()
+                .toList();
+
+        if (requestedSlotCodes.isEmpty()) {
+            throw new IllegalArgumentException("ต้องเลือกอย่างน้อย 1 slot");
         }
 
-        // 1) Check conflicts (convert numeric ids to string codes)
-        List<String> conflicted = reservationRepo
-                .findConflictedSlotIds(String.valueOf(req.roomId()), req.date(),
-                        req.slotIds().stream().map(String::valueOf).toList());
-        if (!conflicted.isEmpty()) {
-            // Load first conflicted slot for a friendly message
-            var conflictSlots = timeSlotRepo.findBySlotCodeIn(conflicted);
-            var t = conflictSlots.get(0);
-
-            String msg = "Time %s - %s is already booked"
-                    .formatted(
-                            t.getStartTime().format(TH_TIME),
-                            t.getEndTime().format(TH_TIME)
-                    );
-
-            throw new RoomBusyException(msg);
+        // ---- 1) validate: room exists & active ----
+        // ถ้าไม่มีเมธอด existsByCodeAndActiveTrue ใน RoomRepository ให้ใช้ findById แล้วเช็ค active แทน
+        boolean roomOk = roomRepository.existsByCodeAndActiveTrue(roomCode);
+        boolean roomExists = roomRepository.existsByCodeAndActiveTrue(roomCode);
+        if (!roomExists) {
+            throw new IllegalArgumentException("ไม่พบห้อง หรือห้องไม่เปิดใช้งาน: " + roomCode);
         }
 
-        // 2) Load chosen TimeSlots
-        List<String> chosenIds = req.slotIds().stream().map(String::valueOf).toList();
-        List<TimeSlot> chosen = timeSlotRepo.findBySlotCodeIn(chosenIds);
+        // ---- 1.1) validate: slots exist & active ----
+        List<TimeSlot> activeSlots = timeSlotRepository.findBySlotCodeIn(requestedSlotCodes);
+        Set<String> activeSlotCodes = activeSlots.stream().map(TimeSlot::getSlotCode).collect(Collectors.toSet());
 
-        // 3) Create one Reservation per slot
-        List<Reservation> toSave = new ArrayList<>();
-        Room roomRef = roomRepo.findById(String.valueOf(req.roomId()))
-                .orElseThrow(() -> new IllegalArgumentException("Invalid room"));
-        for (TimeSlot slot : chosen) {
-            Reservation r = new Reservation();
-            r.setRoom(roomRef);
-            r.setSlot(slot);
-            r.setDate(req.date());
-            r.setReservedBy(req.reservedBy());
-            r.setStatus("CONFIRMED");
-            toSave.add(r);
+        List<String> missingOrInactive = requestedSlotCodes.stream()
+                .filter(c -> !activeSlotCodes.contains(c))
+                .toList();
+        if (!missingOrInactive.isEmpty()) {
+            throw new IllegalArgumentException("slot ต่อไปนี้ไม่พบหรือไม่เปิดใช้งาน: " + String.join(", ", missingOrInactive));
         }
-        List<Reservation> saved = reservationRepo.saveAll(toSave);
 
-        // 4) Build response summary across selected slots
-        var minStart = chosen.stream().map(TimeSlot::getStartTime).min(java.time.LocalTime::compareTo).orElseThrow();
-        var maxEnd = chosen.stream().map(TimeSlot::getEndTime).max(java.time.LocalTime::compareTo).orElseThrow();
-        var startDateTime = LocalDateTime.of(req.date(), minStart);
-        var endDateTime = LocalDateTime.of(req.date(), maxEnd);
+        // ---- 2) conflict check ----
+        boolean hasConflict = reservationSlotRepository.anyActiveConflict(roomCode, date, requestedSlotCodes);
+        if (hasConflict) {
+            // แปลง slot เป็นเวลาเพื่อบอกผู้ใช้แบบอ่านง่าย
+            /*
+            String human = activeSlots.stream()
+                    .sorted(Comparator.comparing(TimeSlot::getStartTime))
+                    .map(ts -> ts.getStartTime() + "–" + ts.getEndTime())
+                    .collect(Collectors.joining(", "));
+            */
+            String human = activeSlots.stream()
+                    .sorted(Comparator.comparing(TimeSlot::getStartTime))
+                    .map(ts -> ts.getStartTime() + " - " + ts.getEndTime())
+                    .collect(Collectors.joining(", "));
+            throw new IllegalStateException("ช่วงเวลาบางส่วนถูกจองแล้ว (" + human + ")");
+        }
 
-        return new ReservationResponse(
-                saved.get(0).getReservationId(),
-                req.roomId(),
-                startDateTime,
-                endDateTime,
-                "CONFIRMED"
-        );
+        // ---- 3) persist Reservation ----
+        Reservation reservation = Reservation.builder()
+                .roomCode(roomCode)
+                .reservationDate(date)
+                .reason(req.getReason())
+                .fileAttachment(req.getFileAttachment())
+                .userEmail(req.getUserEmail())
+                .userName(req.getUserName())
+                .step(Reservation.BookingStep.SUBMITTED)   // ค่าเริ่มต้นตามที่ต้องการ
+                .finalStatus(Reservation.FinalStatus.PENDING)
+                .createdAt(java.time.OffsetDateTime.now())
+                .build();
+
+        Reservation toSave = Reservation.builder()
+                .roomCode(roomCode)
+                .reservationDate(date)
+                .reason(req.getReason())
+                .fileAttachment(req.getFileAttachment())
+                .userEmail(req.getUserEmail())
+                .userName(req.getUserName())
+                .step(Reservation.BookingStep.SUBMITTED)
+                .finalStatus(Reservation.FinalStatus.PENDING)
+                .createdAt(java.time.OffsetDateTime.now())
+                .build();
+
+        final Reservation savedReservation = reservationRepository.save(toSave);
+
+        // ---- 4) persist ReservationSlot (bulk) ----
+        List<ReservationSlot> slots = requestedSlotCodes.stream()
+                .map(code -> ReservationSlot.builder()
+                        .reservation(reservation)
+                        .roomCode(roomCode)
+                        .slotCode(code)
+                        .isActive(true)
+                        .build())
+                .toList();
+
+        reservationSlotRepository.saveAll(slots);
+
+        // ---- 5) map → DTO response ----
+        return toResponse(reservation, slots, activeSlots);
     }
 
-    public static class RoomBusyException extends RuntimeException {
-        public RoomBusyException(String message) { super(message); }
+    private ReservationResponse toResponse(Reservation r, List<ReservationSlot> slotRows, List<TimeSlot> slotDefs) {
+        // เตรียม map slotCode → TimeSlot (ไว้แปลงเวลา)
+        Map<String, TimeSlot> slotMap = slotDefs.stream()
+                .collect(Collectors.toMap(TimeSlot::getSlotCode, s -> s));
+
+        List<ReservationResponse.SlotItem> slotItems = slotRows.stream()
+                .sorted(Comparator.comparing(ReservationSlot::getSlotCode))
+                .map(rs -> ReservationResponse.SlotItem.builder()
+                        .slotCode(rs.getSlotCode())
+                        .isActive(rs.getIsActive())
+                        .build())
+                .toList();
+
+        return ReservationResponse.builder()
+                .reservationId(r.getId())
+                .roomCode(r.getRoomCode())
+                .reservationDate(r.getReservationDate())
+                .reason(r.getReason())
+                .fileAttachment(r.getFileAttachment())
+                .step(r.getStep() != null ? r.getStep().name() : null)
+                .finalStatus(r.getFinalStatus() != null ? r.getFinalStatus().name() : null)
+                .userEmail(r.getUserEmail())
+                .userName(r.getUserName())
+                .staffReviewerEmail(r.getStaffReviewerEmail())
+                .staffReviewedAt(r.getStaffReviewedAt())
+                .headApproverEmail(r.getHeadApproverEmail())
+                .headDecidedAt(r.getHeadDecidedAt())
+                .returnReason(r.getReturnReason())
+                .rejectReason(r.getRejectReason())
+                .cancelReason(r.getCancelReason())
+                .approvedAt(r.getApprovedAt())
+                .createdAt(r.getCreatedAt())
+                .slots(slotItems)
+                .build();
     }
 }
-
