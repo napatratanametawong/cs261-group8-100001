@@ -18,15 +18,15 @@
   <script src="api/profile.js" defer></script>
   <script src="api/logout.js" type="module"></script>
   <script src="scripts/dashboard.js" defer></script>
-  <script src="scripts/sideMenu.js" defer></script>
   <script src="scripts/notifications.js" defer></script>
   <script src="scripts/modals.js" defer></script>
+  <script src="scripts/sideMenu.js" defer></script>
   <script src="../../global-head.js" defer></script>
 </head>
 
 <body>
   <div class="top-bar">
-    <div class="brand-logo" id="menu-toggle" role="button" aria-label="เปิดเมนู" tabindex="0">
+    <div class="brand-logo">
       <img src="../resource/Logo_header.png" alt="Logo" height="56" />
     </div>
     <div class="toolbar">
@@ -69,34 +69,52 @@
     </div>
   </div>
 
-  <!-- Mobile side menu (assistant) -->
-    <aside class="side-menu" id="sideMenu" aria-hidden="true">
-      <div class="side-menu-inner">
-        <div class="side-top">
-          <img id="siteLogo" src="../resource/Logo_header.png" alt="LC2 Booking Room" class="side-logo" />
-          <hr class="side-sep" />
-        </div>
-
-        <nav class="side-nav" aria-label="เมนูหลัก">
-          <button class="side-item" data-route="manage">
-            <span>จัดการคำร้อง</span>
-          </button>
-
-          <button class="side-item" data-route="history">
-            <span>ดูประวัติคำร้อง</span>
-          </button>
-        </nav>
-
-        <div class="side-bottom">
-          <hr class="side-sep" />
-          <button class="side-item side-item--settings" id="openSettings">
-            <span>การตั้งค่า</span>
-          </button>
-        </div>
+  <!-- responsive-sidebar.html (snippet) -->
+<aside id="appSidebar" class="sidebar" aria-label="Main sidebar">
+  <div class="sidebar__inner">
+    <div class="sidebar__header">
+      <button id="sidebarToggle" class="sidebar__toggle" aria-label="Toggle sidebar" aria-expanded="true">
+        <!-- hamburger / chevron -->
+        <svg width="26" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect y="4" width="20" height="2" rx="1" fill="currentColor"/>
+          <rect y="11" width="20" height="2" rx="1" fill="currentColor"/>
+          <rect y="18" width="20" height="2" rx="1" fill="currentColor"/>
+        </svg>
+      </button>
+      <div class="sidebar__brand">
+        <img src="../resource/Logo_header.png" alt="LC2 Booking Room" />
       </div>
-    </aside>
-    <!-- backdrop to close when clicking outside -->
-    <button class="side-backdrop" id="sideBackdrop" aria-hidden="true"></button>
+    </div>
+
+    <div class="sidebar__separator"></div>
+
+    <nav class="sidebar__nav" role="navigation" aria-label="Primary">
+      <button class="sidebar__item sidebar__item--active" data-route="home">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="currentColor"/></svg>
+        <span class="label">หน้าหลัก</span>
+      </button>
+
+      <button class="sidebar__item" data-route="history">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3a9 9 0 1 0 9 9h-2a7 7 0 1 1-7-7V3zM12 7v6l5 3 .9-1.6-4.4-2.5V7z" fill="currentColor"/></svg>
+        <span class="label">ดูประวัติคำร้อง</span>
+      </button>
+    </nav>
+
+    <div class="sidebar__spacer"></div>
+
+    <div class="sidebar__footer">
+      <div class="sidebar__separator"></div>
+
+      <button class="sidebar__item" data-route="settings" title="การตั้งค่า">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.39-1.09-.73-1.71-.98l-.37-2.65c-.06-.27-.3-.46-.57-.46h-4c-.28 0-.52.19-.57.46l-.37 2.65c-.62.25-1.19.59-1.71.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.64-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.39 1.09.73 1.71.98l.37 2.65c.06.27.3.46.57.46h4c.28 0 .52-.19.57-.46l.37-2.65c.62-.25 1.19-.59 1.71-.98l2.49 1c.22.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z" fill="currentColor"/></svg>
+        <span class="label">การตั้งค่า</span>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- backdrop for mobile drawer -->
+<div id="sidebarBackdrop" class="sidebar-backdrop" aria-hidden="true"></div>
 
 
   <main class="main">
