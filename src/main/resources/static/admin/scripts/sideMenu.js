@@ -107,11 +107,12 @@
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
       if (window.innerWidth > 920) {
-        // ensure sidebar visible on desktop
+        // On resize to desktop, ensure mobile classes are removed and restore desktop state.
         sidebar.classList.remove('open', 'hidden');
         backdrop.classList.remove('show');
+        setCollapsed(collapsed); // Restore the last desktop collapsed state.
       } else {
-        // ensure collapsed state not applied on mobile
+        // On resize to mobile, remove desktop 'collapsed' state.
         sidebar.classList.remove('collapsed');
       }
     }, 120);
