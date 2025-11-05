@@ -4,6 +4,9 @@ import com.example.lc2_booking_room.security.JwtAuthenticationFilter;
 import com.example.lc2_booking_room.security.SmartAuthEntryPoint;
 import com.example.lc2_booking_room.service.login.JwtService;
 
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,7 +24,10 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final SmartAuthEntryPoint smartAuthEntryPoint;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService) {
@@ -35,45 +41,29 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain api(HttpSecurity http,
-            JwtAuthenticationFilter jwtFilter,
-            SmartAuthEntryPoint smartEntryPoint) throws Exception {
+    SecurityFilterChain security(HttpSecurity http, JwtService jwtService) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        // ✅ หน้า public
-                        .requestMatchers(HttpMethod.GET,
-                                "/",
-                                "/login/**",
-                                "/styles/**", "/scripts/**", "/webjars/**")
-                        .permitAll()
+            .csrf(csrf -> csrf.disable())
+            .cors(Customizer.withDefaults())
+            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .formLogin(form -> form.disable())
+            .httpBasic(basic -> basic.disable())
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(smartAuthEntryPoint) // returns {"error":"unauthorized"}
+            )
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/auth/**", "/error", "/actuator/health").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .anyRequest().authenticated()
+            );
 
-                        // ✅ auth endpoints และ health
-                        .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // ✅ Protected
-                        .requestMatchers(HttpMethod.GET, "/api/rooms/**").hasAnyRole("USER", "BUILDING_ADMIN")
-                        .requestMatchers("/bookingRoom/**").hasRole("USER")
-                        .requestMatchers("/admin/**").hasRole("BUILDING_ADMIN")
-
-                        // resorce
-                        .requestMatchers("/resource/**", "/global-head.js").permitAll()
-                        .anyRequest().authenticated())
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(smartEntryPoint)
-                        .accessDeniedHandler((req, res, e) -> {
-                            res.setStatus(403);
-                            res.setContentType("application/json;charset=UTF-8");
-                            res.getWriter().write("{\"error\":\"Forbidden\"}");
-                        }))
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        // VERY IMPORTANT: register JWT filter
+        http.addFilterBefore(new JwtAuthenticationFilter(jwtService),
+                org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
