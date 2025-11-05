@@ -13,21 +13,19 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ReservationController {
 
-    private final ReservationServiceBySlots service;
+    private final ReservationServiceBySlots reservationService;
 
-    @PostMapping("/slots")
-    public ResponseEntity<?> createBySlots(@Valid @RequestBody CreateReservationBySlotsRequest req) {
-        try {
-            ReservationResponse body = service.createReservationBySlots(req);
-            return ResponseEntity.ok(body);
-        } catch (IllegalStateException e) {
-            // กันชนเวลา: บางช่วงเวลาถูกจองแล้ว
-            return ResponseEntity.status(409).body(new ErrorMessage(e.getMessage()));
-        } catch (IllegalArgumentException e) {
-            // validation ไม่ผ่าน: ห้อง/สล็อตไม่ถูกต้อง ฯลฯ
-            return ResponseEntity.badRequest().body(new ErrorMessage(e.getMessage()));
-        }
+    /** Create a reservation (room + date + multiple slotCodes) */
+    @PostMapping
+    public ResponseEntity<ReservationResponse> create(@Valid @RequestBody CreateReservationBySlotsRequest req) {
+        ReservationResponse res = reservationService.createReservationBySlots(req);
+        return ResponseEntity.ok(res);
     }
 
-    private record ErrorMessage(String message) {}
+    /** (Optional) Get one by id – useful for UI refresh after create */
+    @GetMapping("/{id}")
+    public ResponseEntity<ReservationResponse> getById(@PathVariable Long id) {
+        // implement service method if you want this endpoint
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 }
