@@ -1,82 +1,248 @@
-async function fetchBookingHistory() {
-  const res = await fetch("/api/booking-history");
-  return await res.json();
-}
+document.addEventListener("DOMContentLoaded", function() {
 
-function getStatusText(status) {
-  switch (status) {
-    case 'saved': return 'บันทึกแล้ว';
-    case 'rejected': return 'ไม่อนุมัติ';
-    case 'cancelled': return 'ยกเลิกแล้ว';
-    case 'approved': return 'อนุมัติแล้ว';
-    case 'inactive': return 'ไม่มีบทบาท';
-    default: return '-';
-  }
-}
+    const titleScroller = document.getElementById("main-title-clickable");
+    const historyTable = document.getElementById("history-table");
 
-function renderTimeline(steps) {
-  return steps.map(step => {
-    let cls = 'timeline-step';
-    if (step === 'approved') cls += ' approved';
-    else if (step === 'rejected' || step === 'cancelled') cls += ' rejected';
-    else if (step === steps[steps.length - 1]) cls += ' active';
-    return `<div class="${cls}">- ${getStatusText(step)}</div>`;
-  }).join('');
-}
+    if (titleScroller && historyTable) {
+        titleScroller.addEventListener("click", () => {
+            historyTable.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start' 
+            });
+        });
+    }
 
-function renderRequests(data) {
-  const container = document.getElementById('request-list');
-  data.forEach((req, index) => {
-    const item = document.createElement('div');
-    item.className = 'request-item';
+    const allItems = document.querySelectorAll(".history-item");
 
-    item.innerHTML = `
-      <span>${req.date}</span>
-      <span>${req.id}</span>
-      <span>${req.room}</span>
-      <span>${req.time}</span>
-      <span class="status ${req.status}">${getStatusText(req.status)}</span>
-      <button onclick="toggleDetails(this, ${index})">▼</button>
-    `;
+    allItems.forEach(item => {
+        const summary = item.querySelector(".history-item-summary");
+        const detail = item.querySelector(".history-item-detail");
 
-    container.appendChild(item);
-  });
-}
+        if (summary) {
+            summary.addEventListener("click", () => {
+                const isActive = item.classList.contains("active");
 
-function toggleDetails(btn, index) {
-  const parent = btn.closest('.request-item');
-  const existing = parent.nextElementSibling;
-  if (existing && existing.classList.contains(`details`)) {
-    existing.remove();
-    parent.classList.remove('highlight');
-    return;
-  }
+                if (isActive) {
+                    item.classList.remove("active");
+                    if (detail) {
+                        detail.style.display = "none";
+                    }
+                } else {
+                    item.classList.add("active");
+                    if (detail) {
+                        detail.style.display = "grid"; 
+                    }
+                }
+            });
+        }
+    });
 
-  parent.classList.add('highlight');
-  const req = window.__bookingData[index];
+    const modal = document.getElementById("cancelModal");
+    const cancelButtons = document.querySelectorAll(".btn-cancel");
+    const modalBtnCancel = document.getElementById("modalBtnCancel");
+    const modalBtnConfirm = document.getElementById("modalBtnConfirm");
 
-  const detail = document.createElement('div');
-  detail.className = `details`;
+    cancelButtons.forEach(button => {
+        button.addEventListener("click", (event) => {
+            event.stopPropagation();
+            if (modal) {
+                modal.style.display = "flex";
+            }
+        });
+    });
 
-  detail.innerHTML = `
-    <div class="section-title">รายละเอียดคำร้อง</div>
-    <div class="info">ชื่อ: ${req.name}</div>
-    <div class="info">อีเมล: ${req.email}</div>
-    <div class="info">เบอร์โทรศัพท์: ${req.phone}</div>
-    <div class="info">วันที่ต้องการใช้ห้อง: ${req.requestDate}</div>
-    <div class="info">ช่วงเวลา: ${req.time}</div>
-    <div class="info">ห้อง: ${req.room}</div>
-    <div class="info">ประเภทห้อง: ${req.type}</div>
+    if (modalBtnCancel) {
+        modalBtnCancel.addEventListener("click", () => {
+            modal.style.display = "none";
+        });
+    }
 
-    <div class="section-title">สถานะ</div>
-    <div class="timeline">${renderTimeline(req.steps)}</div>
-  `;
+    if (modalBtnConfirm) {
+        modalBtnConfirm.addEventListener("click", () => {
+            console.log("Cancelled");
+            modal.style.display = "none";
+        });
+    }
 
-  parent.after(detail);
-}
+    window.addEventListener("click", (event) => {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    });
 
-(async function init() {
-  const data = await fetchBookingHistory();
-  window.__bookingData = data;
-  renderRequests(data);
-})();
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+    
+    const mockNotifications = [
+        {
+            id: 1,
+            isRead: false,
+            message: "คำร้องของท่านถูกตีกลับ กรุณาแก้ไขและส่งใหม่",
+            timestamp: new Date(Date.now() - 5 * 60000).toISOString(),
+            detail: {
+                title: "คำร้องของท่านถูกตีกลับเนื่องจาก",
+                reason: "XXXXXX",
+                note: "ขออภัยในความไม่สะดวก",
+                button: "แก้ไขคำร้อง"
+            }
+        },
+        {
+            id: 2,
+            isRead: false,
+            message: "มีคำร้องขอใช้สถานที่ใหม่ คลิกเพื่อดูรายละเอียด",
+            timestamp: new Date(Date.now() - 12 * 3600000).toISOString(),
+            detail: null
+        },
+        {
+            id: 3,
+            isRead: true,
+            message: "คำร้องขอใช้สถานที่หมายเลข: 128397460 ได้รับการอนุมัติ",
+            timestamp: "2025-09-14T10:00:00",
+            detail: null
+        },
+        {
+            id: 4,
+            isRead: true,
+            message: "คำร้องขอใช้สถานที่หมายเลข: 123452789 ได้ทำการ ยกเลิก",
+            timestamp: "2025-03-12T17:00:00",
+            detail: null
+        },
+        {
+            id: 5,
+            isRead: true,
+            message: "คำร้องขอใช้สถานที่หมายเลข: 123456789 ทำการแก้ไขคำร้องแล้วส่งใหม่เรียบร้อย",
+            timestamp: "2025-01-01T11:00:00",
+            detail: null
+        }
+    ];
+
+    const bellWrapper = document.getElementById("notification-bell-wrapper");
+    const countBadge = document.getElementById("notification-count");
+    const dropdown = document.getElementById("notification-dropdown");
+    const listContainer = document.getElementById("notification-list-container");
+    const detailPanel = document.getElementById("notification-detail-panel");
+    const backBtn = document.getElementById("notification-back-btn");
+
+    function timeAgo(date) {
+        const now = new Date();
+        const seconds = Math.floor((now - new Date(date)) / 1000);
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + " ปีที่แล้ว";
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + " เดือนที่แล้ว";
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + " วันที่แล้ว";
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + " ชั่วโมงที่แล้ว";
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + " นาทีที่แล้ว";
+        return "เมื่อสักครู่";
+    }
+
+    function createNotificationHTML(notification) {
+        const isReadClass = notification.isRead ? 'read' : '';
+        const timeText = timeAgo(notification.timestamp);
+        const hasDetailClass = notification.detail ? 'has-detail' : '';
+        
+        return `
+            <div class="notification-item ${isReadClass} ${hasDetailClass}" data-id="${notification.id}">
+                <div class="dot"></div>
+                <div class="notification-item-content">
+                    <p>${notification.message}</p>
+                    <span>${timeText}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    function loadNotifications() {
+        if (!listContainer) return;
+        listContainer.innerHTML = "";
+        let unreadCount = 0;
+
+        mockNotifications.forEach(item => {
+            if (!item.isRead) {
+                unreadCount++;
+            }
+            listContainer.insertAdjacentHTML('beforeend', createNotificationHTML(item));
+        });
+        
+        if (countBadge) {
+            if (unreadCount > 0) {
+                countBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                countBadge.classList.add("show");
+            } else {
+                countBadge.classList.remove("show");
+            }
+        }
+    }
+
+    function showNotificationDetail(notification) {
+        if (!detailPanel || !notification.detail) return;
+
+        document.getElementById("notification-detail-title").textContent = notification.detail.title;
+        document.getElementById("notification-detail-reason").textContent = notification.detail.reason;
+        document.getElementById("notification-detail-note").textContent = notification.detail.note;
+        document.getElementById("notification-detail-button").textContent = notification.detail.button;
+
+        dropdown.classList.add("show-detail");
+    }
+
+    if (bellWrapper && dropdown && countBadge) {
+        bellWrapper.addEventListener("click", function(event) {
+            event.stopPropagation();
+            dropdown.classList.toggle("show");
+            dropdown.classList.remove("show-detail"); 
+    
+            if (dropdown.classList.contains("show")) {
+                countBadge.classList.remove("show");
+                
+                const unreadItems = mockNotifications.filter(item => !item.isRead);
+                unreadItems.forEach(item => item.isRead = true);
+                
+                document.querySelectorAll('.notification-item:not(.read) .dot').forEach(dot => {
+                    dot.style.backgroundColor = 'transparent';
+                });
+            }
+        });
+    }
+
+    if (listContainer) {
+        listContainer.addEventListener("click", function(event) {
+            event.stopPropagation(); 
+            const itemElement = event.target.closest('.notification-item');
+            if (!itemElement) return;
+
+            const notifId = parseInt(itemElement.dataset.id);
+            const notification = mockNotifications.find(n => n.id === notifId);
+            
+            if (notification && notification.detail) {
+                showNotificationDetail(notification);
+            }
+        });
+    }
+
+    if (backBtn && dropdown) {
+        backBtn.addEventListener("click", function(event) {
+            event.stopPropagation();
+            dropdown.classList.remove("show-detail");
+        });
+    }
+
+    window.addEventListener("click", function(event) {
+        const modal = document.getElementById("cancelModal");
+        if (event.target == modal) {
+            return;
+        }
+        
+        if (dropdown && dropdown.classList.contains("show")) {
+            if (!bellWrapper.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.classList.remove("show");
+                dropdown.classList.remove("show-detail");
+            }
+        }
+    });
+
+    loadNotifications();
+});

@@ -1,27 +1,282 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>ประวัติการเขียนคำร้อง</title>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style/bookingHistory.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ประวัติการเขียนคำร้อง - LC2 BOOKING ROOM</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <link rel="stylesheet" href="style/bookingHistory.css">
 </head>
 <body>
-  <div class="container">
-    <h1 class="main-title">ประวัติการเขียนคำร้อง</h1>
 
-    <div class="table-header">
-      <span>วัน/เดือน/ปี</span>
-      <span>หมายเลขคำร้อง</span>
-      <span>รายชื่อห้อง</span>
-      <span>ช่วงเวลา</span>
-      <span>สถานะ</span>
-      <span></span>
+    <header class="navbar">
+        <div class="logo-container">
+            <img src="../resource/Logo_header.png" alt="LC2 BOOKING ROOM Logo" class="logo-img">
+        </div>
+        <div class="user-container">
+            
+            <div class="icon-btn-wrapper" id="notification-bell-wrapper">
+                <i class="fa-regular fa-bell"></i>
+                <span class="notification-badge" id="notification-count"></span>
+                <div class="notification-dropdown" id="notification-dropdown">
+                    <div class="notification-panel" id="notification-list-panel">
+                        <div class="notification-header">
+                            <h3>การแจ้งเตือน</h3>
+                        </div>
+                        <div class="notification-list" id="notification-list-container">
+                        </div>
+                    </div>
+                    <div class="notification-panel" id="notification-detail-panel">
+                        <div class="notification-detail-header">
+                            <i class="fa-solid fa-chevron-left" id="notification-back-btn"></i>
+                            <h3 id="notification-detail-title"></h3>
+                        </div>
+                        <div class="notification-detail-body">
+                            <p class="notification-detail-reason" id="notification-detail-reason"></p>
+                            <p class="notification-detail-note" id="notification-detail-note"></p>
+                            <button class="btn btn-edit-request" id="notification-detail-button"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-info-wrapper">
+                <span>นางสาว XXX XXXXXXXX</span>
+                <i class="fa-regular fa-user-circle"></i>
+            </div>
+            <div class="icon-btn-wrapper">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <nav class="breadcrumbs">
+            <a href="#">หน้าแรก</a> / 
+            <span>ประวัติการเขียนคำร้อง</span>
+        </nav>
+
+        <h1 class="main-title" id="main-title-clickable">ประวัติการเขียนคำร้อง</h1>
+
+        <div class="history-table-wrapper" id="history-table">
+            <div class="history-header">
+                <div class="header-col">วัน/เดือน/ปี</div>
+                <div class="header-col">หมายเลขคำร้อง</div>
+                <div class="header-col">รายชื่อห้อง</div>
+                <div class="header-col">ช่วงเวลา</div>
+                <div class="header-col">สถานะ</div>
+                <div class="header-col"></div>
+            </div>
+
+            <div class="history-list">
+                
+                <div class="history-item">
+                    <div class="history-item-summary">
+                        <div class="summary-col">04/08/2569</div>
+                        <div class="summary-col">123453609</div>
+                        <div class="summary-col">LC2-213</div>
+                        <div class="summary-col">13:30-18:00</div>
+                        <div class="summary-col"><span class="status-pill status-saved">บันทึกแล้ว</span></div>
+                        <div class="summary-col"><i class="fa-solid fa-chevron-down chevron"></i></div>
+                    </div>
+                    <div class="history-item-detail">
+                        <div class="detail-info">
+                            <h2 class="main-detail">รายละเอียดการยื่นคำร้อง</h2>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <label>ชื่อ-นามสกุล</label>
+                                    <p>XXXXX XXXXXXXXXX</p>
+                                </div>
+                                <div class="info-item">
+                                    <label>เบอร์โทรศัพท์</label>
+                                    <p>XXXXXXXXXX</p>
+                                </div>
+                                <div class="info-item">
+                                    <label>อีเมล @dome</label>
+                                    <p>xxxx@dome.tu.ac.th</p>
+                                </div>
+                                <div class="info-item">
+                                    <label>ช่วงเวลา</label>
+                                    <p>13:30-18:00</p>
+                                </div>
+                                <div class="info-item">
+                                    <label>วันที่ต้องการใช้ห้อง</label>
+                                    <p>16/08/2569</p>
+                                </div>
+                                <div class="info-item">
+                                    <label>ห้อง</label>
+                                    <p>LC2-213</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="detail-status">
+                            <h2 class="main-detail">สถานะ</h2>
+                            <div class="status-timeline">
+                                <div class="status-step active"><p>บันทึกคำร้อง</p></div>
+                                <div class="status-step pending"><p>เจ้าหน้าที่ตรวจสอบ</p></div>
+                                <div class="status-step pending"><p>หัวหน้าสาขาฯ พิจารณา</p></div>
+                                <div class="status-step pending"><p>ผลการยื่นคำร้อง</p></div>
+                            </div>
+                            <button class="btn-cancel">ยกเลิกคำร้อง</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-item">
+                    <div class="history-item-summary">
+                        <div class="summary-col">25/03/2569</div>
+                        <div class="summary-col">128397460</div>
+                        <div class="summary-col">LC2-209</div>
+                        <div class="summary-col">15:00-18:00</div>
+                        <div class="summary-col"><span class="status-pill status-rejected">ไม่อนุมัติ</span></div>
+                        <div class="summary-col"><i class="fa-solid fa-chevron-down chevron"></i></div>
+                    </div>
+                    <div class="history-item-detail">
+                        <div class="detail-info">
+                            <h2 class="main-detail">รายละเอียดการยื่นคำร้อง</h2>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <label>ชื่อ-นามสกุล</label>
+                                    <p>XXXXX XXXXXXXXXX</p>
+                                </div>
+                                <div class="info-item">
+                                    <label>อีเมล @dome</label>
+                                    <p>xxxx@dome.tu.ac.th</p>
+                                </div>
+                                <div class="info-item">
+                                    <label>วันที่ต้องการใช้ห้อง</label>
+                                    <p>25/03/2569</p>
+                                </div>
+                            </div>
+                        </div>
+                         <div class="detail-status">
+                            <h2 class="main-detail">สถานะ</h2>
+                            <div class="status-timeline">
+                                <div class="status-step active"><p>บันทึกคำร้อง</p></div>
+                                <div class="status-step rejected"><p>ไม่อนุมัติ</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-item">
+                    <div class="history-item-summary">
+                        <div class="summary-col">23/03/2569</div>
+                        <div class="summary-col">123452789</div>
+                        <div class="summary-col">LC2-213</div>
+                        <div class="summary-col">15:00-18:00</div>
+                        <div class="summary-col"><span class="status-pill status-cancelled">ยกเลิกแล้ว</span></div>
+                        <div class="summary-col"><i class="fa-solid fa-chevron-down chevron"></i></div>
+                    </div>
+                     <div class="history-item-detail">
+                        <div class="detail-info">
+                            <h2 class="main-detail">รายละเอียดการยื่นคำร้อง</h2>
+                             <div class="info-grid">
+                                <div class="info-item">
+                                    <label>ชื่อ-นามสกุล</label>
+                                    <p>XXXXX XXXXXXXXXX</p>
+                                </div>
+                                <div class="info-item">
+                                    <label>วันที่ต้องการใช้ห้อง</label>
+                                    <p>23/03/2569</p>
+                                </div>
+                            </div>
+                        </div>
+                         <div class="detail-status">
+                            <h2 class="main-detail">สถานะ</h2>
+                            <div class="status-timeline">
+                                <div class="status-step active"><p>บันทึกคำร้อง</p></div>
+                                <div class="status-step cancelled"><p>ยกเลิกคำร้อง</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-item">
+                    <div class="history-item-summary">
+                        <div class="summary-col">13/04/2568</div>
+                        <div class="summary-col">123456789</div>
+                        <div class="summary-col">LC2-308</div>
+                        <div class="summary-col">13:30-15:00</div>
+                        <div class="summary-col"><span class="status-pill status-approved">อนุมัติแล้ว</span></div>
+                        <div class="summary-col"><i class="fa-solid fa-chevron-down chevron"></i></div>
+                    </div>
+                    <div class="history-item-detail">
+                        <div class="detail-info">
+                            <h2 class="main-detail">รายละเอียดการยื่นคำร้อง</h2>
+                             <div class="info-grid">
+                                <div class="info-item">
+                                    <label>ชื่อ-นามสกุล</label>
+                                    <p>XXXXX XXXXXXXXXX</p>
+                                </div>
+                                <div class="info-item">
+                                    <label>วันที่ต้องการใช้ห้อง</label>
+                                    <p>13/04/2568</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="detail-status">
+                            <h2 class="main-detail">สถานะ</h2>
+                            <div class="status-timeline">
+                                <div class="status-step active"><p>บันทึกคำร้อง</p></div>
+                                <div class="status-step completed"><p>เจ้าหน้าที่ตรวจสอบ</p></div>
+                                <div class="status-step completed"><p>หัวหน้าสาขาฯ พิจารณา</p></div>
+                                <div class="status-step approved"><p>อนุมัติคำร้อง</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                 <div class="history-item">
+                    <div class="history-item-summary">
+                        <div class="summary-col">13/04/2568</div>
+                        <div class="summary-col">123456789</div>
+                        <div class="summary-col">LC2-308</div>
+                        <div class="summary-col">13:30-15:00</div>
+                        <div class="summary-col"><span class="status-pill status-not-saved">ไม่บันทึก</span></div>
+                        <div class="summary-col"><i class="fa-solid fa-chevron-down chevron"></i></div>
+                    </div>
+                    <div class="history-item-detail">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-logo-container">
+            <img src="../resource/Logo_footer.png" alt="LC2 BOOKING ROOM Footer Logo" class="logo-img">
+            <div class="footer-address">
+                <p class="footer-title">ที่อยู่</p>
+                <p>อาคารบรรยายรวม 2 มหาวิทยาลัยธรรมศาสตร์ ศูนย์รังสิต</p>
+                <p>99 หมู่ 18 ตำบลคลองหนึ่ง อำเภอคลองหลวง</p>
+                <p>จังหวัดปทุมธานี 12121</p>
+            </div>
+        </div>
+        <div class="footer-contact">
+            <p class="footer-title">ติดต่อ</p>
+            <p>โทร. 061 013 6135</p>
+            <p>Email: scitu_cs@sci.tu.ac.th</p>
+        </div>
+    </footer>
+
+    <div id="cancelModal" class="modal">
+        <div class="modal-content">
+            <h3 class="title2">ท่านต้องการยกเลิกคำร้องหรือไม่</h3>
+            <div class="modal-buttons">
+                <button id="modalBtnCancel" class="btn btn-modal-cancel">ยกเลิก</button>
+                <button id="modalBtnConfirm" class="btn btn-confirm">ยืนยัน</button>
+            </div>
+        </div>
     </div>
 
-    <div id="request-list"></div>
-  </div>
-
-  <script src="./api/bookingHistory.js"></script>
+    <script src="api/bookingHistory.js"></script>
 </body>
 </html>
