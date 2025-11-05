@@ -19,7 +19,7 @@ import java.time.OffsetDateTime;
 )
 public class Reservation {
 
-    public enum BookingStep { DRAFT, SUBMITTED, REVIEWING, APPROVING, APPROVED, REJECTED, CANCELED }
+    public enum BookingStep { SUBMITTED, STAFF_REVIEW, RETURNED_FOR_FIX, RESUBMITTED, HEAD_REVIEW, DECIDE }
     public enum FinalStatus { PENDING, APPROVED, REJECTED, CANCELED }
 
     @Id
