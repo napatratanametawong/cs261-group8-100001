@@ -1,4 +1,4 @@
-package com.example.lc2_booking_room.repository;
+package com.example.lc2_booking_room.repository.PersonalReservationHistory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

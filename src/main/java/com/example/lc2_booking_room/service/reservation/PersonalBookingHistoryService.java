@@ -1,8 +1,9 @@
-package com.example.lc2_booking_room.service.room;
+package com.example.lc2_booking_room.service.reservation;
 
-import com.example.lc2_booking_room.dto.room.PersonalBookingHistoryResponse;
-import com.example.lc2_booking_room.repository.PersonalBookingHistoryRepository;
-import com.example.lc2_booking_room.repository.PersonalBookingHistoryView;
+import com.example.lc2_booking_room.dto.reservation.PersonalBookingHistoryResponse;
+import com.example.lc2_booking_room.repository.PersonalReservationHistory.PersonalBookingHistoryRepository;
+import com.example.lc2_booking_room.repository.PersonalReservationHistory.PersonalBookingHistoryView;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,6 @@ public class PersonalBookingHistoryService {
                 .roomCode(v.getRoomCode())
                 .reservationDate(v.getReservationDate())
                 .slotCodes(v.getSlotCodes())
-                .timeRanges(v.getTimeRanges())
                 .step(v.getStep())
                 .finalStatus(v.getFinalStatus())
                 .userName(v.getUserName())
