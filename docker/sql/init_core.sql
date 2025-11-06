@@ -161,3 +161,24 @@ BEGIN
 END;
 GO
 
+-- ===========================
+-- user_reservation_logs
+-- ===========================
+IF OBJECT_ID('dbo.user_reservation_logs','U') IS NULL
+BEGIN
+  CREATE TABLE dbo.user_reservation_logs(
+    user_log_id     BIGINT IDENTITY(1,1) PRIMARY KEY,
+    reservation_id  BIGINT        NOT NULL,
+    user_email      VARCHAR(100)  NULL,
+    action          VARCHAR(100)  NOT NULL,
+    changed_at      DATETIME2     NOT NULL CONSTRAINT df_logs_changed_at DEFAULT SYSUTCDATETIME(),
+    note            NVARCHAR(MAX) NULL,
+    CONSTRAINT fk_logs_reservation
+      FOREIGN KEY(reservation_id) REFERENCES dbo.reservations(reservation_id),
+    CONSTRAINT ck_logs_action CHECK (action IN ('CREATED','RESUBMITTED','CANCELED'))
+  );
+
+  CREATE INDEX idx_logs_reservation ON dbo.user_reservation_logs(reservation_id);
+  CREATE INDEX idx_logs_user_email ON dbo.user_reservation_logs(user_email);
+  CREATE INDEX idx_logs_changed_at ON dbo.user_reservation_logs(changed_at);
+END
