@@ -2,7 +2,7 @@ package com.example.lc2_booking_room.controller;
 
 import com.example.lc2_booking_room.dto.reservation.CreateReservationBySlotsRequest;
 import com.example.lc2_booking_room.dto.reservation.ReservationResponse;
-import com.example.lc2_booking_room.service.ReservationServiceBySlots;
+import com.example.lc2_booking_room.service.reservation.ReservationServiceBySlots;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;

@@ -92,7 +92,7 @@ public class Reservation {
 
     public void addSlot(ReservationSlot slot) {
         slots.add(slot);
-        slot.setReservation(this);   // keep both sides in sync
+        slot.setReservation(this);   
     }
 
     public void removeSlot(ReservationSlot slot) {

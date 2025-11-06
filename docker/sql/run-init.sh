@@ -45,9 +45,6 @@ echo "== run init_core.sql =="
 echo "== seed rooms =="
 "$SQLCMD" -S mssql,1433 -U sa -P "${SA_PASSWORD}" -b -V 16 -l 5 -d bookingDB -i /sql/seed_rooms.sql
 
-echo "== create reservations tables =="
-"$SQLCMD" -S mssql,1433 -U sa -P "${SA_PASSWORD}" -b -V 16 -l 5 -d bookingDB -i /sql/create_reservations.sql
-
 echo "== seed timeslots =="
 "$SQLCMD" -S mssql,1433 -U sa -P "${SA_PASSWORD}" -b -V 16 -l 5 -d bookingDB -i /sql/seed_timeslots.sql
 

@@ -1,19 +1,24 @@
-package com.example.lc2_booking_room.service;
+package com.example.lc2_booking_room.service.reservation;
 
 import com.example.lc2_booking_room.dto.reservation.CreateReservationBySlotsRequest;
 import com.example.lc2_booking_room.dto.reservation.ReservationResponse;
 import com.example.lc2_booking_room.model.Reservation;
 import com.example.lc2_booking_room.model.ReservationSlot;
 import com.example.lc2_booking_room.model.TimeSlot;
+import com.example.lc2_booking_room.model.user_log.UserReservationLog;
+import com.example.lc2_booking_room.model.user_log.LogAction;
 import com.example.lc2_booking_room.repository.RoomRepository;
 import com.example.lc2_booking_room.repository.TimeSlotRepository;
 import com.example.lc2_booking_room.repository.ReservationRepository;
 import com.example.lc2_booking_room.repository.ReservationSlotRepository;
-import jakarta.transaction.Transactional;
+import com.example.lc2_booking_room.repository.UserReservationLogRepository;
+import org.springframework.transaction.annotation.Transactional;  
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,6 +30,8 @@ public class ReservationServiceBySlots {
     private final TimeSlotRepository timeSlotRepository;
     private final ReservationRepository reservationRepository;
     private final ReservationSlotRepository reservationSlotRepository;
+    private final UserReservationLogRepository userReservationLogRepository; // direct user log
+    
 
     /**
      * Flow ตาม ERD:
@@ -36,45 +43,38 @@ public class ReservationServiceBySlots {
      */
     @Transactional
     public ReservationResponse createReservationBySlots(CreateReservationBySlotsRequest req) {
-
         // ---- 0) sanitize ----
         final String roomCode = req.getRoomCode().trim();
         final LocalDate date = req.getReservationDate();
         final List<String> requestedSlotCodes = req.getSlotCodes().stream()
-                .filter(Objects::nonNull)
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .distinct()
-                .toList();
+                .filter(Objects::nonNull).map(String::trim)
+                .filter(s -> !s.isEmpty()).distinct().toList();
 
         if (requestedSlotCodes.isEmpty()) {
-                throw new IllegalArgumentException("ต้องเลือกอย่างน้อย 1 slot");
+            throw new IllegalArgumentException("ต้องเลือกอย่างน้อย 1 slot");
         }
 
         // ---- 1) validate: room exists & active ----
         if (!roomRepository.existsByCodeAndActiveTrue(roomCode)) {
-                throw new IllegalArgumentException("ไม่พบห้อง หรือห้องไม่เปิดใช้งาน: " + roomCode);
+            throw new IllegalArgumentException("ไม่พบห้อง หรือห้องไม่เปิดใช้งาน: " + roomCode);
         }
 
         // ---- 1.1) validate: slots exist & active ----
         List<TimeSlot> activeSlots = timeSlotRepository.findBySlotCodeIn(requestedSlotCodes);
         Set<String> activeSlotCodes = activeSlots.stream().map(TimeSlot::getSlotCode).collect(Collectors.toSet());
-
-        List<String> missingOrInactive = requestedSlotCodes.stream()
-                .filter(c -> !activeSlotCodes.contains(c))
-                .toList();
+        List<String> missingOrInactive = requestedSlotCodes.stream().filter(c -> !activeSlotCodes.contains(c)).toList();
         if (!missingOrInactive.isEmpty()) {
-                throw new IllegalArgumentException("slot ต่อไปนี้ไม่พบหรือไม่เปิดใช้งาน: " + String.join(", ", missingOrInactive));
+            throw new IllegalArgumentException("slot ต่อไปนี้ไม่พบหรือไม่เปิดใช้งาน: " + String.join(", ", missingOrInactive));
         }
 
         // ---- 2) conflict check ----
         boolean hasConflict = reservationSlotRepository.anyActiveConflict(roomCode, date, requestedSlotCodes);
         if (hasConflict) {
-                String human = activeSlots.stream()
-                        .sorted(Comparator.comparing(TimeSlot::getStartTime))
-                        .map(ts -> ts.getStartTime() + " - " + ts.getEndTime())
-                        .collect(Collectors.joining(", "));
-                throw new IllegalStateException("ในเวลา " + human + " ถูกจองแล้ว");
+            String human = activeSlots.stream()
+                    .sorted(Comparator.comparing(TimeSlot::getStartTime))
+                    .map(ts -> ts.getStartTime() + " - " + ts.getEndTime())
+                    .collect(Collectors.joining(", "));
+            throw new IllegalStateException("ในเวลา " + human + " ถูกจองแล้ว");
         }
 
         // ---- 3) build parent (single instance) ----
@@ -93,12 +93,12 @@ public class ReservationServiceBySlots {
 
         // ---- 4) build children and attach via helper (sets both sides) ----
         for (String code : requestedSlotCodes) {
-                ReservationSlot slot = ReservationSlot.builder()
-                        .roomCode(roomCode)
-                        .slotCode(code)
-                        .isActive(true)
-                        .build();
-                reservation.addSlot(slot); // <<< CRITICAL: sets slot.reservation = reservation
+            ReservationSlot slot = ReservationSlot.builder()
+                    .roomCode(roomCode)
+                    .slotCode(code)
+                    .isActive(true)
+                    .build();
+            reservation.addSlot(slot); // <<< CRITICAL: sets slot.reservation = reservation
         }
 
         // ---- 5) save ONLY the parent (children cascade) ----
@@ -106,14 +106,26 @@ public class ReservationServiceBySlots {
 
         // ---- 6) map → DTO response ----
         // use the saved graph (children available via saved.getSlots())
-       return toResponse(saved, saved.getSlots(), activeSlots);
-        }
-        private ReservationResponse toResponse(
-                Reservation r,
-                List<ReservationSlot> slotRows,
-                List<TimeSlot> slotDefs) {
+        ReservationResponse res = toResponse(saved, saved.getSlots(), activeSlots);
 
-        // slotCode -> TimeSlot (if you later want to use start/end times)
+        // ---- 6.1) write user log after successful save (direct write in same TX) ----
+        UserReservationLog log = new UserReservationLog();
+        log.setReservation(saved);
+        log.setUserEmail(res.getUserEmail());
+        log.setAction(LogAction.CREATED);
+        log.setNote("Reservation created");
+        // uncomment IF your DB column 'changed_at' has NO default or @CreationTimestamp
+        // log.setChangedAt(LocalDateTime.now());
+        userReservationLogRepository.save(log);
+
+        return res;
+    }
+
+    private ReservationResponse toResponse(
+            Reservation r,
+            List<ReservationSlot> slotRows,
+            List<TimeSlot> slotDefs) {
+
         Map<String, TimeSlot> slotMap = slotDefs.stream()
                 .collect(Collectors.toMap(TimeSlot::getSlotCode, s -> s));
 
@@ -146,7 +158,5 @@ public class ReservationServiceBySlots {
                 .createdAt(r.getCreatedAt())
                 .slots(slotItems)
                 .build();
-        }
-
-
+    }
 }
