@@ -25,7 +25,7 @@ public class ReservationSlot {
     private Long id;
 
     // FK → reservations.reservation_id
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "reservation_id", nullable = false)
     private Reservation reservation;
 

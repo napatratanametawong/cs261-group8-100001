@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.ArrayList;
+
 
 @Data
 @NoArgsConstructor
@@ -77,6 +80,25 @@ public class Reservation {
     @Lob
     @Column(name = "cancel_reason")
     private String cancelReason;
+
+    // children slots of this reservation
+    @OneToMany(
+        mappedBy = "reservation",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true
+    )
+    @Builder.Default
+    private List<ReservationSlot> slots = new ArrayList<>();
+
+    public void addSlot(ReservationSlot slot) {
+        slots.add(slot);
+        slot.setReservation(this);   // keep both sides in sync
+    }
+
+    public void removeSlot(ReservationSlot slot) {
+        slots.remove(slot);
+        slot.setReservation(null);
+    }
 
     @Column(name = "approved_at")
     private OffsetDateTime approvedAt;

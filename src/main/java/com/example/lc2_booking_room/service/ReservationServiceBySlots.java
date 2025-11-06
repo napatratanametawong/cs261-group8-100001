@@ -48,15 +48,12 @@ public class ReservationServiceBySlots {
                 .toList();
 
         if (requestedSlotCodes.isEmpty()) {
-            throw new IllegalArgumentException("ต้องเลือกอย่างน้อย 1 slot");
+                throw new IllegalArgumentException("ต้องเลือกอย่างน้อย 1 slot");
         }
 
         // ---- 1) validate: room exists & active ----
-        // ถ้าไม่มีเมธอด existsByCodeAndActiveTrue ใน RoomRepository ให้ใช้ findById แล้วเช็ค active แทน
-        boolean roomOk = roomRepository.existsByCodeAndActiveTrue(roomCode);
-        boolean roomExists = roomRepository.existsByCodeAndActiveTrue(roomCode);
-        if (!roomExists) {
-            throw new IllegalArgumentException("ไม่พบห้อง หรือห้องไม่เปิดใช้งาน: " + roomCode);
+        if (!roomRepository.existsByCodeAndActiveTrue(roomCode)) {
+                throw new IllegalArgumentException("ไม่พบห้อง หรือห้องไม่เปิดใช้งาน: " + roomCode);
         }
 
         // ---- 1.1) validate: slots exist & active ----
@@ -67,40 +64,22 @@ public class ReservationServiceBySlots {
                 .filter(c -> !activeSlotCodes.contains(c))
                 .toList();
         if (!missingOrInactive.isEmpty()) {
-            throw new IllegalArgumentException("slot ต่อไปนี้ไม่พบหรือไม่เปิดใช้งาน: " + String.join(", ", missingOrInactive));
+                throw new IllegalArgumentException("slot ต่อไปนี้ไม่พบหรือไม่เปิดใช้งาน: " + String.join(", ", missingOrInactive));
         }
 
         // ---- 2) conflict check ----
         boolean hasConflict = reservationSlotRepository.anyActiveConflict(roomCode, date, requestedSlotCodes);
         if (hasConflict) {
-            // แปลง slot เป็นเวลาเพื่อบอกผู้ใช้แบบอ่านง่าย
-            /*
-            String human = activeSlots.stream()
-                    .sorted(Comparator.comparing(TimeSlot::getStartTime))
-                    .map(ts -> ts.getStartTime() + "–" + ts.getEndTime())
-                    .collect(Collectors.joining(", "));
-            */
-            String human = activeSlots.stream()
-                    .sorted(Comparator.comparing(TimeSlot::getStartTime))
-                    .map(ts -> ts.getStartTime() + " - " + ts.getEndTime())
-                    .collect(Collectors.joining(", "));
-            throw new IllegalStateException("ช่วงเวลาบางส่วนถูกจองแล้ว (" + human + ")");
+                String human = activeSlots.stream()
+                        .sorted(Comparator.comparing(TimeSlot::getStartTime))
+                        .map(ts -> ts.getStartTime() + " - " + ts.getEndTime())
+                        .collect(Collectors.joining(", "));
+                throw new IllegalStateException("ในเวลา " + human + " ถูกจองแล้ว");
         }
 
-        // ---- 3) persist Reservation ----
+        // ---- 3) build parent (single instance) ----
+        // IMPORTANT: we'll attach children to THIS instance and save THIS one.
         Reservation reservation = Reservation.builder()
-                .roomCode(roomCode)
-                .reservationDate(date)
-                .reason(req.getReason())
-                .fileAttachment(req.getFileAttachment())
-                .userEmail(req.getUserEmail())
-                .userName(req.getUserName())
-                .step(Reservation.BookingStep.SUBMITTED)   // ค่าเริ่มต้นตามที่ต้องการ
-                .finalStatus(Reservation.FinalStatus.PENDING)
-                .createdAt(java.time.OffsetDateTime.now())
-                .build();
-
-        Reservation toSave = Reservation.builder()
                 .roomCode(roomCode)
                 .reservationDate(date)
                 .reason(req.getReason())
@@ -112,26 +91,29 @@ public class ReservationServiceBySlots {
                 .createdAt(java.time.OffsetDateTime.now())
                 .build();
 
-        final Reservation savedReservation = reservationRepository.save(toSave);
-
-        // ---- 4) persist ReservationSlot (bulk) ----
-        List<ReservationSlot> slots = requestedSlotCodes.stream()
-                .map(code -> ReservationSlot.builder()
-                        .reservation(reservation)
+        // ---- 4) build children and attach via helper (sets both sides) ----
+        for (String code : requestedSlotCodes) {
+                ReservationSlot slot = ReservationSlot.builder()
                         .roomCode(roomCode)
                         .slotCode(code)
                         .isActive(true)
-                        .build())
-                .toList();
+                        .build();
+                reservation.addSlot(slot); // <<< CRITICAL: sets slot.reservation = reservation
+        }
 
-        reservationSlotRepository.saveAll(slots);
+        // ---- 5) save ONLY the parent (children cascade) ----
+        Reservation saved = reservationRepository.save(reservation);
 
-        // ---- 5) map → DTO response ----
-        return toResponse(reservation, slots, activeSlots);
-    }
+        // ---- 6) map → DTO response ----
+        // use the saved graph (children available via saved.getSlots())
+       return toResponse(saved, saved.getSlots(), activeSlots);
+        }
+        private ReservationResponse toResponse(
+                Reservation r,
+                List<ReservationSlot> slotRows,
+                List<TimeSlot> slotDefs) {
 
-    private ReservationResponse toResponse(Reservation r, List<ReservationSlot> slotRows, List<TimeSlot> slotDefs) {
-        // เตรียม map slotCode → TimeSlot (ไว้แปลงเวลา)
+        // slotCode -> TimeSlot (if you later want to use start/end times)
         Map<String, TimeSlot> slotMap = slotDefs.stream()
                 .collect(Collectors.toMap(TimeSlot::getSlotCode, s -> s));
 
@@ -164,5 +146,7 @@ public class ReservationServiceBySlots {
                 .createdAt(r.getCreatedAt())
                 .slots(slotItems)
                 .build();
-    }
+        }
+
+
 }
