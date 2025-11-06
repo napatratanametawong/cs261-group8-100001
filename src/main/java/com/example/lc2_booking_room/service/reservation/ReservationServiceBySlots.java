@@ -33,9 +33,7 @@ public class ReservationServiceBySlots {
     private final UserReservationLogRepository userReservationLogRepository; // direct user log
     
 
-<<<<<<< HEAD
-=======
-        
+     
     @Transactional(readOnly = true)
     public ReservationResponse getById(Long id) {
         // load parent; inside TX so lazy slots can initialize safely
@@ -55,7 +53,6 @@ public class ReservationServiceBySlots {
         return toResponse(r, slotRows, slotDefs);
     }
     
->>>>>>> 9c49952a6c11ce4411635eed43f97efbec377e74
     /**
      * Flow ตาม ERD:
      * 1) validate room + slot
