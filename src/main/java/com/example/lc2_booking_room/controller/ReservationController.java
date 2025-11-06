@@ -27,10 +27,18 @@ public class ReservationController {
         return ResponseEntity.ok(res);
     }
 
+<<<<<<< HEAD
     /** (Optional) Get one by id – useful for UI refresh after create */
     @GetMapping("/{id}")
     public ResponseEntity<ReservationResponse> getById(@PathVariable Long id) {
         // implement service method if you want this endpoint
         throw new UnsupportedOperationException("Not yet implemented");
+=======
+    /** Get reservation by ID (with slot details) */
+    @GetMapping("/{id}")
+    public ResponseEntity<ReservationResponse> getById(@PathVariable Long id) {
+        ReservationResponse res = reservationService.getById(id);
+        return ResponseEntity.ok(res);
+>>>>>>> 9c49952a6c11ce4411635eed43f97efbec377e74
     }
 }
