@@ -68,7 +68,7 @@
     };
     try{ sessionStorage.setItem('bookingSelection', JSON.stringify(sel)); }catch{}
 
-    // go to the actual reservation form page
-    location.href = 'form/reservation.html';
+    // go to the actual reservation form page (under pages/)
+    location.href = 'form/pages/reservation.html';
   });
 })();

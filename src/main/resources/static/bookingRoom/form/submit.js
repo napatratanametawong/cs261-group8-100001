@@ -23,7 +23,7 @@
         cancelBtn.addEventListener('click', (e) => {
           e.preventDefault();
           // Do NOT clear bookingSelection so user can reselect easily
-          location.href = '../homepage_user.html';
+          location.href = '/bookingRoom/homepage_user.html';
         });
       }
     }catch{}
