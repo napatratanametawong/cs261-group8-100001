@@ -22,7 +22,7 @@ import java.util.ArrayList;
 )
 public class Reservation {
 
-    public enum BookingStep { SUBMITTED, STAFF_REVIEW, RETURNED_FOR_FIX, RESUBMITTED, HEAD_REVIEW, DECIDE }
+    public enum BookingStep { SUBMITTED, STAFF_REVIEW, RETURNED_FOR_FIX, RESUBMITTED, HEAD_REVIEW, DECIDED }
     public enum FinalStatus { PENDING, APPROVED, REJECTED, CANCELED }
 
     @Id
