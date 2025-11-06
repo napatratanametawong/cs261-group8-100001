@@ -33,6 +33,26 @@ public class ReservationServiceBySlots {
     private final UserReservationLogRepository userReservationLogRepository; // direct user log
     
 
+        
+    @Transactional(readOnly = true)
+    public ReservationResponse getById(Long id) {
+        // load parent; inside TX so lazy slots can initialize safely
+        Reservation r = reservationRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Reservation not found: " + id));
+
+        // children
+        List<ReservationSlot> slotRows = r.getSlots(); // uses your mapped relation
+
+        // slot defs for mapping (uses only codes; safe if empty)
+        List<String> codes = slotRows.stream().map(ReservationSlot::getSlotCode).toList();
+        List<TimeSlot> slotDefs = codes.isEmpty()
+                ? List.of()
+                : timeSlotRepository.findBySlotCodeIn(codes);
+
+        // reuse your existing mapper (keep your original comments)
+        return toResponse(r, slotRows, slotDefs);
+    }
+    
     /**
      * Flow ตาม ERD:
      * 1) validate room + slot
