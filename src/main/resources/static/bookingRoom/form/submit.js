@@ -16,6 +16,18 @@
     const form = document.querySelector('.booking-card form');
     if(!form) return;
 
+    // Handle cancel: go back to room selection page
+    try{
+      const cancelBtn = form.querySelector('.actions .btn-ghost');
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          // Do NOT clear bookingSelection so user can reselect easily
+          location.href = '../homepage_user.html';
+        });
+      }
+    }catch{}
+
     // Capture-phase listener to prevent other submit handlers
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -47,4 +59,3 @@
     }, true); // capture = true
   });
 })();
-

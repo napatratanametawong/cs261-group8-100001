@@ -464,6 +464,8 @@ h1 {
   padding: 10px 18px;
   font-size: 14px;
   cursor: pointer;
+  text-decoration: none; /* remove underline for anchor buttons */
+  display: inline-block; /* ensure anchors render like buttons */
 }
 .booking-card .btn-primary{
   background: #d33d3d;

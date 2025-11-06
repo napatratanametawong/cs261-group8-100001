@@ -12,6 +12,11 @@
     document.addEventListener('DOMContentLoaded', function(){
       var home = document.getElementById('breadcrumb-home');
       if(home){ home.setAttribute('href','../homepage_user.html'); }
+      var histBtn = document.querySelector('.actions .btn.btn-primary');
+      if(histBtn){
+        histBtn.setAttribute('href','history.html');
+        histBtn.textContent = 'ดูประวัติการยื่นคำร้อง';
+      }
     });
   </script>
 </head>
