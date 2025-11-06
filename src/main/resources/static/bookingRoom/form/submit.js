@@ -7,7 +7,7 @@
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
   const API_BASE = '';
-  const API_PREFIX = '/api/rooms';
+  const API_PREFIX = '/api';
   const ENDPOINTS = {
     createReservation: `${API_BASE}${API_PREFIX}/reservations`
   };
@@ -33,24 +33,51 @@
       e.preventDefault();
       e.stopImmediatePropagation();
       try{
-        const fd = new FormData(form);
+        // NEW: Submit JSON to /api/reservations (backend DTO)
+        const textarea = form.querySelector('textarea');
         const fileInput = form.querySelector('input[type="file"]');
-        if (fileInput && fileInput.files && fileInput.files.length>0){
-          Array.from(fileInput.files).forEach(f => fd.append('attachments', f, f.name));
-        }
+        const readFirstFileAsDataURL = (inp) => new Promise((resolve) => {
+          try {
+            if (!inp || !inp.files || inp.files.length === 0) return resolve(null);
+            const file = inp.files[0];
+            const fr = new FileReader();
+            fr.onload = () => resolve(String(fr.result || ''));
+            fr.onerror = () => resolve(null);
+            fr.readAsDataURL(file);
+          } catch { resolve(null); }
+        });
+        let profile = {};
+        try { profile = JSON.parse(localStorage.getItem('profile') || '{}'); } catch {}
         let sel = {};
-        try{ sel = JSON.parse(sessionStorage.getItem('bookingSelection')||'{}'); }catch{}
-        const slots = Array.isArray(sel?.slots) ? sel.slots : [];
-        fd.set('room_code', sel?.roomCode || '');
-        fd.set('room_name', sel?.roomName || '');
-        fd.set('date', sel?.dateISO || '');
-        slots.forEach(sc => fd.append('slot_code', sc));
-
-        const res = await fetch(ENDPOINTS.createReservation, { method:'POST', body: fd, credentials:'include', headers:{ ...getAuthHeaders() } });
-        if(!res.ok) throw new Error(`HTTP ${res.status}`);
-        try{ await res.json(); }catch{}
-        // clear selection and go to success
-        try{ sessionStorage.removeItem('bookingSelection'); }catch{}
+        try { sel = JSON.parse(sessionStorage.getItem('bookingSelection') || '{}'); } catch {}
+        const slotCodes = Array.isArray(sel?.slots) ? sel.slots : [];
+        const payload = {
+          roomCode: sel?.roomCode || '',
+          reservationDate: sel?.dateISO || '',
+          slotCodes,
+        };
+        const reason = (textarea?.value || '').trim();
+        if (reason) payload.reason = reason;
+        const userEmail = (profile?.email || '').trim();
+        if (userEmail) payload.userEmail = userEmail;
+        const userName = (profile?.displayname_th || profile?.userName || '').trim();
+        if (userName) payload.userName = userName;
+        const fileDataUrl = await readFirstFileAsDataURL(fileInput);
+        if (fileDataUrl) payload.fileAttachment = fileDataUrl;
+        const res = await fetch(ENDPOINTS.createReservation, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          let msg = `HTTP ${res.status}`;
+          try { const err = await res.json(); if (err?.message) msg = err.message; } catch {}
+          throw new Error(msg);
+        }
+        const data = await res.json().catch(() => null);
+        try { sessionStorage.removeItem('bookingSelection'); } catch {}
+        try { if (data) sessionStorage.setItem('lastReservation', JSON.stringify(data)); } catch {}
         location.href = 'success.html';
       }catch(err){
         console.error('Submit failed', err);
