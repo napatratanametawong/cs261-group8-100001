@@ -302,4 +302,9 @@ h1 {
   font-weight: 600;
   color: #000;
   margin-bottom: 10px;
+  display: block;
+  text-align: left;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
 }
