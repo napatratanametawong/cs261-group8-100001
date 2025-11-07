@@ -19,6 +19,11 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -108,7 +113,7 @@ public class ReservationServiceBySlots {
                 .userName(req.getUserName())
                 .step(Reservation.BookingStep.SUBMITTED)
                 .finalStatus(Reservation.FinalStatus.PENDING)
-                .createdAt(java.time.OffsetDateTime.now())
+                .createdAt(OffsetDateTime.now(ZoneId.of("Asia/Bangkok")))
                 .build();
 
         // ---- 4) build children and attach via helper (sets both sides) ----
@@ -141,6 +146,10 @@ public class ReservationServiceBySlots {
         return res;
     }
 
+    private static OffsetDateTime toBkk(OffsetDateTime t) {
+        return t == null ? null : t.withOffsetSameInstant(ZoneOffset.ofHours(7));
+    }
+
     private ReservationResponse toResponse(
             Reservation r,
             List<ReservationSlot> slotRows,
@@ -168,14 +177,14 @@ public class ReservationServiceBySlots {
                 .userEmail(r.getUserEmail())
                 .userName(r.getUserName())
                 .staffReviewerEmail(r.getStaffReviewerEmail())
-                .staffReviewedAt(r.getStaffReviewedAt())
+                .staffReviewedAt(toBkk(r.getStaffReviewedAt()))
                 .headApproverEmail(r.getHeadApproverEmail())
-                .headDecidedAt(r.getHeadDecidedAt())
+                .headDecidedAt(toBkk(r.getHeadDecidedAt()))
                 .returnReason(r.getReturnReason())
                 .rejectReason(r.getRejectReason())
                 .cancelReason(r.getCancelReason())
-                .approvedAt(r.getApprovedAt())
-                .createdAt(r.getCreatedAt())
+                .approvedAt(toBkk(r.getApprovedAt()))
+                .createdAt(toBkk(r.getCreatedAt()))
                 .slots(slotItems)
                 .build();
     }
