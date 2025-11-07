@@ -166,9 +166,9 @@ h1 {
   margin-bottom: 20px;
 }
 
-.phone-number {
+/* .phone-number {
   padding-left: 35px;
-}
+} */
 
 /* ===============================
    6) Actions / Buttons 
@@ -231,19 +231,29 @@ h1 {
   display: none !important; 
 }
 
-.modal-card {
+.modal-card-approve, 
+.modal-card-reject {
   width: min(590px, 92vw);
   background: #fff; 
   border-radius: 5px; 
-  padding: 50px 60px;
+  padding: 60px 40px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 80%;
+  align-self: center;
+}
+
+.modal-card-approve {
+    padding: 100px 40px;
 }
 
 .modal-title {
   text-align: center;
   margin: 0 0 18px;
-  font-size: 22px; 
-  font-weight: 800; 
+  font-size: 24px; 
+  font-weight: 700; 
   color: #111827;
 }
 
@@ -257,13 +267,15 @@ h1 {
   background: #fff;
   resize: vertical;
   margin-bottom: 16px;
+  max-width: 80%;
+  align-self: center;
 }
 
 .modal-actions {
   display: flex; 
   justify-content: center; 
   gap: 40px; 
-  padding-top: 8px;
+  padding-top: 10px;
 }
 
 /* ปุ่มแดงสำหรับยืนยันในโมดัล */
