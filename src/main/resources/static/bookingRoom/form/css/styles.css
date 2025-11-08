@@ -471,7 +471,12 @@ h1 {
   background: #d33d3d;
   color: #fff;
 }
-.booking-card .btn-primary:hover{ background: #b53030; }
+.booking-card .btn-primary:disabled{
+  background: #cfcfcf;
+  color: #888;
+  cursor: not-allowed;
+}
+.booking-card .btn-primary:not(:disabled):hover{ background: #b53030; }
 .booking-card .btn-ghost{
   background: #fff;
   color: #444;

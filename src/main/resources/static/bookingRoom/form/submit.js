@@ -11,6 +11,9 @@
   const ENDPOINTS = {
     createReservation: `${API_BASE}${API_PREFIX}/reservations`
   };
+  // TEMP: force redirect to error page after successful submit for demo/testing.
+  // To revert to original behavior, set to false or remove this flag.
+  const TEMP_FORCE_ERROR_REDIRECT = false;
 
   document.addEventListener('DOMContentLoaded', () => {
     const form = document.querySelector('.booking-card form');
@@ -78,9 +81,17 @@
         const data = await res.json().catch(() => null);
         try { sessionStorage.removeItem('bookingSelection'); } catch {}
         try { if (data) sessionStorage.setItem('lastReservation', JSON.stringify(data)); } catch {}
+        if (TEMP_FORCE_ERROR_REDIRECT) {
+          try { sessionStorage.setItem('lastReservationError', 'การยื่นคำร้องไม่สำเร็จ (โหมดทดสอบ)'); } catch {}
+          location.href = 'error.html';
+          return;
+        }
         location.href = 'success.html';
       }catch(err){
         console.error('Submit failed', err);
+        try { sessionStorage.setItem('lastReservationError', (err && err.message) ? String(err.message) : 'เกิดข้อผิดพลาดภายในระบบ กรุณาลองใหม่อีกครั้ง'); } catch {}
+        location.href = 'error.html';
+        return;
         alert('ส่งคำขอไม่สำเร็จ กรุณาลองใหม่');
       }
     }, true); // capture = true

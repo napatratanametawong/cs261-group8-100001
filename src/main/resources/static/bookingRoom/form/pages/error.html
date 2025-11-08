@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>จองไม่สำเร็จ - LC2 Booking Rooms</title>
+    <meta name="description" content="การยื่นคำร้องไม่สำเร็จ โปรดลองใหม่อีกครั้ง" />
+    <link rel="stylesheet" href="../css/styles.css" />
+    <script src="../../api/profile.js" defer></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function(){
+        // set static assets to absolute paths
+        var home = document.getElementById('breadcrumb-home');
+        if(home){ home.setAttribute('href','/bookingRoom/homepage_user.html'); }
+        var backBtn = document.querySelector('.actions .btn.btn-ghost');
+        if(backBtn){ backBtn.setAttribute('href','/bookingRoom/homepage_user.html'); backBtn.textContent='กลับสู่หน้าหลัก'; }
+        var logo = document.querySelector('.brand-logo img');
+        if(logo){ logo.src = '/resource/Logo_header.png'; }
+        var logout = document.querySelector('#logout_btn img');
+        if(logout){ logout.src = '/resource/logout.svg'; }
+        var bellBtn = document.querySelector('.toolbar .icon-btn img');
+        if(bellBtn){ bellBtn.src = '/resource/bell.svg'; }
+        var footerLogo = document.querySelector('footer img');
+        if(footerLogo){ footerLogo.src = '/resource/Logo_footer.png'; }
+
+        // read and show error message
+        try {
+          var msg = sessionStorage.getItem('lastReservationError');
+          if(!msg || !String(msg).trim()) msg = 'เกิดข้อผิดพลาดภายในระบบ กรุณาลองใหม่อีกครั้ง';
+          var el = document.getElementById('error-message');
+          if(el){ el.textContent = msg; }
+        } catch {}
+      });
+    </script>
+  </head>
+  <body>
+    <div class="top-bar">
+      <div class="brand-logo">
+        <img src="/resource/Logo_header.png" alt="Logo" height="56" />
+      </div>
+      <div class="toolbar">
+        <button class="icon-btn" title="แจ้งเตือน">
+          <img src="/resource/bell.svg" alt="แจ้งเตือน" />
+        </button>
+        <div class="chip">
+          <span id="displayName" class="displayName"></span>
+        </div>
+        <button class="icon-btn" id="logout_btn" title="ออกจากระบบ">
+          <img src="/resource/logout.svg" alt="ออกจากระบบ" />
+        </button>
+      </div>
+    </div>
+
+    <header class="app"></header>
+
+    <main class="main-content">
+      <div id="breadcrumb" class="breadcrumb-container">
+        <a href="/bookingRoom/homepage_user.html" id="breadcrumb-home">หน้าหลัก</a> / <span id="breadcrumb-current">การยื่นคำร้องไม่สำเร็จ</span>
+      </div>
+
+      <section class="card booking-card" style="text-align:center;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:18px;">
+          <svg width="96" height="96" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="11" fill="#FFD6D6" stroke="#C82B2B" />
+            <path d="M8 8l8 8M16 8l-8 8" stroke="#C82B2B" stroke-width="2" stroke-linecap="round" />
+          </svg>
+
+          <h2 style="margin:0;font-size:24px;font-weight:700;">การยื่นคำร้องไม่สำเร็จ</h2>
+          <p id="error-message" style="margin:0;color:#6E6E6E;">เกิดข้อผิดพลาดภายในระบบ กรุณาลองใหม่อีกครั้ง</p>
+
+          <div class="actions" style="justify-content:center;margin-top:24px;">
+            <a class="btn btn-ghost" href="/bookingRoom/homepage_user.html">กลับสู่หน้าหลัก</a>
+            <a class="btn btn-primary" href="reservation.html">ลองใหม่อีกครั้ง</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="footer-content">
+        <div class="content">
+          <img src="/resource/Logo_footer.png" alt="">
+        </div>
+        <div class="content">
+          <p><span>คณะวิทยาศาสตร์และเทคโนโลยี</span></p>
+          <p>มหาวิทยาลัยธรรมศาสตร์ 99 หมู่ที่ 18 ต.คลองหนึ่ง อ.คลองหลวง จ.ปทุมธานี 12121</p>
+          <p><span>โทร.</span> 061 013 6135</p>
+          <p><span>Email:</span> scitu_cs@sci.tu.ac.th</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
+
