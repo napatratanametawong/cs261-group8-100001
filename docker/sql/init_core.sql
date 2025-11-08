@@ -119,7 +119,7 @@ BEGIN
       CHECK (step IN ('SUBMITTED','STAFF_REVIEW','RETURNED_FOR_FIX','RESUBMITTED','HEAD_REVIEW','DECIDE') OR step IS NULL),
 
     CONSTRAINT ck_reservations_final_status
-      CHECK (final_status IN ('PENDING','APPROVED','REJECTED','CANCELED') OR final_status IS NULL)
+      CHECK (final_status IN ('PENDING','APPROVED','REJECTED','CANCELLED') OR final_status IS NULL)
   );
 
   -- ดัชนีสำหรับคัดกรองรอบแรกด้วยห้อง/วัน/สถานะ
