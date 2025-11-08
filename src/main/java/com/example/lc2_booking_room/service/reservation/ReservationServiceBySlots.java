@@ -188,4 +188,26 @@ public class ReservationServiceBySlots {
                 .slots(slotItems)
                 .build();
     }
+
+        /* Cancel Reservation */
+        @Transactional
+        public ReservationResponse cancelReservation(Long id) {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("ไม่พบคำร้องที่ต้องการยกเลิก"));
+
+        // เงื่อนไขยกเลิก: ต้องเป็น SUBMITTED + PENDING เท่านั้น
+        if (reservation.getStep() != Reservation.BookingStep.SUBMITTED
+                || reservation.getFinalStatus() != Reservation.FinalStatus.PENDING) {
+                throw new IllegalStateException("สามารถยกเลิกได้เฉพาะคำร้องที่อยู่ในสถานะ SUBMITTED และ PENDING เท่านั้น");
+        }
+
+        // เปลี่ยนสถานะ → CANCELLED (ไม่มีการเก็บเหตุผล)
+        reservation.setFinalStatus(Reservation.FinalStatus.CANCELLED);
+
+        // ปลดล็อก slot ที่จองไว้ (soft-delete) เพื่อให้กลับมาว่าง
+        reservationSlotRepository.deactivateAllByReservation(id);
+
+        Reservation saved = reservationRepository.save(reservation);
+        return toResponse(saved, saved.getSlots(), List.of());
+        }
 }
