@@ -60,9 +60,10 @@
     const { rangeEl } = ensureTopActions(slotsEl);
     const clearBtn = ensureClearButton(slotsEl);
 
-    const picks = Array.from(
+    const selectedEls = Array.from(
       slotsEl.querySelectorAll('.slot-label.is-selected')
-    ).map(el => el.dataset.slotCode).filter(Boolean);
+    );
+    const picks = selectedEls.map(el => el.dataset.slotCode).filter(Boolean);
 
     if (picks.length === 0) {
       rangeEl.textContent = '';
@@ -71,29 +72,24 @@
       return;
     }
 
+    // Sort by known order, then join individual labels so gaps are preserved
     const sorted = picks.slice().sort(
       (a, b) => SLOT_ORDER.indexOf(a) - SLOT_ORDER.indexOf(b)
     );
-    const first = sorted[0];
-    const last  = sorted[sorted.length - 1];
-    const start = SLOT_TIME[first]?.start || '';
-    const end   = SLOT_TIME[last ]?.end   || '';
+    const labels = sorted.map(code => {
+      const el = selectedEls.find(x => x.dataset.slotCode === code);
+      return (el?.querySelector('.slot-text')?.textContent || el?.textContent || '').trim();
+    }).filter(Boolean);
 
-    if (start && end) {
-      rangeEl.textContent = `เวลาที่เลือก: ${start} – ${end}`;
-      rangeEl.style.display = '';
-    } else {
-      rangeEl.textContent = '';
-      rangeEl.style.display = 'none';
-    }
+    rangeEl.textContent = labels.length ? `เวลาที่เลือก: ${labels.join(', ')}` : '';
+    rangeEl.style.display = labels.length ? '' : 'none';
 
-    // show Clear All only when more than 1 slot is selected
     clearBtn.style.display = picks.length > 1 ? '' : 'none';
 
     const roomCard = slotsEl.closest('.room-card');
     const { roomCode, roomName } = getRoomMeta(roomCard || document);
     window.dispatchEvent(new CustomEvent('timeslot:range', {
-      detail: { roomCode, roomName, start, end, count: picks.length }
+      detail: { roomCode, roomName, labels, count: picks.length }
     }));
   }
 

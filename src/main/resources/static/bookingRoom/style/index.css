@@ -684,6 +684,16 @@ h1 {
   transition: transform .06s ease, background .15s ease;
 }
 
+.btn-book:disabled, .btn-book[aria-disabled="true"] { background:#D9D9D9; color:#5a5a5a; opacity:1; cursor:not-allowed; filter:none; }
+.btn-book:disabled:hover, .btn-book[aria-disabled="true"]:hover { background:#D9D9D9; }
+
+.btn-book:disabled,
+.btn-book[aria-disabled="true"]{
+  opacity: .55;
+  cursor: not-allowed;
+  filter: grayscale(0.15);
+}
+
 .btn-book:hover {
   background: var(--btn-hover, #111);
 }
@@ -752,3 +762,4 @@ footer {
   font-size: var(--font-main-detail);
   font-weight: var(--weight-bold);
 }
+
