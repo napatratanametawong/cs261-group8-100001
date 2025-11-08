@@ -76,48 +76,50 @@ IF OBJECT_ID('dbo.reservations','U') IS NULL
 BEGIN
   PRINT 'Creating table dbo.reservations';
   CREATE TABLE dbo.reservations(
-    reservation_id     BIGINT IDENTITY(1,1) PRIMARY KEY,
+    reservation_id       BIGINT IDENTITY(1,1) PRIMARY KEY,
 
     -- อ้างอิงด้วยรหัสห้อง (Natural Key)
-    room_code          VARCHAR(20)   NOT NULL,
-    reservation_date   DATE          NOT NULL,  -- วันของใบจอง (1 วันต่อใบ)
+    room_code            VARCHAR(20)     NOT NULL,
+    reservation_date     DATE            NOT NULL,   -- วันของใบจอง (1 วันต่อใบ)
 
     -- ข้อมูลคำร้อง
-    reason             NVARCHAR(255) NULL,
-    file_attachment    NVARCHAR(MAX) NULL,      -- URL/Path ไฟล์แนบ
+    reason               NVARCHAR(255)   NULL,
+    file_attachment      NVARCHAR(MAX)   NULL,
 
     -- สถานะขั้นตอน / ผลลัพธ์สุดท้าย
-    step               VARCHAR(30)   NULL,
-    final_status       VARCHAR(20)   NULL,
+    step                 VARCHAR(30)     NULL,
+    final_status         VARCHAR(20)     NULL,
 
     -- ผู้ยื่นคำร้อง
-    user_email         VARCHAR(100)  NULL,
-    user_name          NVARCHAR(100) NULL,
+    user_email           VARCHAR(100)    NULL,
+    user_name            NVARCHAR(100)   NULL,
 
-    -- การตรวจสอบ/อนุมัติ
-    staff_reviewer_email VARCHAR(100)  NULL,
-    staff_reviewed_at     DATETIME2(0) NULL,
-    head_approver_email   VARCHAR(100)  NULL,
-    head_decided_at       DATETIME2(0) NULL,
+    -- การตรวจสอบ/อนุมัติ (เก็บไทย +07:00)
+    staff_reviewer_email VARCHAR(100)    NULL,
+    staff_reviewed_at    DATETIMEOFFSET(0) NULL,
+    head_approver_email  VARCHAR(100)    NULL,
+    head_decided_at      DATETIMEOFFSET(0) NULL,
 
     -- เหตุผลเฉพาะทาง
-    return_reason      NVARCHAR(MAX) NULL,
-    reject_reason      NVARCHAR(MAX) NULL,
-    cancel_reason      NVARCHAR(MAX) NULL,
+    return_reason        NVARCHAR(MAX)   NULL,
+    reject_reason        NVARCHAR(MAX)   NULL,
+    cancel_reason        NVARCHAR(MAX)   NULL,
 
-    -- เวลาอนุมัติ/สร้าง
-    approved_at        DATETIME2(0)  NULL,
-    created_at         DATETIME2(0)  NOT NULL DEFAULT SYSDATETIME(),
+    -- เวลาอนุมัติ/สร้าง (ไทย +07:00)
+    approved_at          DATETIMEOFFSET(0) NULL,
+    created_at           DATETIMEOFFSET(0) NOT NULL
+      CONSTRAINT df_reservations_created_at
+      DEFAULT ( (SYSUTCDATETIME() AT TIME ZONE 'UTC') AT TIME ZONE 'SE Asia Standard Time' ),
 
     CONSTRAINT fk_reservations_room_code
       FOREIGN KEY (room_code) REFERENCES dbo.rooms(code),
 
-    -- จำกัดค่าที่อนุญาต (ตาม design: booking_step / final_status)
+    -- จำกัดค่าที่อนุญาต (ตาม enum)
     CONSTRAINT ck_reservations_step
-      CHECK (step IN ('SUBMITTED','STAFF_REVIEW','RETURNED_FOR_FIX','RESUBMITTED','HEAD_REVIEW','DECIDED') OR step IS NULL),
+      CHECK (step IN ('SUBMITTED','STAFF_REVIEW','RETURNED_FOR_FIX','RESUBMITTED','HEAD_REVIEW','DECIDE') OR step IS NULL),
 
     CONSTRAINT ck_reservations_final_status
-      CHECK (final_status IN ('PENDING','APPROVED','REJECTED','CANCELLED') OR final_status IS NULL)
+      CHECK (final_status IN ('PENDING','APPROVED','REJECTED','CANCELED') OR final_status IS NULL)
   );
 
   -- ดัชนีสำหรับคัดกรองรอบแรกด้วยห้อง/วัน/สถานะ
@@ -136,8 +138,8 @@ BEGIN
     reservation_slot_id BIGINT IDENTITY(1,1) PRIMARY KEY,
 
     reservation_id      BIGINT       NOT NULL,
-    room_code           VARCHAR(20)  NOT NULL,  -- ซ้ำกับหัวเพื่อ join/query ตรงๆ
-    slot_code           VARCHAR(20)  NOT NULL,  -- อ้างอิงช่วงเวลา (Natural Key)
+    room_code           VARCHAR(20)  NOT NULL,   -- ซ้ำกับหัวเพื่อ join/query ตรงๆ
+    slot_code           VARCHAR(20)  NOT NULL,   -- อ้างอิงช่วงเวลา (Natural Key)
     is_active           BIT          NOT NULL DEFAULT 1,
 
     CONSTRAINT fk_rs_reservation
@@ -161,3 +163,24 @@ BEGIN
 END;
 GO
 
+-- ===========================
+-- user_reservation_logs
+-- ===========================
+IF OBJECT_ID('dbo.user_reservation_logs','U') IS NULL
+BEGIN
+  CREATE TABLE dbo.user_reservation_logs(
+    user_log_id     BIGINT IDENTITY(1,1) PRIMARY KEY,
+    reservation_id  BIGINT        NOT NULL,
+    user_email      VARCHAR(100)  NULL,
+    action          VARCHAR(100)  NOT NULL,
+    changed_at      DATETIME2     NOT NULL CONSTRAINT df_logs_changed_at DEFAULT SYSUTCDATETIME(),
+    note            NVARCHAR(MAX) NULL,
+    CONSTRAINT fk_logs_reservation
+      FOREIGN KEY(reservation_id) REFERENCES dbo.reservations(reservation_id),
+    CONSTRAINT ck_logs_action CHECK (action IN ('CREATED','RESUBMITTED','CANCELED'))
+  );
+
+  CREATE INDEX idx_logs_reservation ON dbo.user_reservation_logs(reservation_id);
+  CREATE INDEX idx_logs_user_email ON dbo.user_reservation_logs(user_email);
+  CREATE INDEX idx_logs_changed_at ON dbo.user_reservation_logs(changed_at);
+END

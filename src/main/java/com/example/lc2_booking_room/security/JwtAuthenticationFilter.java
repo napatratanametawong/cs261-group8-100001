@@ -45,11 +45,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws ServletException, IOException {
-
         String token = resolveToken(req);
-
         if (token != null && jwtService.validate(token)) {
-            String email = jwtService.getEmail(token);        // subject = email
+            String email = jwtService.getEmail(token);        
             String role  = jwtService.getRole(token);
             if (role == null || role.isBlank()) role = "USER";
 
