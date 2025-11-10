@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <link rel="stylesheet" href="style/bookingHistory.css">
-    <script src="../../global-head.js" defer></script>
 </head>
 <body>
 
@@ -22,8 +21,7 @@
         </div>
         <div class="toolbar">
 
-          <div class="icon-btn-wrapper" id="notification-bell-wrapper">
-
+            <div class="icon-btn-wrapper" id="notification-bell-wrapper">
                 <i class="fa-regular fa-bell"></i>
                 <span class="notification-badge" id="notification-count"></span>
                 <div class="notification-dropdown" id="notification-dropdown">
@@ -60,9 +58,9 @@
                 </div>
             </div>
 
-            <a href="../login/pages/loginPage.html" class="icon-btn" id="logout_btn" title="ออก">
+            <button class="icon-btn" id="logout_btn" title="ออก">
                 <i class="fa-solid fa-arrow-right-from-bracket" style="font-size: 20px;"></i>
-            </a>
+            </button>
         </div>
     </header>
 
@@ -117,8 +115,6 @@
         </div>
     </div>
 
-    <script src="api/profile.js" defer></script>
-    <script src="api/logout.js" type="module"></script>
     <script src="api/bookingHistory.js"></script>
 </body>
 </html>

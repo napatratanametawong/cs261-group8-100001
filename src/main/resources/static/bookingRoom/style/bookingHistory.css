@@ -98,32 +98,23 @@ body {
 }
 
 .icon-btn {
-    background-color: #ffffff;
+    background: transparent;
     border: none;
-    width: 64px;
-    height: 64px;
-    border-radius: 100px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    padding: 14px;
+    border-radius: 999px;
     cursor: pointer;
     font-size: 24px;
+    box-shadow: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    text-decoration: none;
-    transition: background-color 0.2s ease;
+    width: 52px;
+    height: 52px;
 }
 
 .icon-btn i {
-    color: #000000;
-    font-size: 24px;
-}
-
-.icon-btn:hover {
-    background-color: #000000;
-}
-
-.icon-btn:hover i {
-    color: #ffffff;
+    color: var(--color-text-dark);
 }
 
 .icon-btn img {
@@ -132,112 +123,67 @@ body {
     display: block;
 }
 
+.icon-btn:hover {
+    background-color: #f0f0f0;
+}
+
+.icon-btn:hover i {
+    color: #111;
+}
+
+.chip {
+    background: transparent;
+    border-radius: 999px;
+    padding: 16px 24px;
+    font-weight: 600;
+    font-size: 18px;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    color: var(--color-text-body);
+    transition: background-color 0.2s ease;
+}
+
+.chip:hover {
+    background-color: #f0f0f0;
+}
+
+.chip i {
+    color: var(--color-text-body);
+}
+
 .hidden {
     display: none !important;
 }
 
 .icon-btn-wrapper {
-    background-color: #ffffff;
-    width: 64px;
-    height: 64px;
-    border-radius: 100px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s ease;
-    text-decoration: none;
     position: relative;
+    padding: 0;
+    background: transparent;
+    border: none;
+    width: 52px;
+    height: 52px;
+    border-radius: 999px;
     cursor: pointer;
+    font-size: 24px;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
 }
-
 .icon-btn-wrapper i {
-    font-size: 24px;
-    color: #000000;
+    font-size: 20px;
+    color: var(--color-text-dark);
 }
-
 .icon-btn-wrapper:hover {
-    background-color: #000000;
+    background-color: #f0f0f0;
 }
-
 .icon-btn-wrapper:hover i {
-    color: #ffffff;
+    color: var(--color-red);
 }
-
-.icon-btn {
-    background-color: #ffffff;
-    width: 64px;
-    height: 64px;
-    border-radius: 100px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s ease;
-    text-decoration: none;
-    cursor: pointer;
-    border: none;
-}
-
-.icon-btn i {
-    font-size: 24px;
-    color: #000000;
-}
-
-.icon-btn:hover {
-    background-color: #000000;
-}
-
-.icon-btn:hover i {
-    color: #ffffff;
-}
-
-.chip {
-    background-color: #ffffff;
-    border: none;
-    border-radius: 50px;
-    padding: 10px 18px;
-    font-weight: 600;
-    font-size: 16px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    color: #000000;
-    transition: background-color 0.2s ease;
-}
-
-.chip:hover {
-    background-color: #f5f5f5;
-}
-
-.chip i {
-    color: #000000;
-    font-size: 24px;
-}
-
-.notification-badge {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 18px;
-    height: 18px;
-    font-size: 12px;
-    background-color: #CC001F;
-    color: #ffffff;
-    border-radius: 50%;
-    border: 2px solid #ffffff;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
-}
-
-.notification-badge.show {
-    display: flex;
-}
-
 
 .user-menu-wrapper {
     position: relative;
@@ -288,7 +234,6 @@ body {
     text-decoration: none;
     color: var(--color-text-dark);
 }
-
 .breadcrumbs span {
     font-weight: 600;
     color: var(--color-text-body);
@@ -353,32 +298,15 @@ body {
     display: inline-block;
 }
 
-.status-pill.status-processing {
-    background-color: var(--color-yellow);
-}
-
-.status-pill.status-saved {
-    background-color: var(--color-blue);
-}
-
-.status-pill.status-rejected {
-    background-color: var(--color-red);
-}
-
-.status-pill.status-cancelled {
-    background-color: var(--color-grey);
-}
-
-.status-pill.status-approved {
-    background-color: var(--color-green);
-}
-
-.status-pill.status-not-saved {
-    background-color: var(--color-purple);
-}
+.status-pill.status-processing { background-color: var(--color-yellow); }
+.status-pill.status-saved { background-color: var(--color-blue); }
+.status-pill.status-rejected { background-color: var(--color-red); }
+.status-pill.status-cancelled { background-color: var(--color-grey); }
+.status-pill.status-approved { background-color: var(--color-green); }
+.status-pill.status-not-saved { background-color: var(--color-purple); }
 
 .history-item-detail {
-    display: none;
+    display: none; 
     grid-template-columns: 2.2fr 1fr;
     padding: 2rem;
     background-color: var(--color-white);
@@ -465,11 +393,9 @@ body {
 .status-step.pending {
     color: var(--color-text-dark);
 }
-
 .status-step.pending::before {
     border-color: var(--color-divider);
 }
-
 .status-step.pending::after {
     background-color: var(--color-divider);
 }
@@ -478,7 +404,6 @@ body {
     color: var(--color-black);
     font-weight: 600;
 }
-
 .status-step.active::before {
     border-color: var(--color-blue);
     background-color: var(--color-blue);
@@ -488,7 +413,6 @@ body {
     color: var(--color-black);
     font-weight: 600;
 }
-
 .status-step.completed::before {
     border-color: var(--color-yellow);
     background-color: var(--color-yellow);
@@ -498,7 +422,6 @@ body {
     color: var(--color-black);
     font-weight: 600;
 }
-
 .status-step.approved::before {
     border-color: var(--color-green);
     background-color: var(--color-green);
@@ -508,7 +431,6 @@ body {
     color: var(--color-black);
     font-weight: 600;
 }
-
 .status-step.rejected::before {
     border-color: var(--color-red);
     background-color: var(--color-red);
@@ -518,33 +440,27 @@ body {
     color: var(--color-black);
     font-weight: 600;
 }
-
 .status-step.cancelled::before {
     border-color: var(--color-grey);
     background-color: var(--color-grey);
 }
 
-.status-step.active+.status-step.completed::after {
+.status-step.active + .status-step.completed::after {
     background-color: var(--color-yellow);
 }
-
-.status-step.completed+.status-step.completed::after {
+.status-step.completed + .status-step.completed::after {
     background-color: var(--color-yellow);
 }
-
-.status-step.completed+.status-step.approved::after {
+.status-step.completed + .status-step.approved::after {
     background-color: var(--color-green);
 }
-
-.status-step.active+.status-step.rejected::after {
+.status-step.active + .status-step.rejected::after {
     background-color: var(--color-red);
 }
-
-.status-step.completed+.status-step.rejected::after {
+.status-step.completed + .status-step.rejected::after {
     background-color: var(--color-red);
 }
-
-.status-step.active+.status-step.cancelled::after {
+.status-step.active + .status-step.cancelled::after {
     background-color: var(--color-grey);
 }
 
@@ -596,7 +512,7 @@ body {
 }
 
 .modal {
-    display: none;
+    display: none; 
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -604,7 +520,7 @@ body {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.5); 
     justify-content: center;
     align-items: center;
 }
@@ -676,19 +592,20 @@ body {
 
 .notification-badge {
     position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 18px;
-    height: 18px;
-    font-size: 12px;
-    background-color: #CC001F;
-    color: #fff;
+    top: 2px;
+    right: 6px;
+    width: 20px;
+    height: 20px;
+    background-color: var(--color-red);
+    color: var(--color-white);
     border-radius: 50%;
-    border: 2px solid white;
-    display: none;
+    display: flex;
     justify-content: center;
     align-items: center;
-    font-weight: bold;
+    font-size: 12px;
+    font-weight: 600;
+    border: 2px solid var(--color-white);
+    display: none;
 }
 
 .notification-badge.show {
@@ -730,4 +647,161 @@ body {
     background-color: var(--color-white);
 }
 
-.notification-dropdown.show-detail #notification-list-panel {}
+.notification-dropdown.show-detail #notification-list-panel {
+    transform: translateX(-100%);
+}
+
+.notification-dropdown.show-detail #notification-detail-panel {
+    transform: translateX(0);
+}
+
+.notification-header,
+.notification-detail-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--color-header-grey);
+}
+
+.notification-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-black);
+    margin: 0;
+}
+
+.notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--color-header-grey);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-item:hover {
+    background-color: var(--color-bg);
+}
+
+.notification-item .dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-red);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+
+.notification-item.read .dot {
+    background-color: transparent;
+}
+
+.notification-item-content p {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-text-body);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.notification-item-content span {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-dark);
+    margin-top: 4px;
+    display: block;
+}
+
+.notification-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.notification-detail-header i {
+    font-size: 18px;
+    color: var(--color-text-body);
+    cursor: pointer;
+}
+
+.notification-detail-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-black);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.notification-detail-body {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.notification-detail-reason {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-black);
+    margin-bottom: 1.5rem;
+}
+
+.notification-detail-note {
+    font-size: 16px;
+    color: var(--color-text-dark);
+    margin-bottom: 1.5rem;
+}
+
+.btn-edit-request {
+    background-color: var(--color-white);
+    color: var(--color-text-body);
+    border: 1px solid var(--color-divider);
+    padding: 10px 30px;
+    border-radius: 5px;
+    font-size: 16px;
+    font-family: var(--font-main);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.user-menu-wrapper {
+    position: relative;
+}
+
+.user-menu-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 250px;
+    background-color: var(--color-white);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--color-divider);
+    z-index: 1000;
+    padding: 0.5rem;
+}
+
+.user-menu-dropdown.show {
+    display: block;
+}
+
+.user-menu-item {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: var(--color-text-body);
+    text-decoration: none;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.user-menu-item:hover {
+    background-color: var(--color-bg);
+}

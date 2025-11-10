@@ -384,7 +384,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
         
         if (countBadge) {
-            if (unreadCount > 0) {
+            if (countBadge > 0) {
                 countBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
                 countBadge.classList.add("show");
             } else {
@@ -454,7 +454,7 @@ document.addEventListener("DOMContentLoaded", function() {
             if(notificationDropdown) notificationDropdown.classList.remove("show");
         });
     }
-
+    
     window.addEventListener("click", function(event) {
         if (event.target == modal) {
             return;
