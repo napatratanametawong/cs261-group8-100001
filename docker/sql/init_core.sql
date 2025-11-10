@@ -76,40 +76,31 @@ IF OBJECT_ID('dbo.reservations','U') IS NULL
 BEGIN
   PRINT 'Creating table dbo.reservations';
   CREATE TABLE dbo.reservations(
-    reservation_id       BIGINT IDENTITY(1,1) PRIMARY KEY,
-
+    reservation_id     BIGINT IDENTITY(1,1) PRIMARY KEY,
     -- อ้างอิงด้วยรหัสห้อง (Natural Key)
-    room_code            VARCHAR(20)     NOT NULL,
-    reservation_date     DATE            NOT NULL,   -- วันของใบจอง (1 วันต่อใบ)
-
+    room_code          VARCHAR(20)   NOT NULL,
+    reservation_date   DATE          NOT NULL,  -- วันของใบจอง (1 วันต่อใบ)
     -- ข้อมูลคำร้อง
-    reason               NVARCHAR(255)   NULL,
-    file_attachment      NVARCHAR(MAX)   NULL,
-
+    reason             NVARCHAR(255) NULL,
+    file_attachment    NVARCHAR(MAX) NULL,      -- URL/Path ไฟล์แนบ
     -- สถานะขั้นตอน / ผลลัพธ์สุดท้าย
-    step                 VARCHAR(30)     NULL,
-    final_status         VARCHAR(20)     NULL,
-
+    step               VARCHAR(30)   NULL,
+    final_status       VARCHAR(20)   NULL,
     -- ผู้ยื่นคำร้อง
-    user_email           VARCHAR(100)    NULL,
-    user_name            NVARCHAR(100)   NULL,
-
-    -- การตรวจสอบ/อนุมัติ (เก็บไทย +07:00)
-    staff_reviewer_email VARCHAR(100)    NULL,
-    staff_reviewed_at    DATETIMEOFFSET(0) NULL,
-    head_approver_email  VARCHAR(100)    NULL,
-    head_decided_at      DATETIMEOFFSET(0) NULL,
-
+    user_email         VARCHAR(100)  NULL,
+    user_name          NVARCHAR(100) NULL,
+    -- การตรวจสอบ/อนุมัติ
+    staff_reviewer_email VARCHAR(100)  NULL,
+    staff_reviewed_at     DATETIME2(0) NULL,
+    head_approver_email   VARCHAR(100)  NULL,
+    head_decided_at       DATETIME2(0) NULL,
     -- เหตุผลเฉพาะทาง
-    return_reason        NVARCHAR(MAX)   NULL,
-    reject_reason        NVARCHAR(MAX)   NULL,
-    cancel_reason        NVARCHAR(MAX)   NULL,
-
-    -- เวลาอนุมัติ/สร้าง (ไทย +07:00)
-    approved_at          DATETIMEOFFSET(0) NULL,
-    created_at           DATETIMEOFFSET(0) NOT NULL
-      CONSTRAINT df_reservations_created_at
-      DEFAULT ( (SYSUTCDATETIME() AT TIME ZONE 'UTC') AT TIME ZONE 'SE Asia Standard Time' ),
+    return_reason      NVARCHAR(MAX) NULL,
+    reject_reason      NVARCHAR(MAX) NULL,
+    cancel_reason      NVARCHAR(MAX) NULL,
+    -- เวลาอนุมัติ/สร้าง
+    approved_at        DATETIME2(0)  NULL,
+    created_at         DATETIME2(0)  NOT NULL DEFAULT SYSDATETIME(),
 
     CONSTRAINT fk_reservations_room_code
       FOREIGN KEY (room_code) REFERENCES dbo.rooms(code),
