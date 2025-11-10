@@ -1,6 +1,15 @@
 document.addEventListener("DOMContentLoaded", function() {
 
-    const dummyToken = "YOUR_JWT_TOKEN_HERE"; 
+    // 1. [อัปเดต] - ฟังก์ชันสำหรับดึง Token จริง
+    // --------------------------------------------------
+    function getAuthToken() {
+        // สมมติว่าคุณเก็บ JWT Token ไว้ใน localStorage หลังล็อกอิน
+        const token = localStorage.getItem('jwtToken');
+        
+        // หากไม่พบ Token จริง ให้ใช้ Token ทดสอบ (ควรลบออกเมื่อขึ้น Production)
+        return token || "YOUR_JWT_TOKEN_HERE"; 
+    }
+    // --------------------------------------------------
 
     const historyListContainer = document.querySelector(".history-list");
     const titleScroller = document.getElementById("main-title-clickable");
@@ -20,6 +29,9 @@ document.addEventListener("DOMContentLoaded", function() {
     const userTrigger = document.getElementById("user-info-trigger");
     const userMenu = document.getElementById("user-menu-dropdown");
 
+    // 3. [อัปเดต] - สร้างตัวแปรเปล่าไว้เก็บการแจ้งเตือนที่ดึงมา
+    let fetchedNotifications = [];
+
     function formatDate(dateString) {
         if (!dateString) return "-";
         try {
@@ -32,25 +44,29 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function formatSlots(slotCodes) {
-        if (!slotCodes || !Array.isArray(slotCodes) || slotCodes.length === 0) {
-            if(typeof slotCodes === 'string') {
-                 const slots = slotCodes.split(',').map(s => s.trim());
-                 if (slots.length === 0) return "-";
-                 const firstSlot = slots[0].substring(1);
-                 const lastSlot = slots[slots.length - 1].substring(1);
-                 const startTime = firstSlot.split('_')[0];
-                 const endTime = lastSlot.split('_')[1];
-                 return `${startTime.slice(0, 2)}:${startTime.slice(2)} - ${endTime.slice(0, 2)}:${endTime.slice(2)}`;
-            }
+        if (!slotCodes || slotCodes.length === 0) return "-";
+        
+        let slotsArray = [];
+
+        // API History (GET /api/me/reservations/history) ส่งมาเป็น String
+        if (typeof slotCodes === 'string') {
+            slotsArray = slotCodes.split(',').map(s => s.trim());
+        } 
+        // API Detail (GET /api/reservations/{id}) ส่งมาเป็น Array of Objects
+        else if (Array.isArray(slotCodes)) {
+             // ตรวจสอบว่ามีข้อมูลข้างในไหม
+            if (slotCodes.length === 0 || !slotCodes[0].slotCode) return "-";
+            slotsArray = slotCodes.map(s => s.slotCode);
+        } else {
             return "-";
         }
-        
-        const firstSlot = slotCodes[0].slotCode.substring(1);
-        const lastSlot = slotCodes[slotCodes.length - 1].slotCode.substring(1);
 
+        if (slotsArray.length === 0) return "-";
+
+        const firstSlot = slotsArray[0].substring(1);
+        const lastSlot = slotsArray[slotsArray.length - 1].substring(1);
         const startTime = firstSlot.split('_')[0];
         const endTime = lastSlot.split('_')[1];
-
         return `${startTime.slice(0, 2)}:${startTime.slice(2)} - ${endTime.slice(0, 2)}:${endTime.slice(2)}`;
     }
     
@@ -82,7 +98,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 <div class="summary-col"><span class="status-pill ${status.class}">${status.text}</span></div>
                 <div class="summary-col"><i class="fa-solid fa-chevron-down chevron"></i></div>
             </div>
-            
             <div class="history-item-detail">
                 <div class="detail-info">
                     <p style="padding: 1rem;">กำลังโหลดรายละเอียด...</p>
@@ -101,7 +116,7 @@ document.addEventListener("DOMContentLoaded", function() {
             "ชื่อ-นามสกุล": data.userName,
             "อีเมล @dome": data.userEmail,
             "วันที่ต้องการใช้ห้อง": formatDate(data.reservationDate),
-            "ช่วงเวลา": formatSlots(data.slots),
+            "ช่วงเวลา": formatSlots(data.slots), // API Detail ส่ง slots เป็น Array
             "ห้อง": data.roomCode,
             "เหตุผลการจอง": data.reason || "-"
         };
@@ -136,7 +151,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         let finalStep = { text: "ผลการยื่นคำร้อง", status: "pending" };
         if (data.finalStatus === "APPROVED") {
-            finalStep = { text: "อนุมัติคำร้อง", status: "approved" };
+            finalStep = { text: `อนุมัติคำร้อง (เมื่อ: ${formatDate(data.approvedAt)})`, status: "approved" };
         } else if (data.finalStatus === "REJECTED") {
             finalStep = { text: `ไม่อนุมัติ (เหตุผล: ${data.rejectReason || 'N/A'})`, status: "rejected" };
         } else if (data.finalStatus === "CANCELLED") {
@@ -150,6 +165,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
         timelineHTML += '</div>';
         
+        // อนุญาตให้ยกเลิกได้เฉพาะเมื่อสถานะยังเป็น PENDING
         if (data.finalStatus === 'PENDING') {
             timelineHTML += `<button class="btn-cancel" data-item-id="${data.reservationId}">ยกเลิกคำร้อง</button>`;
         }
@@ -170,7 +186,8 @@ document.addEventListener("DOMContentLoaded", function() {
             const response = await fetch(`/api/reservations/${reservationId}`, {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${dummyToken}`,
+                    // 1. [อัปเดต] - เปลี่ยนไปใช้ getAuthToken()
+                    'Authorization': `Bearer ${getAuthToken()}`,
                     'Content-Type': 'application/json'
                 }
             });
@@ -236,13 +253,48 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    // 2. [อัปเดต] - เพิ่ม API Call สำหรับการยกเลิก
+    // --------------------------------------------------
     if (modalBtnConfirm) {
-        modalBtnConfirm.addEventListener("click", () => {
+        modalBtnConfirm.addEventListener("click", async () => {
             const itemId = modal.dataset.itemId;
-            console.log(`Cancelled (API call for ${itemId} goes here)`);
-            modal.style.display = "none";
+            if (!itemId) return;
+
+            modalBtnConfirm.textContent = 'กำลังดำเนินการ...';
+            modalBtnConfirm.disabled = true;
+
+            try {
+                // สมมติว่า API สำหรับยกเลิกคือ: PUT /api/reservations/{id}/cancel
+                const response = await fetch(`/api/reservations/${itemId}/cancel`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    // body: JSON.stringify({ reason: "ยกเลิกโดยผู้ใช้" }) // (Optional) ถ้า API ต้องการเหตุผล
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'ไม่สามารถยกเลิกได้' }));
+                    throw new Error(errorData.message);
+                }
+
+                console.log(`Cancelled (API call for ${itemId} success)`);
+                modal.style.display = "none";
+                
+                // โหลดข้อมูลประวัติใหม่เพื่ออัปเดตสถานะ
+                loadHistoryData(); 
+
+            } catch (error) {
+                console.error('Error cancelling reservation:', error);
+                alert(`เกิดข้อผิดพลาด: ${error.message}`);
+            } finally {
+                modalBtnConfirm.textContent = 'ยืนยัน';
+                modalBtnConfirm.disabled = false;
+            }
         });
     }
+    // --------------------------------------------------
 
     async function loadHistoryData() {
         if (!historyListContainer) return;
@@ -253,14 +305,15 @@ document.addEventListener("DOMContentLoaded", function() {
             const response = await fetch('/api/me/reservations/history?page=0&size=20', {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${dummyToken}`,
+                    // 1. [อัปเดต] - เปลี่ยนไปใช้ getAuthToken()
+                    'Authorization': `Bearer ${getAuthToken()}`,
                     'Content-Type': 'application/json'
                 }
             });
 
             if (!response.ok) {
                 if (response.status === 401 || response.status === 403) {
-                     throw new Error('Unauthorized. กรุณาตรวจสอบ Token.');
+                    throw new Error('Unauthorized. กรุณาตรวจสอบ Token.');
                 }
                 throw new Error('Network response was not ok');
             }
@@ -269,9 +322,9 @@ document.addEventListener("DOMContentLoaded", function() {
             
             historyListContainer.innerHTML = "";
             
-            if (data.content.length === 0) {
-                 historyListContainer.innerHTML = "<p style='padding: 1.5rem; text-align: center;'>ไม่พบประวัติการจอง</p>";
-                 return;
+            if (!data.content || data.content.length === 0) {
+                historyListContainer.innerHTML = "<p style='padding: 1.5rem; text-align: center;'>ไม่พบประวัติการจอง</p>";
+                return;
             }
             
             data.content.forEach(item => {
@@ -296,49 +349,11 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    const mockNotifications = [
-        {
-            id: 1,
-            isRead: false,
-            message: "คำร้องของท่านถูกตีกลับ กรุณาแก้ไขและส่งใหม่",
-            timestamp: new Date(Date.now() - 5 * 60000).toISOString(),
-            detail: {
-                title: "คำร้องของท่านถูกตีกลับเนื่องจาก",
-                reason: "XXXXXX",
-                note: "ขออภัยในความไม่สะดวก",
-                button: "แก้ไขคำร้อง"
-            }
-        },
-        {
-            id: 2,
-            isRead: false,
-            message: "มีคำร้องขอใช้สถานที่ใหม่ คลิกเพื่อดูรายละเอียด",
-            timestamp: new Date(Date.now() - 12 * 3600000).toISOString(),
-            detail: null
-        },
-        {
-            id: 3,
-            isRead: true,
-            message: "คำร้องขอใช้สถานที่หมายเลข: 128397460 ได้รับการอนุมัติ",
-            timestamp: "2025-09-14T10:00:00",
-            detail: null
-        },
-        {
-            id: 4,
-            isRead: true,
-            message: "คำร้องขอใช้สถานที่หมายเลข: 123452789 ได้ทำการ ยกเลิก",
-            timestamp: "2025-03-12T17:00:00",
-            detail: null
-        },
-        {
-            id: 5,
-            isRead: true,
-            message: "คำร้องขอใช้สถานที่หมายเลข: 123456789 ทำการแก้ไขคำร้องแล้วส่งใหม่เรียบร้อย",
-            timestamp: "2025-01-01T11:00:00",
-            detail: null
-        }
-    ];
-
+    // 3. [ลบ] - ลบ mockNotifications ทั้งหมดทิ้ง
+    /*
+    const mockNotifications = [ ... ];
+    */
+    
     function timeAgo(date) {
         const now = new Date();
         const seconds = Math.floor((now - new Date(date)) / 1000);
@@ -356,9 +371,10 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function createNotificationHTML(notification) {
-        const isReadClass = notification.isRead ? 'read' : '';
-        const timeText = timeAgo(notification.timestamp);
-        const hasDetailClass = notification.detail ? 'has-detail' : '';
+        // API ควรส่ง 'read' (boolean) มาแทน 'isRead'
+        const isReadClass = notification.read ? 'read' : '';
+        const timeText = timeAgo(notification.timestamp); // API ควรส่ง 'timestamp'
+        const hasDetailClass = notification.detail ? 'has-detail' : ''; // API ควรส่ง 'detail' (object)
         
         return `
             <div class="notification-item ${isReadClass} ${hasDetailClass}" data-id="${notification.id}">
@@ -371,31 +387,62 @@ document.addEventListener("DOMContentLoaded", function() {
         `;
     }
 
-    function loadNotifications() {
-        if (!notificationListContainer) return;
-        notificationListContainer.innerHTML = "";
-        let unreadCount = 0;
+    // 3. [อัปเดต] - เปลี่ยน `loadNotifications` ให้เป็น `async` และ `fetch` ข้อมูลจริง
+    // --------------------------------------------------
+    async function loadNotifications() {
+        if (!notificationListContainer || !countBadge) return;
 
-        mockNotifications.forEach(item => {
-            if (!item.isRead) {
-                unreadCount++;
-            }
-            notificationListContainer.insertAdjacentHTML('beforeend', createNotificationHTML(item));
-        });
+        notificationListContainer.innerHTML = "<div style='padding: 1rem; text-align: center;'>กำลังโหลด...</div>";
         
-        if (countBadge) {
-            if (countBadge > 0) {
+        try {
+            // สมมติ API คือ GET /api/me/notifications
+            const response = await fetch('/api/me/notifications?page=0&size=10&sort=timestamp,desc', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${getAuthToken()}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error('ไม่สามารถโหลดการแจ้งเตือนได้');
+
+            // สมมติ API ตอบกลับมาในรูปแบบเดียวกับ History (มี content และ unreadCount)
+            const data = await response.json(); 
+            
+            // เก็บข้อมูลที่ดึงมาใส่ในตัวแปร global
+            fetchedNotifications = data.content || []; 
+            
+            // สมมติ API มี field 'unreadCount' แยกมาให้
+            const unreadCount = data.unreadCount || fetchedNotifications.filter(n => !n.read).length;
+
+            notificationListContainer.innerHTML = ""; // Clear loading
+
+            if (fetchedNotifications.length === 0) {
+                notificationListContainer.innerHTML = "<div style='padding: 1rem; text-align: center;'>ไม่มีการแจ้งเตือน</div>";
+            } else {
+                fetchedNotifications.forEach(item => {
+                    notificationListContainer.insertAdjacentHTML('beforeend', createNotificationHTML(item));
+                });
+            }
+            
+            if (unreadCount > 0) {
                 countBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
                 countBadge.classList.add("show");
             } else {
                 countBadge.classList.remove("show");
             }
+
+        } catch (error) {
+            console.error('Error loading notifications:', error);
+            notificationListContainer.innerHTML = `<div style='padding: 1rem; text-align: center; color: var(--color-red);'>${error.message}</div>`;
         }
     }
+    // --------------------------------------------------
 
     function showNotificationDetail(notification) {
         if (!notificationDetailPanel || !notification.detail) return;
 
+        // โครงสร้าง .detail นี้ ต้องตรงกับที่ API ส่งกลับมา
         document.getElementById("notification-detail-title").textContent = notification.detail.title;
         document.getElementById("notification-detail-reason").textContent = notification.detail.reason;
         document.getElementById("notification-detail-note").textContent = notification.detail.note;
@@ -403,6 +450,38 @@ document.addEventListener("DOMContentLoaded", function() {
 
         notificationDropdown.classList.add("show-detail");
     }
+
+    // 3. [อัปเดต] - เพิ่มฟังก์ชันสำหรับ Mark as Read
+    // --------------------------------------------------
+    async function markNotificationsAsRead() {
+        // หากไม่มีการแจ้งเตือนที่ยังไม่อ่าน ก็ไม่ต้องยิง API
+        if (!countBadge.classList.contains("show")) {
+            return;
+        }
+
+        try {
+            // สมมติ API คือ POST /api/me/notifications/mark-all-read
+            const response = await fetch('/api/me/notifications/mark-all-read', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${getAuthToken()}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                console.log('Notifications marked as read');
+                countBadge.classList.remove("show");
+                // อัปเดต UI ให้อ่านแล้ว (ซ่อนจุด)
+                document.querySelectorAll('.notification-item:not(.read) .dot').forEach(dot => {
+                    dot.style.display = 'none';
+                });
+            }
+        } catch (error) {
+            console.error('Could not mark notifications as read:', error);
+        }
+    }
+    // --------------------------------------------------
 
     if (bellWrapper && notificationDropdown && countBadge) {
         bellWrapper.addEventListener("click", function(event) {
@@ -413,14 +492,8 @@ document.addEventListener("DOMContentLoaded", function() {
             if(userMenu) userMenu.classList.remove("show");
 
             if (isShowing) {
-                countBadge.classList.remove("show");
-                
-                const unreadItems = mockNotifications.filter(item => !item.isRead);
-                unreadItems.forEach(item => item.isRead = true);
-                
-                document.querySelectorAll('.notification-item:not(.read) .dot').forEach(dot => {
-                    dot.style.backgroundColor = 'transparent';
-                });
+                // 3. [อัปเดต] - เมื่อเปิดกระดิ่ง ให้ยิง API เพื่อ Mark Read
+                markNotificationsAsRead();
             }
         });
     }
@@ -432,7 +505,9 @@ document.addEventListener("DOMContentLoaded", function() {
             if (!itemElement) return;
 
             const notifId = parseInt(itemElement.dataset.id);
-            const notification = mockNotifications.find(n => n.id === notifId);
+            
+            // 3. [อัปเดต] - เปลี่ยนจาก `mockNotifications` เป็น `fetchedNotifications`
+            const notification = fetchedNotifications.find(n => n.id === notifId);
             
             if (notification && notification.detail) {
                 showNotificationDetail(notification);
@@ -457,7 +532,9 @@ document.addEventListener("DOMContentLoaded", function() {
     
     window.addEventListener("click", function(event) {
         if (event.target == modal) {
-            return;
+            // ป้องกันการปิด Modal เมื่อคลิกที่พื้นหลัง (ถ้าต้องการให้ปิดได้ ให้ลบ return)
+            // return; 
+            modal.style.display = "none"; // (หากต้องการให้ปิดได้)
         }
         
         if (notificationDropdown && notificationDropdown.classList.contains("show")) {
@@ -474,6 +551,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
+    // เรียกโหลดข้อมูลหลักเมื่อหน้าพร้อม
     loadHistoryData();
     loadNotifications();
 });

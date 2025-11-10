@@ -731,3 +731,48 @@ body {
 }
 
 .notification-dropdown.show-detail #notification-list-panel {}
+
+/* ===============================================
+  โค้ดที่เพิ่มเข้ามาสำหรับ User Dropdown (ที่ขาดไป)
+===============================================
+*/
+.user-menu-dropdown {
+    display: none;
+    /* 1. ซ่อนเมนูไว้เป็นค่าเริ่มต้น */
+    position: absolute;
+    /* 2. ดึงเมนูออกจากผังเว็บ (นี่คือตัวแก้ปัญหาระดับเพี้ยน) */
+    top: calc(100% + 10px);
+    /* 3. จัดตำแหน่งให้อยู่ใต้ปุ่ม (100%) และเว้นช่องไฟ 10px */
+    right: 0;
+    background-color: var(--card, #FFFFFF);
+    min-width: 220px;
+    /* กำหนดความกว้างเมนู */
+    border-radius: 8px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--divider, #D9D9D9);
+    z-index: 1000;
+    overflow: hidden;
+    /* สำหรับขอบมน */
+    padding: 8px 0;
+    /* เพิ่มช่องไฟบน-ล่าง ภายในเมนู */
+}
+
+/* 4. เมื่อ JS สั่ง .toggle("show") ให้แสดงเมนู */
+.user-menu-dropdown.show {
+    display: block;
+}
+
+/* 5. ปรับสไตล์ของลิงก์ข้างในให้สวยงาม */
+.user-menu-item {
+    display: block;
+    padding: 12px 20px;
+    color: var(--font-main, #111);
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.user-menu-item:hover {
+    background-color: var(--bg, #F4F6F9);
+}
