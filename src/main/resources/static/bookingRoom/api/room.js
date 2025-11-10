@@ -175,6 +175,11 @@
 
       const cta=document.createElement('div'); cta.className='cta';
       const btn=document.createElement('button'); btn.className='btn-book book-btn'; btn.textContent='Book';
+      // expose room meta for downstream handlers and disable by default
+      btn.dataset.roomCode = (v.code || '').trim();
+      btn.dataset.roomName = (v.roomName || '').trim();
+      btn.disabled = true;
+      btn.setAttribute('aria-disabled','true');
       cta.appendChild(btn);
 
       info.appendChild(title);
