@@ -9,12 +9,18 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
 public class PersonalBookingHistoryService {
 
     private final PersonalBookingHistoryRepository repo;
+
+    // SQL uses FORMAT(..., 'yyyy-MM-ddTHH:mm:sszzz') -> matches Java "XXX"
+    private static final DateTimeFormatter ISO_WITH_OFFSET =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
 
     public Page<PersonalBookingHistoryResponse> getMyHistory(
             String email,
@@ -39,6 +45,13 @@ public class PersonalBookingHistoryService {
     }
 
     private PersonalBookingHistoryResponse mapToDto(PersonalBookingHistoryView v) {
+        // Parse ISO string with offset to OffsetDateTime
+        OffsetDateTime last = null;
+        String iso = v.getLastStatusAtIso(); // <-- comes from projection
+        if (iso != null && !iso.isBlank()) {
+            last = OffsetDateTime.parse(iso, ISO_WITH_OFFSET);
+        }
+
         return PersonalBookingHistoryResponse.builder()
                 .reservationId(v.getReservationId())
                 .roomCode(v.getRoomCode())
@@ -48,7 +61,7 @@ public class PersonalBookingHistoryService {
                 .finalStatus(v.getFinalStatus())
                 .userName(v.getUserName())
                 .userEmail(v.getUserEmail())
-                .lastStatusAt(v.getLastStatusAt())
+                .lastStatusAt(last) // OffsetDateTime in DTO
                 .build();
     }
 }

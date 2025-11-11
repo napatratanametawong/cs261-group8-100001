@@ -14,20 +14,25 @@ public interface PersonalBookingHistoryRepository
           r.reservation_date    AS reservationDate,
 
           STRING_AGG(rs.slot_code, ', ')
-              WITHIN GROUP (ORDER BY t.start_time) AS slotCodes,
+            WITHIN GROUP (ORDER BY t.start_time) AS slotCodes,
 
           r.step                AS step,
           r.final_status        AS finalStatus,
           r.user_name           AS userName,
           r.user_email          AS userEmail,
 
-          COALESCE(
-            CASE WHEN r.final_status = 'APPROVED' THEN r.approved_at END,
-            CASE WHEN r.final_status IN ('REJECTED','CANCELLED') THEN r.head_decided_at END,
-            r.head_decided_at,
-            r.staff_reviewed_at,
-            r.created_at
-          ) AS lastStatusAt
+          -- คืนค่าเป็น ISO-8601 string พร้อม offset (+07:00 ฯลฯ)
+          FORMAT(
+            COALESCE(
+              CASE WHEN r.final_status = 'APPROVED'              THEN r.approved_at END,
+              CASE WHEN r.final_status IN ('REJECTED','CANCELLED') THEN r.head_decided_at END,
+              r.head_decided_at,
+              r.staff_reviewed_at,
+              r.created_at
+            ),
+            'yyyy-MM-ddTHH:mm:sszzz'
+          ) AS lastStatusAtIso
+
         FROM dbo.reservations r
         LEFT JOIN dbo.reservation_slots rs
                ON rs.reservation_id = r.reservation_id
@@ -43,7 +48,17 @@ public interface PersonalBookingHistoryRepository
           r.reservation_id, r.room_code, r.reservation_date,
           r.step, r.final_status, r.user_name, r.user_email,
           r.approved_at, r.created_at, r.head_decided_at, r.staff_reviewed_at
-        ORDER BY lastStatusAt DESC, r.reservation_date DESC, r.reservation_id DESC
+        ORDER BY
+          -- เรียงใน SQL ได้ยากเมื่อเป็น string; คุณยังคง ORDER BY ตามคอลัมน์ดิบเดิมควบคู่ไปด้วย:
+          COALESCE(
+            CASE WHEN r.final_status = 'APPROVED'              THEN r.approved_at END,
+            CASE WHEN r.final_status IN ('REJECTED','CANCELLED') THEN r.head_decided_at END,
+            r.head_decided_at,
+            r.staff_reviewed_at,
+            r.created_at
+          ) DESC,
+          r.reservation_date DESC,
+          r.reservation_id DESC
       """, countQuery = """
         SELECT COUNT(*) FROM (
           SELECT r.reservation_id
