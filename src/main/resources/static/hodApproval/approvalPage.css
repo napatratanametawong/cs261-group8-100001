@@ -308,3 +308,28 @@ h1 {
   margin-left: auto;
   margin-right: auto;
 }
+
+/* ปิด scroll พื้นหลังเมื่อมีโมดัล */
+body.modal-open { overflow: hidden; }
+
+/* เริ่มต้นให้โปร่งและย่อเบา ๆ เพื่อเล่น transition */
+.modal, .modal-backdrop {
+  opacity: 0;
+  transition: opacity .24s ease;
+}
+.modal {
+  transform: translateY(8px) scale(.98);
+  transition: opacity .24s ease, transform .24s ease;
+}
+
+/* ตอนแสดงผล */
+.modal.show, .modal-backdrop.show { opacity: 1; }
+.modal.show { transform: translateY(0) scale(1); }
+
+/* (คงของเดิมไว้) ซ่อนจริง ๆ เมื่อ hidden */
+.modal[hidden], .modal-backdrop[hidden] { display: none !important; }
+
+/* ลด motion ให้ผู้ใช้ที่ตั้งค่าไว้ในระบบ */
+@media (prefers-reduced-motion: reduce) {
+  .modal, .modal-backdrop { transition: none; }
+}

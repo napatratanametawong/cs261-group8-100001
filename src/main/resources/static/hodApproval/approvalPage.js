@@ -14,28 +14,52 @@ const rejectReason = document.getElementById('rejectReason');
 
 let lastFocusedEl = null;
 
-// ===== Helpers
 function openModal(modalEl) {
   lastFocusedEl = document.activeElement;
+
+  // โชว์ element ก่อน เพื่อให้ transition ทำงาน
   backdrop.hidden = false;
   modalEl.hidden = false;
-  // โฟกัสปุ่มยกเลิกตัวแรกในโมดัล
-  const firstClose = modalEl.querySelector('[data-close]') || modalEl.querySelector('button, [href], textarea');
-  if (firstClose) firstClose.focus();
+
+  // ใส่คลาส .show ในเฟรมถัดไป (ทริกเกอร์ transition)
+  requestAnimationFrame(() => {
+    backdrop.classList.add('show');
+    modalEl.classList.add('show');
+    document.body.classList.add('modal-open');
+  });
+
+  // โฟกัสตัวแรกในโมดัล
+  const firstFocus =
+    modalEl.querySelector('[data-close]') ||
+    modalEl.querySelector('button, [href], textarea, input');
+  firstFocus?.focus();
+
   document.addEventListener('keydown', onEscToClose);
-  backdrop.addEventListener('click', closeAll);
-  modalEl.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeAll));
+
+  // ป้องกัน listener ซ้อน: ผูกแบบ once
+  backdrop.addEventListener('click', closeAll, { once: true });
+  modalEl.querySelectorAll('[data-close]')
+    .forEach(b => b.addEventListener('click', closeAll, { once: true }));
 }
 
 function closeAll() {
-  backdrop.hidden = true;
-  approveModal.hidden = true;
-  rejectModal.hidden  = true;
+  // เอา .show ออกเพื่อเล่น transition ย้อนกลับ
+  backdrop.classList.remove('show');
+  approveModal.classList.remove('show');
+  rejectModal.classList.remove('show');
+  document.body.classList.remove('modal-open');
   document.removeEventListener('keydown', onEscToClose);
-  backdrop.removeEventListener('click', closeAll);
-  // คืนโฟกัส
-  if (lastFocusedEl) lastFocusedEl.focus();
+
+  // รอให้ transition จบก่อนค่อยซ่อนจริง
+  const DURATION = 250; // ต้องสอดคล้องกับเวลาใน CSS
+  setTimeout(() => {
+    backdrop.hidden = true;
+    approveModal.hidden = true;
+    rejectModal.hidden = true;
+    lastFocusedEl?.focus();
+  }, DURATION);
 }
+
 
 function onEscToClose(e) {
   if (e.key === 'Escape') closeAll();

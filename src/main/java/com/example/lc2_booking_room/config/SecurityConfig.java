@@ -6,18 +6,21 @@ import com.example.lc2_booking_room.service.login.JwtService;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+import org.springframework.http.HttpStatus;
 
 @Configuration
 @EnableWebSecurity
@@ -30,47 +33,61 @@ public class SecurityConfig {
 
     @Bean
     public SmartAuthEntryPoint smartAuthEntryPoint() {
-        // เปลี่ยน path ให้ตรงกับไฟล์จริง
         return new SmartAuthEntryPoint("/login/pages/loginPage.html");
     }
 
+    // ✅ API Security (JWT, no redirects)
     @Bean
-    SecurityFilterChain api(HttpSecurity http,
-            JwtAuthenticationFilter jwtFilter,
-            SmartAuthEntryPoint smartEntryPoint) throws Exception {
+    @Order(0)
+    SecurityFilterChain apiSecurity(HttpSecurity http,
+            JwtAuthenticationFilter jwtFilter) throws Exception {
+
         http
-                .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        // ✅ หน้า public
-                        .requestMatchers(HttpMethod.GET,
-                                "/",
-                                "/login/**",
-                                "/styles/**", "/scripts/**", "/webjars/**")
-                        .permitAll()
+            .securityMatcher("/api/**")   
+            .csrf(csrf -> csrf.disable())
+            .cors(Customizer.withDefaults())
+            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .exceptionHandling(eh -> eh
+                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                .accessDeniedHandler((req, res, ex) -> {
+                    res.setStatus(403);
+                    res.setContentType("application/json;charset=UTF-8");
+                    res.getWriter().write("{\"error\":\"Forbidden\"}");
+                })
+            )
+            .httpBasic(hb -> hb.disable())
+            .formLogin(fl -> fl.disable())
+            .logout(lo -> lo.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/rooms/**").hasAnyRole("USER","BUILDING_ADMIN")
+                .requestMatchers("/api/reservations/**").hasAnyRole("USER","BUILDING_ADMIN")
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
-                        // ✅ auth endpoints และ health
-                        .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+        return http.build();
+    }
 
-                        // ✅ Protected
-                        .requestMatchers(HttpMethod.GET, "/api/rooms/**").hasAnyRole("USER", "BUILDING_ADMIN")
-                        .requestMatchers("/bookingRoom/**").hasRole("USER")
-                        .requestMatchers("/admin/**").hasRole("BUILDING_ADMIN")
+    //Web Security (HTML pages, redirect login ok)
+    @Bean
+    @Order(1)
+    SecurityFilterChain webSecurity(HttpSecurity http,
+            SmartAuthEntryPoint smartEntryPoint) throws Exception {
 
-                        // resorce
-                        .requestMatchers("/resource/**", "/global-head.js").permitAll()
-                        .anyRequest().authenticated())
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(smartEntryPoint)
-                        .accessDeniedHandler((req, res, e) -> {
-                            res.setStatus(403);
-                            res.setContentType("application/json;charset=UTF-8");
-                            res.getWriter().write("{\"error\":\"Forbidden\"}");
-                        }))
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        http
+            .securityMatcher("/**")
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.GET,
+                    "/", "/login/**",
+                    "/styles/**", "/scripts/**", "/webjars/**",
+                    "/resource/**", "/global-head.js",
+                    "/actuator/health").permitAll()
+                .anyRequest().permitAll()
+            )
+            .exceptionHandling(eh -> eh.authenticationEntryPoint(smartEntryPoint));
 
         return http.build();
     }

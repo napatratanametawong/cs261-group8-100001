@@ -156,12 +156,29 @@
     persist(phoneInput,   STORAGE_KEYS.phone);
     persist(purposeInput, STORAGE_KEYS.purpose);
 
+    // ====== 6) Enable submit only when all 3 fields filled ======
+    try {
+      const submitBtn = card.querySelector('.actions .btn.btn-primary');
+      const getVal = (el) => (el && typeof el.value === 'string') ? el.value.trim() : '';
+      const updateSubmitState = () => {
+        const filled = getVal(groupInput) && getVal(phoneInput) && getVal(purposeInput);
+        if (submitBtn) submitBtn.disabled = !filled;
+      };
+      ['input', 'change'].forEach(ev => {
+        groupInput && groupInput.addEventListener(ev, updateSubmitState);
+        phoneInput && phoneInput.addEventListener(ev, updateSubmitState);
+        purposeInput && purposeInput.addEventListener(ev, updateSubmitState);
+      });
+      // Initialize state on load
+      updateSubmitState();
+    } catch {}
+
     // ====== 5) Breadcrumb home: go back to homepage ======
     const bcHome = document.getElementById('breadcrumb-home');
     if (bcHome) {
       bcHome.addEventListener('click', (e) => {
         e.preventDefault();
-        window.location.href = '../homepage_user.html';
+        window.location.href = '/bookingRoom/homepage_user.html';
       });
     }
   
