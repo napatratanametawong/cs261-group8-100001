@@ -21,7 +21,47 @@
         <script src="../../global-head.js" defer></script>
         <script src="../header-api/profile.js" defer></script>
         <script src="../header-api/logout.js" type="module"></script>
-        <script src="api/bookingHistory.js"></script>
+        <!-- bookingHistory.js is a module and will import cancelBooking.js -->
+        <style>
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.6);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.2s ease, visibility 0.2s ease;
+            }
+            .modal-overlay.visible {
+                opacity: 1;
+                visibility: visible;
+            }
+            .modal-content {
+                background: white;
+                padding: 2rem;
+                border-radius: 8px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                width: 90%;
+                max-width: 450px;
+                text-align: center;
+            }
+            .modal-content h4 { margin-top: 0; font-size: 1.25rem; }
+            .modal-actions {
+                margin-top: 1.5rem;
+                display: flex;
+                justify-content: center;
+                gap: 1rem;
+            }
+            .btn-danger { background-color: #d9534f; color: white; border-color: #d43f3a; }
+            .btn-danger:hover { background-color: #c9302c; border-color: #ac2925; }
+        </style>
+        <script src="api/bookingHistory.js" type="module"></script>
     </head>
 
 <body>
@@ -61,6 +101,19 @@
             </div>
 
             <div class="history-list">
+            </div>
+
+        </div>
+
+        <!-- Modal for Cancellation Confirmation -->
+        <div id="cancel-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h4>ยืนยันการยกเลิก</h4>
+                <p>คุณต้องการยกเลิกคำร้อง <strong id="modal-reservation-id">#...</strong> ใช่หรือไม่? การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+                <div class="modal-actions">
+                    <button id="modal-btn-close" class="btn btn-ghost">ยกเลิก</button>
+                    <button id="modal-btn-confirm" class="btn btn-danger">ยืนยันการยกเลิก</button>
+                </div>
             </div>
 
         </div>

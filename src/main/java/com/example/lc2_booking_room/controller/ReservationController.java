@@ -15,21 +15,22 @@ public class ReservationController {
 
     private final ReservationServiceBySlots reservationService;
 
-    /** Create a reservation */
     @PostMapping
-    public ResponseEntity<ReservationResponse> create(@Valid @RequestBody CreateReservationBySlotsRequest req) {
-        return ResponseEntity.ok(reservationService.createReservationBySlots(req));
+    public ResponseEntity<ReservationResponse> createReservation(
+            @Valid @RequestBody CreateReservationBySlotsRequest request) {
+        ReservationResponse response = reservationService.createReservationBySlots(request);
+        return ResponseEntity.ok(response);
     }
 
-    /** Get reservation by ID */
     @GetMapping("/{id}")
-    public ResponseEntity<ReservationResponse> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(reservationService.getById(id));
+    public ResponseEntity<ReservationResponse> getReservationById(@PathVariable Long id) {
+        ReservationResponse response = reservationService.getById(id);
+        return ResponseEntity.ok(response);
     }
 
-    /** Cancel reservation (Task01-US07) */
     @PutMapping("/{id}/cancel")
     public ResponseEntity<ReservationResponse> cancelReservation(@PathVariable Long id) {
-        return ResponseEntity.ok(reservationService.cancelReservation(id));
+        ReservationResponse response = reservationService.cancelReservation(id);
+        return ResponseEntity.ok(response);
     }
 }

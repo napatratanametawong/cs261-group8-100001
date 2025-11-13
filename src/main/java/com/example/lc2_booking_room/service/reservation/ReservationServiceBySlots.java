@@ -195,20 +195,22 @@ public class ReservationServiceBySlots {
         @Transactional
         public ReservationResponse cancelReservation(Long id) {
         Reservation reservation = reservationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("ไม่พบคำร้องที่ต้องการยกเลิก"));
+                // Use NoSuchElementException for 404 Not Found, and match the spec's error message.
+                .orElseThrow(() -> new NoSuchElementException("Reservation not found"));
 
         // เงื่อนไขยกเลิก: ต้องเป็น SUBMITTED + PENDING เท่านั้น
         if (reservation.getStep() != Reservation.BookingStep.SUBMITTED
-                || reservation.getFinalStatus() != Reservation.FinalStatus.PENDING) {
-                throw new IllegalStateException("สามารถยกเลิกได้เฉพาะคำร้องที่อยู่ในสถานะ SUBMITTED และ PENDING เท่านั้น");
+                || reservation.getFinalStatus() != Reservation.FinalStatus.PENDING) { // PENDING is the only cancellable status
+                // Use IllegalArgumentException for 400 Bad Request, as the client sent a request for an un-cancellable resource.
+                throw new IllegalArgumentException("Reservation cannot be canceled");
         }
 
         // เปลี่ยนสถานะ → CANCELLED (ไม่มีการเก็บเหตุผล)
         reservation.setFinalStatus(Reservation.FinalStatus.CANCELLED);
-
-        // ปลดล็อก slot ที่จองไว้ (soft-delete) เพื่อให้กลับมาว่าง
-        reservationSlotRepository.deactivateAllByReservation(id);
-
+        reservation.setCancelReason("Cancelled by user"); // Optional: add a default reason
+        
+        // Update the state of the managed entities. JPA will handle the update.
+        // This is more efficient than a separate repository call.
         reservation.getSlots().forEach(s -> s.setIsActive(false));
 
         Reservation saved = reservationRepository.save(reservation);
