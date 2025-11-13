@@ -22,4 +22,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // แทรก header เข้าไปที่ด้านบนสุดของ <body>
   document.body.insertAdjacentHTML("afterbegin", headerHTML);
+
+   //ดึงปุ่ม logout แล้วเชื่อมกับ logout.js
+  import("../../header-api/logout.js").then(module => {
+    module.logout && document
+      .getElementById("logout_btn")
+      .addEventListener("click", module.logout);
+  });
 });
