@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
             </div>
         </div>
+        
     `;
 
     document.body.insertAdjacentHTML("afterbegin", headerHTML);
