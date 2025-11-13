@@ -1,7 +1,11 @@
 package com.example.lc2_booking_room.controller;
 
 import com.example.lc2_booking_room.dto.reservation.ReservationResponse;
+import com.example.lc2_booking_room.dto.staff.StaffLogResponse;
+import com.example.lc2_booking_room.model.staff_log.StaffAction;
 import com.example.lc2_booking_room.service.reservation.ReservationStaffService;
+
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

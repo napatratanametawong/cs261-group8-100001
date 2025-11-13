@@ -19,6 +19,27 @@ public class StaffReservationLogController {
     private final StaffReservationLogService service;
     private final JwtService jwtService;
 
+    @PutMapping("/{reservationId}/reviewed")
+    public ResponseEntity<StaffLogResponse> markReviewed(
+            @PathVariable Long reservationId,
+            HttpServletRequest request) {
+        String token = request.getHeader("Authorization").substring(7);
+        String staffEmail = jwtService.getEmail(token);
+        StaffLogResponse res = service.createLog(reservationId, staffEmail, StaffAction.REVIEWED, null);
+        return ResponseEntity.ok(res);
+    }
+
+    @PutMapping("/{reservationId}/returned")
+    public ResponseEntity<StaffLogResponse> markReturned(
+            @PathVariable Long reservationId,
+            @RequestBody String note,
+            HttpServletRequest request) {
+        String token = request.getHeader("Authorization").substring(7);
+        String staffEmail = jwtService.getEmail(token);
+        StaffLogResponse res = service.createLog(reservationId, staffEmail, StaffAction.RETURNED, note);
+        return ResponseEntity.ok(res);
+    }
+
     // สร้าง log ใหม่
     @PostMapping("/{reservationId}")
     public ResponseEntity<StaffLogResponse> createLog(

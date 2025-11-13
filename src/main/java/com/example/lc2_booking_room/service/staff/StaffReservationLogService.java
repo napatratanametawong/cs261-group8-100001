@@ -6,8 +6,12 @@ import com.example.lc2_booking_room.model.staff_log.StaffAction;
 import com.example.lc2_booking_room.model.staff_log.StaffReservationLog;
 import com.example.lc2_booking_room.repository.ReservationRepository;
 import com.example.lc2_booking_room.repository.StaffReservationLogRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Service
@@ -17,13 +21,36 @@ public class StaffReservationLogService {
     private final StaffReservationLogRepository logRepo;
     private final ReservationRepository reservationRepo;
 
-    // บันทึก Log ใหม่ (ตอน staff approve / reject / reviewed / returned /
-    // cancelled)
+    // APPROVED, REJECTED, REVIEWED, RETURNED, CANCELLED
 
+    @Transactional
     public StaffLogResponse createLog(Long reservationId, String staffEmail, StaffAction action, String note) {
         Reservation reservation = reservationRepo.findById(reservationId)
                 .orElseThrow(() -> new RuntimeException("Reservation not found"));
 
+        // action
+        switch (action) {
+
+            case REVIEWED -> {
+                reservation.setStep(Reservation.BookingStep.STAFF_REVIEW);
+                reservation.setFinalStatus(Reservation.FinalStatus.PENDING);
+                reservation.setStaffReviewerEmail(staffEmail);
+                reservation.setStaffReviewedAt(OffsetDateTime.now());
+            }
+            case RETURNED -> {
+                reservation.setStep(Reservation.BookingStep.RETURNED_FOR_FIX);
+                reservation.setFinalStatus(Reservation.FinalStatus.PENDING);
+                reservation.setReturnReason(note);
+                reservation.setStaffReviewerEmail(staffEmail);
+                reservation.setStaffReviewedAt(OffsetDateTime.now());
+            }
+
+        }
+
+        // save reservation
+        reservationRepo.save(reservation);
+
+        // save in StaffLog
         StaffReservationLog log = new StaffReservationLog();
         log.setReservation(reservation);
         log.setStaffEmail(staffEmail);
@@ -35,15 +62,15 @@ public class StaffReservationLogService {
         // DTO
         return StaffLogResponse.builder()
                 .staffLogId(saved.getStaffLogId())
-                .reservationId(saved.getReservation().getId())
+                .reservationId(reservation.getId())
                 .staffEmail(saved.getStaffEmail())
                 .action(saved.getAction())
-                .changedAt(saved.getChangedAt()) // 🧩 ก่อน note
+                .changedAt(saved.getChangedAt())
                 .note(saved.getNote())
                 .build();
     }
 
-    // ดึง log ของ reservation เดียว
+    // ดึง staffLog ของ reservation เดียว
     public List<StaffLogResponse> getLogsByReservation(Long reservationId) {
         return logRepo.findByReservation_Id(reservationId)
                 .stream()
@@ -58,9 +85,10 @@ public class StaffReservationLogService {
                 .toList();
     }
 
-    // ดึง log ทั้งหมดในระบบ
+    // ดึง StaffLog ทั้งหมด
     public List<StaffLogResponse> getAllLogs() {
-        return logRepo.findAll().stream()
+        return logRepo.findAll()
+                .stream()
                 .map(log -> StaffLogResponse.builder()
                         .staffLogId(log.getStaffLogId())
                         .reservationId(log.getReservation().getId())

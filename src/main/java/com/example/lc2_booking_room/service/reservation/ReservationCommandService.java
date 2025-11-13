@@ -43,37 +43,6 @@ public class ReservationCommandService {
         return createReservation(req, /* actorEmail */ null);
     }
 
-    // staff approved
-    @Transactional
-    public Reservation approveReservation(Long reservationId, String staffEmail, String note) {
-        Reservation r = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
-
-        r.setFinalStatus(Reservation.FinalStatus.APPROVED);
-        r.setStaffReviewerEmail(staffEmail);
-        r.setStaffReviewedAt(OffsetDateTime.now());
-        Reservation saved = reservationRepository.save(r);
-
-        staffLogService.createLog(saved.getId(), staffEmail, StaffAction.APPROVED, note);
-        return saved;
-    }
-
-    // staff rejected
-    @Transactional
-    public Reservation rejectReservation(Long reservationId, String staffEmail, String note) {
-        Reservation r = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
-
-        r.setFinalStatus(Reservation.FinalStatus.REJECTED);
-        r.setStaffReviewerEmail(staffEmail);
-        r.setStaffReviewedAt(OffsetDateTime.now());
-        r.setRejectReason(note);
-        Reservation saved = reservationRepository.save(r);
-
-        staffLogService.createLog(saved.getId(), staffEmail, StaffAction.REJECTED, note);
-        return saved;
-    }
-
     // staff reviewed
     @Transactional
     public Reservation reviewReservation(Long reservationId, String staffEmail, String note) {
@@ -102,22 +71,6 @@ public class ReservationCommandService {
         Reservation saved = reservationRepository.save(r);
 
         staffLogService.createLog(saved.getId(), staffEmail, StaffAction.RETURNED, note);
-        return saved;
-    }
-
-    // staff cancelled
-    @Transactional
-    public Reservation cancelReservation(Long reservationId, String staffEmail, String note) {
-        Reservation r = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
-
-        r.setFinalStatus(Reservation.FinalStatus.CANCELLED);
-        r.setCancelReason(note);
-        r.setHeadApproverEmail(staffEmail);
-        r.setHeadDecidedAt(OffsetDateTime.now());
-        Reservation saved = reservationRepository.save(r);
-
-        staffLogService.createLog(saved.getId(), staffEmail, StaffAction.CANCELLED, note);
         return saved;
     }
 }

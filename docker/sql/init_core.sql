@@ -199,7 +199,7 @@ BEGIN
     changed_at       DATETIME2     NOT NULL CONSTRAINT df_staff_changed_at DEFAULT SYSUTCDATETIME(),
     CONSTRAINT fk_stafflog_reservation FOREIGN KEY (reservation_id)
       REFERENCES dbo.reservations(reservation_id),
-    CONSTRAINT ck_staff_action CHECK (action IN ('APPROVED','REJECTED','REVIEWED','RETURNED','CANCELLED'))
+    CONSTRAINT ck_staff_action CHECK (action IN ('REVIEWED','RETURNED'))
   );
 
   CREATE INDEX idx_stafflog_reservation ON dbo.staff_reservation_logs(reservation_id);
