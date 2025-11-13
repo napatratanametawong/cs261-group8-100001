@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <img src="../../../resource/bell.svg" alt="การแจ้งเตือน" />
       </button>
       <div class="chip">
-        <span id="displayName" class="displayName">ณภัทร รัตนเมธาวงศ์</span>
+        <span id="displayName" class="displayName"></span>
       </div>
       <button class="icon-btn" id="logout_btn" title="ออกจากระบบ">
         <img src="../../../resource/logout.svg" alt="ออกจากระบบ" />
@@ -23,10 +23,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // แทรก header เข้าไปที่ด้านบนสุดของ <body>
   document.body.insertAdjacentHTML("afterbegin", headerHTML);
 
-   //ดึงปุ่ม logout แล้วเชื่อมกับ logout.js
+// เชื่อม logout
   import("../../header-api/logout.js").then(module => {
-    module.logout && document
-      .getElementById("logout_btn")
-      .addEventListener("click", module.logout);
+    const btn = document.getElementById("logout_btn");
+    btn?.addEventListener("click", (e) => {
+      e.preventDefault();
+      module.logout();
+    });
   });
+
+  // โหลดชื่อผู้ใช้
+  import("../../header-api/profile.js").then(module => {
+    module.loadDisplayName && module.loadDisplayName();
+  });
+
 });
