@@ -10,6 +10,12 @@ body {
   color: #111;
 }
 
+.app {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
 /*========header=========*/
 .top-bar {
   max-width: 1440px;

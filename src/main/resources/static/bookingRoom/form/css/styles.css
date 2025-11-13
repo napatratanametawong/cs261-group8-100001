@@ -51,24 +51,6 @@
   --slot-check-size: 18px;
 }
 
-/* ===================== Base & Layout ===================== */
-* {
-  box-sizing: border-box
-}
-
-body {
-  margin: 0;
-  font-family: 'IBM Plex Sans Thai', sans-serif;
-  background-color: var(--bg);
-  color: #111;
-}
-
-.app {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-
 /* ===================== Top Bar & Toolbar ===================== */
 .top-bar {
   max-width: 1440px;
