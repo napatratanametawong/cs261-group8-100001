@@ -10,6 +10,7 @@
     const phoneInput   = card.querySelector('input[type="tel"]');  // บรรทัด 81
     const purposeInput = card.querySelector('textarea');           // บรรทัด 86
     const dropzone     = card.querySelector('.dropzone');
+    
     // ====== Fill left summary (name, email, date, time, type, room) ======
     (function fillSummary(){
       const kv = card.querySelector('.kv');
