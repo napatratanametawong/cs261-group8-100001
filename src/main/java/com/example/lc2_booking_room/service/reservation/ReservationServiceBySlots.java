@@ -14,6 +14,8 @@ import com.example.lc2_booking_room.repository.ReservationSlotRepository;
 import com.example.lc2_booking_room.repository.UserReservationLogRepository;
 import org.springframework.transaction.annotation.Transactional;  
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 
@@ -188,4 +190,36 @@ public class ReservationServiceBySlots {
                 .slots(slotItems)
                 .build();
     }
+
+        /* Cancel Reservation */
+        @Transactional
+        public ReservationResponse cancelReservation(Long id) {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("ไม่พบคำร้องที่ต้องการยกเลิก"));
+
+        // เงื่อนไขยกเลิก: ต้องเป็น SUBMITTED + PENDING เท่านั้น
+        if (reservation.getStep() != Reservation.BookingStep.SUBMITTED
+                || reservation.getFinalStatus() != Reservation.FinalStatus.PENDING) {
+                throw new IllegalStateException("สามารถยกเลิกได้เฉพาะคำร้องที่อยู่ในสถานะ SUBMITTED และ PENDING เท่านั้น");
+        }
+
+        // เปลี่ยนสถานะ → CANCELLED (ไม่มีการเก็บเหตุผล)
+        reservation.setFinalStatus(Reservation.FinalStatus.CANCELLED);
+
+        // ปลดล็อก slot ที่จองไว้ (soft-delete) เพื่อให้กลับมาว่าง
+        reservationSlotRepository.deactivateAllByReservation(id);
+
+        reservation.getSlots().forEach(s -> s.setIsActive(false));
+
+        Reservation saved = reservationRepository.save(reservation);
+        
+        UserReservationLog log = new UserReservationLog();
+        log.setReservation(saved);
+        String performedByEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        log.setUserEmail(performedByEmail != null ? performedByEmail : saved.getUserEmail());
+        log.setAction(LogAction.CANCELED);
+        log.setNote("Reservation cancelled by user");
+        userReservationLogRepository.save(log);
+        return toResponse(saved, saved.getSlots(), List.of());
+        }
 }
