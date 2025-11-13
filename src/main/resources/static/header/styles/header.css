@@ -1,0 +1,19 @@
+/*========header=========*/
+.top-bar {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.container {
+  justify-content: space-between;
+}
+
+.brand-logo img {
+  height: 130px;
+  margin-left: -16px;
+  padding-top: 20px;
+}
