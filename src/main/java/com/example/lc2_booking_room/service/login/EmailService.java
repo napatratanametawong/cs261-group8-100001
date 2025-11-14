@@ -109,4 +109,14 @@ public class EmailService {
         msg.setText(body);
         mail.send(msg);
     }
+
+    /** ส่งอีเมลแจ้งเจ้าหน้าที่ เมื่อมีการดำเนินการเปลี่ยนสถานะคำร้อง */
+    public void sendStaffNotification(String toEmail, String subject, String body) {
+    SimpleMailMessage msg = new SimpleMailMessage();
+    msg.setTo(toEmail);
+    msg.setFrom("booking.lc2@gmail.com");
+    msg.setSubject(subject);
+    msg.setText(body);
+    mail.send(msg);
+    }
 }
