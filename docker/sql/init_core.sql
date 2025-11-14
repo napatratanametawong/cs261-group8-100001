@@ -207,3 +207,24 @@ BEGIN
   CREATE INDEX idx_stafflog_changed_at ON dbo.staff_reservation_logs(changed_at);
 END
 
+-- ===========================
+-- staff_notifications
+-- ===========================
+IF OBJECT_ID('dbo.staff_notifications','U') IS NULL
+BEGIN
+  CREATE TABLE dbo.staff_notifications(
+    notification_id  BIGINT IDENTITY(1,1) PRIMARY KEY,
+    reservation_id   BIGINT        NOT NULL,
+    staff_email      VARCHAR(100)  NOT NULL,
+    message          NVARCHAR(500) NOT NULL,
+    created_at       DATETIME2     NOT NULL DEFAULT SYSUTCDATETIME(),
+    is_read          BIT           NOT NULL DEFAULT 0,
+
+    FOREIGN KEY (reservation_id) REFERENCES dbo.reservations(reservation_id)
+  );
+
+  CREATE INDEX idx_staff_notifications_staff_email ON dbo.staff_notifications(staff_email);
+  CREATE INDEX idx_staff_notifications_created_at ON dbo.staff_notifications(created_at);
+END
+GO
+
