@@ -63,6 +63,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/rooms/**").hasAnyRole("USER","BUILDING_ADMIN")
                 .requestMatchers("/api/reservations/**").hasAnyRole("USER","BUILDING_ADMIN")
+                .requestMatchers("/api/head-decide/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
