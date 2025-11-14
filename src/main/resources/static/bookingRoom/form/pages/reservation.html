@@ -2,45 +2,24 @@
 <html lang="th">
 
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Booking</title>
-  <meta name="description" content="LC2 Booking Rooms - Reservation" />
-  <link rel="stylesheet" href="../css/styles.css" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Booking</title>
+    <meta name="description" content="LC2 Booking Rooms - Reservation" />
+    <link rel="stylesheet" href="../../../header/styles/header.css"/>
+    <link rel="stylesheet" href="../css/styles.css" />
 
-  <!-- All scripts deferred so DOM is ready -->
-  <!-- homepage scripts are not needed here except profile for header name -->
-  <script src="../../../header-api/profile.js" defer></script>
-  <script src="../../../header-api/logout.js" defer></script>
-  
-  <script src="../header-api/logout.js" type="module"></script>
-  <script src="../api/form-autofill.js" defer></script>
-  <script src="../../api/roomsApi.js" defer></script>
-  <script src="../api/submit.js" defer></script>
-  <script src="../../../global-head.js"></script>
+
+    <!-- All scripts deferred so DOM is ready -->
+    <!-- homepage scripts are not needed here except profile for header name -->
+    <script src="../../../header/scripts/header.js" type="module"></script>
+    <script src="../api/form-autofill.js" defer></script>
+    <script src="../../api/roomsApi.js" defer></script>
+    <script src="../api/submit.js" defer></script>
+    <script src="../../../global-head.js"></script>
 </head>
 
 <body>
-  <div class="top-bar">
-    <div class="brand-logo">
-      <!-- src\main\resources\static\bookingRoom\form\pages\reservation.html -->
-      <img src="/resource/Logo_header.png" alt="Logo" height="56" />
-    </div>
-    <div class="toolbar">
-      <button class="icon-btn" title="การแจ้งเตือน">
-        <img src="/resource/bell.svg" alt="การแจ้งเตือน" />
-      </button>
-      <div class="chip">
-        <span id="displayName" class="displayName"></span>
-      </div>
-      <button class="icon-btn" id="logout_btn" title="ออกจากระบบ">
-        <img src="/resource/logout.svg" alt="ออกจากระบบ" />
-      </button>
-    </div>
-  </div>
-
-  <header class="app"></header>
-
   <main class="main-content">
 
     <div id="breadcrumb" class="breadcrumb-container">
