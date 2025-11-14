@@ -20,7 +20,6 @@ public class HeadDecisionService {
 
     private final ReservationRepository reservationRepository;
 
-    
     @Value("${app.head-email}")
     private String headEmail;
 
@@ -54,31 +53,34 @@ public class HeadDecisionService {
         Reservation r = reservationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found: " + id));
 
-        if (r.getStep() != BookingStep.STAFF_REVIEW) {
+        // ทำงานได้เฉพาะตอน STAFF_REVIEW
+        if (r.getStep() != Reservation.BookingStep.STAFF_REVIEW) {
             throw new IllegalStateException("Reservation is not in STAFF_REVIEW step");
         }
 
-        if (r.getFinalStatus() != null && r.getFinalStatus() != FinalStatus.PENDING) {
+        // ถ้าเคยตัดสินไปแล้ว ไม่ให้ตัดสินซ้ำ
+        if (r.getFinalStatus() != null && r.getFinalStatus() != Reservation.FinalStatus.PENDING) {
             throw new IllegalStateException("Reservation already decided: " + r.getFinalStatus());
         }
 
-        r.setHeadApproverEmail(headEmail);
-        r.setHeadDecidedAt(OffsetDateTime.now());
-        r.setStep(BookingStep.DECIDE);
+        // ใช้เวลาไทย Asia/Bangkok
+        java.time.OffsetDateTime now = java.time.OffsetDateTime.now(java.time.ZoneId.of("Asia/Bangkok"));
+
+        // ✅ บันทึกอีเมลหัวหน้าสาขา + เวลา
+        r.setHeadApproverEmail(headEmail); // headEmail มาจาก @Value หรือ config ที่คุณตั้งไว้
+        r.setHeadDecidedAt(now);
+        r.setStep(Reservation.BookingStep.DECIDE);
 
         if (req.getDecision() == HeadDecisionRequest.Decision.APPROVED) {
-            // ✅ เคสอนุมัติ: ไม่ใช้ reject_reason เลย → เคลียร์ให้ null
-            r.setFinalStatus(FinalStatus.APPROVED);
-            r.setApprovedAt(OffsetDateTime.now());
-            r.setRejectReason(null);
+            r.setFinalStatus(Reservation.FinalStatus.APPROVED);
+            r.setApprovedAt(now); // ใช้เวลาไทยเหมือนกัน
+            r.setRejectReason(null); // เคลียร์เหตุผล reject ถ้ามีค้าง
         } else if (req.getDecision() == HeadDecisionRequest.Decision.REJECTED) {
-            // ✅ เคสไม่อนุมัติ: remark → ลง field reject_reason
-            r.setFinalStatus(FinalStatus.REJECTED);
+            r.setFinalStatus(Reservation.FinalStatus.REJECTED);
             r.setRejectReason(req.getRemark());
             r.setApprovedAt(null);
         }
 
-        // ❌ ไม่แตะ returnReason, cancelReason เพราะเป็น flow คนละแบบ
         reservationRepository.save(r);
     }
 }

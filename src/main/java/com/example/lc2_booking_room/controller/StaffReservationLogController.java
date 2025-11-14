@@ -2,11 +2,11 @@ package com.example.lc2_booking_room.controller;
 
 import com.example.lc2_booking_room.dto.staff.StaffLogResponse;
 import com.example.lc2_booking_room.model.staff_log.StaffAction;
-import com.example.lc2_booking_room.service.login.JwtService;
 import com.example.lc2_booking_room.service.staff.StaffReservationLogService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,40 +17,57 @@ import java.util.List;
 public class StaffReservationLogController {
 
     private final StaffReservationLogService service;
-    private final JwtService jwtService;
+
+    /** ดึง email ของ staff ปัจจุบันจาก SecurityContext */
+    private String getCurrentStaffEmail() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        // ถ้าระบบคุณตั้งค่า principal เป็น email อยู่แล้ว getName() ก็จะเป็น email เลย
+        return auth != null ? auth.getName() : null;
+    }
 
     @PutMapping("/{reservationId}/reviewed")
     public ResponseEntity<StaffLogResponse> markReviewed(
-            @PathVariable Long reservationId,
-            HttpServletRequest request) {
-        String token = request.getHeader("Authorization").substring(7);
-        String staffEmail = jwtService.getEmail(token);
-        StaffLogResponse res = service.createLog(reservationId, staffEmail, StaffAction.REVIEWED, null);
+            @PathVariable Long reservationId) {
+
+        String staffEmail = getCurrentStaffEmail();
+        StaffLogResponse res = service.createLog(
+                reservationId,
+                staffEmail,
+                StaffAction.REVIEWED,
+                null
+        );
         return ResponseEntity.ok(res);
     }
 
     @PutMapping("/{reservationId}/returned")
     public ResponseEntity<StaffLogResponse> markReturned(
             @PathVariable Long reservationId,
-            @RequestBody String note,
-            HttpServletRequest request) {
-        String token = request.getHeader("Authorization").substring(7);
-        String staffEmail = jwtService.getEmail(token);
-        StaffLogResponse res = service.createLog(reservationId, staffEmail, StaffAction.RETURNED, note);
+            @RequestBody String note) {
+
+        String staffEmail = getCurrentStaffEmail();
+        StaffLogResponse res = service.createLog(
+                reservationId,
+                staffEmail,
+                StaffAction.RETURNED,
+                note
+        );
         return ResponseEntity.ok(res);
     }
 
-    // สร้าง log ใหม่
+    // generic create log (ใช้กรณีอื่น ๆ ถ้าจำเป็น)
     @PostMapping("/{reservationId}")
     public ResponseEntity<StaffLogResponse> createLog(
             @PathVariable Long reservationId,
             @RequestParam StaffAction action,
-            @RequestParam(required = false) String note,
-            HttpServletRequest request) {
-        String token = request.getHeader("Authorization").substring(7);
-        String staffEmail = jwtService.getEmail(token);
+            @RequestParam(required = false) String note) {
 
-        StaffLogResponse log = service.createLog(reservationId, staffEmail, action, note);
+        String staffEmail = getCurrentStaffEmail();
+        StaffLogResponse log = service.createLog(
+                reservationId,
+                staffEmail,
+                action,
+                note
+        );
         return ResponseEntity.ok(log);
     }
 

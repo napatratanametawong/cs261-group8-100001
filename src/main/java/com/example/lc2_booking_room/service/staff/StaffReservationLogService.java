@@ -40,14 +40,14 @@ public class StaffReservationLogService {
                 reservation.setStep(Reservation.BookingStep.STAFF_REVIEW);
                 reservation.setFinalStatus(Reservation.FinalStatus.PENDING);
                 reservation.setStaffReviewerEmail(staffEmail);
-                reservation.setStaffReviewedAt(OffsetDateTime.now());
+                reservation.setStaffReviewedAt(OffsetDateTime.now(java.time.ZoneId.of("Asia/Bangkok")));
             }
             case RETURNED -> {
                 reservation.setStep(Reservation.BookingStep.RETURNED_FOR_FIX);
                 reservation.setFinalStatus(Reservation.FinalStatus.PENDING);
                 reservation.setReturnReason(note);
                 reservation.setStaffReviewerEmail(staffEmail);
-                reservation.setStaffReviewedAt(OffsetDateTime.now());
+                reservation.setStaffReviewedAt(OffsetDateTime.now(java.time.ZoneId.of("Asia/Bangkok")));
             }
 
         }
