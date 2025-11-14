@@ -7,7 +7,8 @@
   <title>LC2 Booking Rooms – ยืนยันคำร้อง</title>
   <meta name="description" content="หน้ายืนยันการส่งคำร้องขอใช้ห้องสำเร็จ" />
   <link rel="stylesheet" href="../css/styles.css" />
-  <script src="../../api/profile.js" defer></script>
+  <link rel="stylesheet" href="../../../header/styles/header.css"/>
+  <script src="../../../header/scripts/header.js" type="module"></script>
   <script src="../../../global-head.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function(){
@@ -23,25 +24,6 @@
   </head>
 
 <body>
-  <div class="top-bar">
-    <div class="brand-logo">
-      <img src="/resource/Logo_header.png" alt="Logo" height="56" />
-    </div>
-    <div class="toolbar">
-      <button class="icon-btn" title="การแจ้งเตือน">
-        <img src="/resource/bell.svg" alt="การแจ้งเตือน" />
-      </button>
-      <div class="chip">
-        <span id="displayName" class="displayName"></span>
-      </div>
-      <button class="icon-btn" id="logout_btn" title="ออกจากระบบ">
-        <img src="/resource/logout.svg" alt="ออกจากระบบ" />
-      </button>
-    </div>
-  </div>
-
-  <header class="app"></header>
-
   <main class="main-content">
     <div id="breadcrumb" class="breadcrumb-container">
       <a href="/" id="breadcrumb-home">หน้าหลัก</a> / <span id="breadcrumb-current">การยื่นคำร้องขอใช้ห้อง</span>

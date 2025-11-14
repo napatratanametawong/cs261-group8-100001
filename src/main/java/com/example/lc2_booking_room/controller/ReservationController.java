@@ -3,13 +3,8 @@ package com.example.lc2_booking_room.controller;
 import com.example.lc2_booking_room.dto.reservation.CreateReservationBySlotsRequest;
 import com.example.lc2_booking_room.dto.reservation.ReservationResponse;
 import com.example.lc2_booking_room.service.reservation.ReservationServiceBySlots;
-
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
-import java.util.LinkedHashMap;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,17 +15,22 @@ public class ReservationController {
 
     private final ReservationServiceBySlots reservationService;
 
-    /** Create a reservation (room + date + multiple slotCodes) */
     @PostMapping
-    public ResponseEntity<ReservationResponse> create(@Valid @RequestBody CreateReservationBySlotsRequest req) {
-        ReservationResponse res = reservationService.createReservationBySlots(req);
-        return ResponseEntity.ok(res);
+    public ResponseEntity<ReservationResponse> createReservation(
+            @Valid @RequestBody CreateReservationBySlotsRequest request) {
+        ReservationResponse response = reservationService.createReservationBySlots(request);
+        return ResponseEntity.ok(response);
     }
 
-    /** Get reservation by ID (with slot details) */
     @GetMapping("/{id}")
-    public ResponseEntity<ReservationResponse> getById(@PathVariable Long id) {
-        ReservationResponse res = reservationService.getById(id);
-        return ResponseEntity.ok(res);
+    public ResponseEntity<ReservationResponse> getReservationById(@PathVariable Long id) {
+        ReservationResponse response = reservationService.getById(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<ReservationResponse> cancelReservation(@PathVariable Long id) {
+        ReservationResponse response = reservationService.cancelReservation(id);
+        return ResponseEntity.ok(response);
     }
 }
