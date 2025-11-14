@@ -29,28 +29,39 @@ public class StaffReservationLogService {
     // APPROVED, REJECTED, REVIEWED, RETURNED, CANCELLED
 
     @Transactional
-    public StaffLogResponse createLog(Long reservationId, String staffEmail, StaffAction action, String note) {
-        Reservation reservation = reservationRepo.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
+public StaffLogResponse createLog(Long reservationId, String staffEmail, StaffAction action, String note) {
+    Reservation reservation = reservationRepo.findById(reservationId)
+            .orElseThrow(() -> new RuntimeException("Reservation not found"));
 
-        // action
-        switch (action) {
+    // 🚫 กันไม่ให้ staff แก้ reservation ที่ถูกตัดสิน/ยกเลิกไปแล้ว
+    if (reservation.getFinalStatus() != null
+            && reservation.getFinalStatus() != Reservation.FinalStatus.PENDING) {
+        // APPROVED / REJECTED / CANCELLED ทั้งหมดห้าม REVIEW/RETURN แล้ว
+        throw new IllegalStateException("Reservation already finalized. Staff cannot review it again.");
+    }
 
-            case REVIEWED -> {
-                reservation.setStep(Reservation.BookingStep.STAFF_REVIEW);
-                reservation.setFinalStatus(Reservation.FinalStatus.PENDING);
-                reservation.setStaffReviewerEmail(staffEmail);
-                reservation.setStaffReviewedAt(OffsetDateTime.now(java.time.ZoneId.of("Asia/Bangkok")));
-            }
-            case RETURNED -> {
-                reservation.setStep(Reservation.BookingStep.RETURNED_FOR_FIX);
-                reservation.setFinalStatus(Reservation.FinalStatus.PENDING);
-                reservation.setReturnReason(note);
-                reservation.setStaffReviewerEmail(staffEmail);
-                reservation.setStaffReviewedAt(OffsetDateTime.now(java.time.ZoneId.of("Asia/Bangkok")));
-            }
+    // action
+    switch (action) {
 
+        case REVIEWED -> {
+            reservation.setStep(Reservation.BookingStep.STAFF_REVIEW);
+            reservation.setFinalStatus(Reservation.FinalStatus.PENDING);
+            reservation.setStaffReviewerEmail(staffEmail);
+            reservation.setStaffReviewedAt(
+                OffsetDateTime.now(java.time.ZoneId.of("Asia/Bangkok"))
+            );
         }
+        case RETURNED -> {
+            reservation.setStep(Reservation.BookingStep.RETURNED_FOR_FIX);
+            reservation.setFinalStatus(Reservation.FinalStatus.PENDING);
+            reservation.setReturnReason(note);
+            reservation.setStaffReviewerEmail(staffEmail);
+            reservation.setStaffReviewedAt(
+                OffsetDateTime.now(java.time.ZoneId.of("Asia/Bangkok"))
+            );
+        }
+
+    }
 
         // save reservation
         reservationRepo.save(reservation);

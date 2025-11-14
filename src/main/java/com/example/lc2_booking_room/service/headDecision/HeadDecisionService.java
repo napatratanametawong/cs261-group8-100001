@@ -5,15 +5,14 @@ import com.example.lc2_booking_room.dto.headDecision.HeadDecisionRequest;
 import com.example.lc2_booking_room.dto.headDecision.HeadDecisionView;
 import com.example.lc2_booking_room.model.Reservation;
 import com.example.lc2_booking_room.model.Reservation.BookingStep;
-import com.example.lc2_booking_room.model.Reservation.FinalStatus;
 import com.example.lc2_booking_room.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Value;
 
-import java.time.OffsetDateTime;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class HeadDecisionService {
