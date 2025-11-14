@@ -7,21 +7,16 @@
   <title>LC2 Booking Rooms – ยืนยันคำร้อง</title>
   <meta name="description" content="หน้ายืนยันการส่งคำร้องขอใช้ห้องสำเร็จ" />
   <link rel="stylesheet" href="../css/styles.css" />
-  <link rel="stylesheet" href="../../../header/styles/header.css"/>
+  <link rel="stylesheet" href="../../../header/styles/header.css" />
   <script src="../../../header/scripts/header.js" type="module"></script>
   <script src="../../../global-head.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', function(){
+    document.addEventListener('DOMContentLoaded', function () {
       var home = document.getElementById('breadcrumb-home');
-      if(home){ home.setAttribute('href','/bookingRoom/homepage_user.html'); }
-      var histBtn = document.querySelector('.actions .btn.btn-primary');
-      if(histBtn){
-        histBtn.setAttribute('href','history.html');
-        histBtn.textContent = 'ดูประวัติการยื่นคำร้อง';
-      }
+      if (home) { home.setAttribute('href', '/bookingRoom/homepage_user.html'); }
     });
   </script>
-  </head>
+</head>
 
 <body>
   <main class="main-content">
@@ -37,13 +32,13 @@
         </svg>
 
         <h2 style="margin:0;font-size:24px;font-weight:700;">บันทึกแบบฟอร์มยื่นคำร้องขอใช้ห้องเรียบร้อยแล้ว</h2>
-        <p style="margin:0;color:#6E6E6E;">กรุณารอผลการยืนยันคำร้องภายใน 3 วัน<br/>ท่านสามารถติดตามสถานะคำร้องได้ทางอีเมลหรือทางเว็บไซต์</p>
+        <p style="margin:0;color:#6E6E6E;">กรุณารอผลการยืนยันคำร้องภายใน 3
+          วัน<br />ท่านสามารถติดตามสถานะคำร้องได้ทางอีเมลหรือทางเว็บไซต์</p>
 
         <div class="actions" style="justify-content:center;margin-top:24px;">
           <a class="btn btn-ghost" href="/bookingRoom/homepage_user.html">กลับสู่หน้าหลัก</a>
-          <a class="btn btn-primary" href="history.html">ดูประวัติการยื่นคำร้อง</a>
+          <a class="btn btn-primary" href="../../../bookingHistory/bookingHistory.html">ดูประวัติการยื่นคำร้อง</a>
         </div>
-      </div>
     </section>
   </main>
 
@@ -67,20 +62,20 @@
   </footer>
 
   <script>
-    (function(){
-      document.addEventListener('DOMContentLoaded', function(){
-      var backBtn = document.querySelector('.actions .btn.btn-ghost');
-      if(backBtn){ backBtn.setAttribute('href','/bookingRoom/homepage_user.html'); backBtn.textContent='กลับสู่หน้าหลัก'; }
-      var logo = document.querySelector('.brand-logo img');
-      if(logo){ logo.src = '/resource/Logo_header.png'; }
-      var logout = document.querySelector('#logout_btn img');
-      if(logout){ logout.src = '/resource/logout.svg'; }
-      var bellBtn = document.querySelector('.toolbar .icon-btn img');
-      if(bellBtn){ bellBtn.src = '/resource/bell.svg'; }
-      var footerLogo = document.querySelector('footer img');
-      if(footerLogo){ footerLogo.src = '/resource/Logo_footer.png'; }
+    (function () {
+      document.addEventListener('DOMContentLoaded', function () {
+        var backBtn = document.querySelector('.actions .btn.btn-ghost');
+        if (backBtn) { backBtn.setAttribute('href', '/bookingRoom/homepage_user.html'); backBtn.textContent = 'กลับสู่หน้าหลัก'; }
+        var logo = document.querySelector('.brand-logo img');
+        if (logo) { logo.src = '/resource/Logo_header.png'; }
+        var logout = document.querySelector('#logout_btn img');
+        if (logout) { logout.src = '/resource/logout.svg'; }
+        var bellBtn = document.querySelector('.toolbar .icon-btn img');
+        if (bellBtn) { bellBtn.src = '/resource/bell.svg'; }
+        var footerLogo = document.querySelector('footer img');
+        if (footerLogo) { footerLogo.src = '/resource/Logo_footer.png'; }
         var home = document.getElementById('breadcrumb-home');
-        if(home){ home.setAttribute('href','/bookingRoom/homepage_user.html'); }
+        if (home) { home.setAttribute('href', '/bookingRoom/homepage_user.html'); }
       });
     })();
   </script>
