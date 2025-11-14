@@ -6,37 +6,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LC2 Booking Rooms</title>
   <meta name="description" content="จองห้องเรียน ห้องประชุม ห้องปฏิบัติการ – อาคาร LC2" />
+  <link rel="stylesheet" href="../header/styles/header.css"/>
   <link rel="stylesheet" href="style/index.css" />
   <!-- All scripts deferred so DOM is ready -->
   <script src="api/calendar.js" defer></script>
   <script src="api/room.js" defer></script>
   <script src="api/bookings.js" defer></script>
   <script src="api/timeSelect.js" defer></script>
-  <script src="api/profile.js" defer></script>
-  <script src="api/logout.js" type="module"></script>
+  
+  <script src="../header/scripts/header.js" type="module"></script>
+  
   <script src="../../global-head.js" defer></script>
 </head>
 
 <body>
-  <div class="top-bar">
-    <div class="brand-logo">
-      <img src="../resource/Logo_header.png" alt="Logo" height="56" />
-    </div>
-    <div class="toolbar">
-      <button class="icon-btn" title="แจ้งเตือน">
-        <img src="../resource/bell.svg" alt="แจ้งเตือน" />
-      </button>
-      <div class="chip">
-        <span id="displayName" class="displayName"></span>
-      </div>
-      <button class="icon-btn" id="logout_btn" title="ออก">
-        <img src="../resource/logout.svg" alt="ออก" />
-      </button>
-    </div>
-  </div>
-
-  <header class="app"></header>
-
   <main class="main-content">
     <div id="main-header">
       <h1>LC2 Booking Rooms</h1>

@@ -19,7 +19,7 @@ public class JwtService {
     private final long expiryMillis;
 
     public JwtService(@Value("${app.jwt.secret}") String secret,
-                      @Value("${app.jwt.expiry-seconds}") long expirySeconds) {
+            @Value("${app.jwt.expiry-seconds}") long expirySeconds) {
         // หมายเหตุ: HS256 ต้องการ secret อย่างน้อย ~32 bytes
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
         this.expiryMillis = expirySeconds * 1000L;
@@ -32,8 +32,7 @@ public class JwtService {
                 .setSubject(email)
                 .addClaims(Map.of(
                         "role", role == null ? "" : role,
-                        "username", username == null ? "" : username
-                ))
+                        "username", username == null ? "" : username))
                 .setIssuedAt(new Date(now))
                 .setExpiration(new Date(now + expiryMillis))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -74,5 +73,9 @@ public class JwtService {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public String extractEmail(String token) {
+        return getEmail(token);
     }
 }
