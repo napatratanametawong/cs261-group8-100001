@@ -11,7 +11,7 @@ import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
-public class NotificationService {
+public class StaffNotificationService {   
 
     private final NotificationRepository repo;
 

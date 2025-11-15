@@ -7,9 +7,16 @@ import java.util.List;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    // inbox staff: email + role + channel = WEB + is_deleted = 0, sort by created_at desc
+    
     List<Notification> findByRecipientEmailAndRecipientRoleAndChannelAndDeletedFalseOrderByCreatedAtDesc(
-            String email,
+            String recipientEmail,
+            Notification.RecipientRole recipientRole,
+            Notification.NotificationChannel channel
+    );
+
+    // เวอร์ชันเฉพาะ "ยังไม่อ่าน"
+    List<Notification> findByRecipientEmailAndRecipientRoleAndChannelAndDeletedFalseAndReadFalseOrderByCreatedAtDesc(
+            String recipientEmail,
             Notification.RecipientRole recipientRole,
             Notification.NotificationChannel channel
     );

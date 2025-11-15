@@ -1,7 +1,7 @@
 package com.example.lc2_booking_room.controller;
 
 import com.example.lc2_booking_room.model.notification.Notification;
-import com.example.lc2_booking_room.service.notification.NotificationService;
+import com.example.lc2_booking_room.service.notification.StaffNotificationService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,26 +18,29 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StaffNotificationController {
 
-    private final NotificationService service;
+    private final StaffNotificationService notificationService;  
 
     /** ดึง email staff จาก JWT */
     private String getCurrentStaffEmail() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth != null ? auth.getName() : null;
+        if (auth == null || auth.getName() == null) {
+            throw new IllegalStateException("No authenticated staff user");
+        }
+        return auth.getName();
     }
 
     /** ✔ ดึงกล่องแจ้งเตือนของ staff ที่กำลังล็อกอิน */
     @GetMapping
     public ResponseEntity<List<Notification>> getInbox() {
         String email = getCurrentStaffEmail();
-        return ResponseEntity.ok(service.getStaffInbox(email));
+        return ResponseEntity.ok(notificationService.getStaffInbox(email));
     }
 
     /** ✔ อ่านการแจ้งเตือน */
     @PutMapping("/{id}/read")
     public ResponseEntity<Notification> markRead(@PathVariable Long id) {
         String email = getCurrentStaffEmail();
-        Notification updated = service.markRead(id, email);
+        Notification updated = notificationService.markRead(id, email);     
         return ResponseEntity.ok(updated);
     }
 
