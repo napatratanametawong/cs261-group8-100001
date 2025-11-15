@@ -1,7 +1,7 @@
 package com.example.lc2_booking_room.controller;
 
 import com.example.lc2_booking_room.model.notification.Notification;
-import com.example.lc2_booking_room.service.notification.StaffNotificationService;
+import com.example.lc2_booking_room.service.notification.StaffNotificationService; 
 
 import lombok.RequiredArgsConstructor;
 

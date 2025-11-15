@@ -1,5 +1,5 @@
 // src/main/java/com/example/lc2_booking_room/service/headDecision/HeadDecisionService.java
-package com.example.lc2_booking_room.service.headDecision;
+package com.example.lc2_booking_room.service.head;
 
 import com.example.lc2_booking_room.dto.headDecision.HeadDecisionRequest;
 import com.example.lc2_booking_room.dto.headDecision.HeadDecisionView;

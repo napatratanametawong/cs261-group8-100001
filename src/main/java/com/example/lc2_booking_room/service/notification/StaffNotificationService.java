@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -17,6 +18,11 @@ public class StaffNotificationService {
 
     /** ดึง noti ทั้งหมดของ staff ที่ล็อกอินอยู่ (เฉพาะ WEB, ไม่ถูกลบ) */
     public List<Notification> getStaffInbox(String email) {
+        if (email == null || email.isBlank()) {
+            // กันเคส auth เพี้ยน / ยังไม่ได้ล็อกอิน
+            return List.of();
+        }
+
         return repo.findByRecipientEmailAndRecipientRoleAndChannelAndDeletedFalseOrderByCreatedAtDesc(
                 email,
                 Notification.RecipientRole.STAFF,
@@ -30,12 +36,13 @@ public class StaffNotificationService {
                 .orElseThrow(() -> new NoSuchElementException("Notification not found"));
 
         // กันเผื่ออนาคต: เช็ค owner ด้วย
-        if (!n.getRecipientEmail().equalsIgnoreCase(email)) {
+        if (email == null || !n.getRecipientEmail().equalsIgnoreCase(email)) {
             throw new IllegalArgumentException("You are not owner of this notification");
         }
 
         n.setRead(true);
-        n.setReadAt(OffsetDateTime.now());
+        // ✅ ใช้เวลาโซนไทยให้ตรงกับคอลัมน์อื่น ๆ
+        n.setReadAt(OffsetDateTime.now(ZoneId.of("Asia/Bangkok")));
         return repo.save(n);
     }
 }

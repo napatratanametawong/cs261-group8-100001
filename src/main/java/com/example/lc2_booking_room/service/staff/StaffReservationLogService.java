@@ -7,9 +7,8 @@ import com.example.lc2_booking_room.model.staff_log.StaffAction;
 import com.example.lc2_booking_room.model.staff_log.StaffReservationLog;
 import com.example.lc2_booking_room.repository.ReservationRepository;
 import com.example.lc2_booking_room.repository.StaffReservationLogRepository;
+import com.example.lc2_booking_room.service.head.HeadEmailNotificationService;
 import com.example.lc2_booking_room.service.login.EmailService;
-
-import com.example.lc2_booking_room.service.notification.HeadNotificationService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,7 @@ public class StaffReservationLogService {
     private final StaffReservationLogRepository logRepo;
     private final ReservationRepository reservationRepo;
     private final EmailService emailService;
-    private final HeadNotificationService headNotificationService;
+    private final HeadEmailNotificationService headNotificationService;
 
     // APPROVED, REJECTED, REVIEWED, RETURNED, CANCELLED
 

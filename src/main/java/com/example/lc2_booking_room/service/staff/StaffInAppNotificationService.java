@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
@@ -14,13 +15,16 @@ public class StaffInAppNotificationService {
 
     private final NotificationRepository repo;
 
+    private OffsetDateTime nowBkk() {
+        return OffsetDateTime.now(ZoneId.of("Asia/Bangkok"));
+    }
+
     public void send(
             String staffEmail,
             Long reservationId,
             Notification.NotificationType type,
             String title,
-            String message
-    ) {
+            String message) {
         Notification n = Notification.builder()
                 .recipientEmail(staffEmail)
                 .recipientRole(Notification.RecipientRole.STAFF)
@@ -30,7 +34,10 @@ public class StaffInAppNotificationService {
                 .message(message)
                 .channel(Notification.NotificationChannel.WEB)
                 .read(false)
-                .createdAt(OffsetDateTime.now())
+                .deleted(false)
+                .createdAt(nowBkk())
+                .sendStatus(Notification.SendStatus.SUCCESS) // หรือใส่หลังสร้างอ็อบเจ็กต์
+                .sentAt(nowBkk())
                 .build();
 
         repo.save(n);

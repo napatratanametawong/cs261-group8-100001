@@ -2,7 +2,8 @@ package com.example.lc2_booking_room.controller;
 
 import com.example.lc2_booking_room.dto.headDecision.HeadDecisionRequest;
 import com.example.lc2_booking_room.dto.headDecision.HeadDecisionView;
-import com.example.lc2_booking_room.service.headDecision.HeadDecisionService;
+import com.example.lc2_booking_room.service.head.HeadDecisionService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
