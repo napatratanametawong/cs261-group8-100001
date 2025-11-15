@@ -4,8 +4,11 @@ import lombok.*;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
-@Getter @Setter @Builder
-@AllArgsConstructor @NoArgsConstructor
+@Getter
+@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class PersonalBookingHistoryResponse {
     private Long reservationId;
     private String roomCode;
@@ -15,5 +18,5 @@ public class PersonalBookingHistoryResponse {
     private String finalStatus;
     private String userName;
     private String userEmail;
-    private OffsetDateTime lastStatusAt;   
+    private OffsetDateTime lastStatusAt;
 }
