@@ -1,5 +1,7 @@
 // /assets/js/history-enhanced.js
-(() => {
+import { statusPill, setupCancellationModal } from './cancelBooking.js';
+
+document.addEventListener("DOMContentLoaded", () => {
     const API_BASE = "";
     const DEFAULT_PAGE_SIZE = 10;
 
@@ -73,26 +75,6 @@
             lastEnd = m[2];
         }
         return (firstStart && lastEnd) ? `${firstStart}–${lastEnd}` : text;
-    }
-
-    // ===== Status badge =====
-    function statusPill(finalStatus) {
-        const map = {
-            PENDING: "status-processing",
-            APPROVED: "status-approved",
-            REJECTED: "status-rejected",
-            CANCELLED: "status-cancelled",
-            RETURNED: "status-not-saved"
-        };
-        const label = {
-            PENDING: "กำลังพิจารณา",
-            APPROVED: "อนุมัติแล้ว",
-            REJECTED: "ถูกปฏิเสธ",
-            CANCELLED: "ยกเลิก",
-            RETURNED: "ส่งแก้ไข"
-        }[finalStatus] || finalStatus || "-";
-        const cls = map[finalStatus] || "status-processing";
-        return `<span class="status-pill ${cls}">${label}</span>`;
     }
 
     // --- helper: ISO -> "dd/mm/BBBB HH:mm" (ไทย พ.ศ.)
@@ -296,7 +278,9 @@
             } finally {
                 loaded = true;
                 const btn = div.querySelector(`[data-cancel="${item.reservationId}"]`);
-                if (btn) btn.addEventListener("click", () => handleCancel(item.reservationId, div));
+                if (btn) {
+                    btn.addEventListener("click", () => window.bookingHistoryAPI.openCancelModal(item.reservationId, div, { apiBase: API_BASE, authHeaders: getAuthHeaders() }));
+                }
             }
         }
 
@@ -377,5 +361,6 @@
         }
     }
 
-    document.addEventListener("DOMContentLoaded", () => loadHistory());
-})();
+    setupCancellationModal();
+    loadHistory();
+});

@@ -40,6 +40,14 @@ public class UserReservationLog {
     @Column(name = "note")
     private String note;
 
+    // ✅ ให้ Hibernate เซ็ตเวลาลง changed_at อัตโนมัติ
+    @PrePersist
+    protected void onCreate() {
+        if (changedAt == null) {
+            changedAt = LocalDateTime.now();
+        }
+    }
+
     // getters/setters
     public Long getUserLogId() { return userLogId; }
     public Reservation getReservation() { return reservation; }

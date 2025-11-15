@@ -23,13 +23,13 @@
         <script src="../header/scripts/header.js" type="module"></script>
 
         <script src="../../global-head.js" defer></script>
-        <script src="api/bookingHistory.js"></script>
+        <script src="api/bookingHistory.js" type="module"></script>
     </head>
 
 <body>
     <main class="container">
         <nav class="breadcrumbs">
-            <a href="homepage_user.html">หน้าแรก</a> /
+            <a href="../bookingRoom/homepage_user.html">หน้าแรก</a> /
             <span>ประวัติการเขียนคำร้อง</span>
         </nav>
 
@@ -46,6 +46,20 @@
             </div>
 
             <div class="history-list">
+            </div>
+
+        </div>
+
+        <!-- Modal for Cancellation Confirmation -->
+        <div id="cancel-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h4>ยืนยันการยกเลิก</h4>
+                <p>คุณต้องการยกเลิกคำร้อง <strong id="modal-reservation-id">#...</strong></p>
+                <p>ใช่หรือไม่? การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+                <div class="modal-actions">
+                    <button id="modal-btn-close" class="btn btn-ghost">ยกเลิก</button>
+                    <button id="modal-btn-confirm" class="btn btn-danger">ยืนยันการยกเลิก</button>
+                </div>
             </div>
 
         </div>

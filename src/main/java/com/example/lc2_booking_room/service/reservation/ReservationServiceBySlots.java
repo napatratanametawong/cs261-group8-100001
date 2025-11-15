@@ -14,6 +14,8 @@ import com.example.lc2_booking_room.repository.ReservationSlotRepository;
 import com.example.lc2_booking_room.repository.UserReservationLogRepository;
 import org.springframework.transaction.annotation.Transactional;  
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 
@@ -188,4 +190,38 @@ public class ReservationServiceBySlots {
                 .slots(slotItems)
                 .build();
     }
+
+        /* Cancel Reservation */
+        @Transactional
+        public ReservationResponse cancelReservation(Long id) {
+        Reservation reservation = reservationRepository.findById(id)
+                // Use NoSuchElementException for 404 Not Found, and match the spec's error message.
+                .orElseThrow(() -> new NoSuchElementException("Reservation not found"));
+
+        // เงื่อนไขยกเลิก: ต้องเป็น SUBMITTED + PENDING เท่านั้น
+        if (reservation.getStep() != Reservation.BookingStep.SUBMITTED
+                || reservation.getFinalStatus() != Reservation.FinalStatus.PENDING) { // PENDING is the only cancellable status
+                // Use IllegalArgumentException for 400 Bad Request, as the client sent a request for an un-cancellable resource.
+                throw new IllegalArgumentException("Reservation cannot be canceled");
+        }
+
+        // เปลี่ยนสถานะ → CANCELLED (ไม่มีการเก็บเหตุผล)
+        reservation.setFinalStatus(Reservation.FinalStatus.CANCELLED);
+        reservation.setCancelReason("Cancelled by user"); // Optional: add a default reason
+        
+        // Update the state of the managed entities. JPA will handle the update.
+        // This is more efficient than a separate repository call.
+        reservation.getSlots().forEach(s -> s.setIsActive(false));
+
+        Reservation saved = reservationRepository.save(reservation);
+        
+        UserReservationLog log = new UserReservationLog();
+        log.setReservation(saved);
+        String performedByEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        log.setUserEmail(performedByEmail != null ? performedByEmail : saved.getUserEmail());
+        log.setAction(LogAction.CANCELED);
+        log.setNote("Reservation cancelled by user");
+        userReservationLogRepository.save(log);
+        return toResponse(saved, saved.getSlots(), List.of());
+        }
 }
