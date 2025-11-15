@@ -36,14 +36,13 @@ public class PersonalHistoryController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
+            @RequestParam(defaultValue = "10") int size) {
         String email = resolveEmail(auth);
         log.info("PersonalHistory email={}", email);
 
         // normalize optional filters so native SQL '... OR :param IS NULL' works
         roomCode = nullIfBlank(roomCode);
-        status   = nullIfBlank(status);
+        status = nullIfBlank(status);
 
         return service.getMyHistory(email, roomCode, fromDate, toDate, status, page, size);
     }
@@ -62,7 +61,10 @@ public class PersonalHistoryController {
         return (s == null || s.isBlank()) ? null : s;
     }
 
-    /** Convenience overload: pull HttpServletRequest if available and reuse main resolver */
+    /**
+     * Convenience overload: pull HttpServletRequest if available and reuse main
+     * resolver
+     */
     private String resolveEmail(Authentication auth) {
         var attrs = RequestContextHolder.getRequestAttributes();
         HttpServletRequest req = (attrs instanceof ServletRequestAttributes sra) ? sra.getRequest() : null;
@@ -76,23 +78,27 @@ public class PersonalHistoryController {
             Object details = auth.getDetails();
             if (details instanceof Map<?, ?> m) {
                 String direct = asEmail(m.get("email"));
-                if (direct != null) return direct;
+                if (direct != null)
+                    return direct;
 
                 Object prof = m.get("profile");
                 if (prof instanceof Map<?, ?> p) {
                     String profEmail = asEmail(p.get("email"));
-                    if (profEmail != null) return profEmail;
+                    if (profEmail != null)
+                        return profEmail;
                 }
             }
             // 2) principal -> UserDetails.username or String (if it looks like an email)
             Object principal = auth.getPrincipal();
             if (principal instanceof UserDetails ud) {
                 String maybe = asEmail(ud.getUsername());
-                if (maybe != null) return maybe;
+                if (maybe != null)
+                    return maybe;
             }
             if (principal instanceof String s) {
                 String maybe = asEmail(s);
-                if (maybe != null) return maybe;
+                if (maybe != null)
+                    return maybe;
             }
         }
 
@@ -102,16 +108,19 @@ public class PersonalHistoryController {
             if (bearer != null && bearer.startsWith("Bearer ")) {
                 String token = bearer.substring(7);
                 try {
-                    String fromToken = asEmail(jwtService.extractEmail(token)); 
-                    if (fromToken != null) return fromToken;
-                } catch (Exception ignored) {}
+                    String fromToken = asEmail(jwtService.extractEmail(token));
+                    if (fromToken != null)
+                        return fromToken;
+                } catch (Exception ignored) {
+                }
             }
         }
-        return null; 
+        return null;
     }
 
     private String asEmail(Object v) {
-        if (!(v instanceof String s)) return null;
+        if (!(v instanceof String s))
+            return null;
         s = s.trim();
         return s.contains("@") ? s : null;
     }

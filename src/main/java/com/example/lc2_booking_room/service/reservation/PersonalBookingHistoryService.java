@@ -19,8 +19,7 @@ public class PersonalBookingHistoryService {
     private final PersonalBookingHistoryRepository repo;
 
     // SQL uses FORMAT(..., 'yyyy-MM-ddTHH:mm:sszzz') -> matches Java "XXX"
-    private static final DateTimeFormatter ISO_WITH_OFFSET =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
+    private static final DateTimeFormatter ISO_WITH_OFFSET = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
 
     public Page<PersonalBookingHistoryResponse> getMyHistory(
             String email,
@@ -29,17 +28,15 @@ public class PersonalBookingHistoryService {
             LocalDate toDate,
             String status,
             int page,
-            int size
-    ) {
+            int size) {
         Pageable pageable = PageRequest.of(page, size);
         var pageView = repo.findPersonalHistory(
                 email,
                 roomCode,
                 fromDate == null ? null : java.sql.Date.valueOf(fromDate),
-                toDate   == null ? null : java.sql.Date.valueOf(toDate),
+                toDate == null ? null : java.sql.Date.valueOf(toDate),
                 status,
-                pageable
-        );
+                pageable);
 
         return pageView.map(this::mapToDto);
     }
