@@ -16,7 +16,11 @@
   };
 
   // State
-  const requestDataByTab = {}; // เก็บข้อมูลคำร้องที่สร้างขึ้นสำหรับแต่ละแท็บ
+  const allReservations = {
+    new: [],
+    pending: [],
+    completed: []
+  };
 
   // เปิด/ปิดรายการ (li คือ element .list-item)
   function openItem(li) {
@@ -113,51 +117,152 @@
     });
   }
 
-  // ตัวอย่าง handler สำหรับอนุมัติ (คุณสามารถแก้ให้เรียก API ได้ที่นี่)
-  function handleAccept(li, btn) {
-    // สามารถอ่าน data จาก li (เช่น data-id) เพื่อส่งไปยัง API
+  // Handler for "Approve" button click
+  async function handleAccept(li, btn) {
     const requestId = li.dataset.requestId || null;
+    if (!requestId) return;
 
-    // ตัวอย่าง UI feedback: ปิด panel และแสดงข้อความ (เปลี่ยนเป็นเรียก API จริงได้)
-    // closeItem(li); // ไม่ต้องปิดทันที
-
-    // ถ้าต้องการ: แสดง spinner / เปลี่ยนปุ่มเป็นกำลังทำงาน ฯลฯ
-    // ตัวอย่าง: dispatch custom event เพื่อให้ระบบอื่นๆ ฟังได้
-    const ev = new CustomEvent('request:accepted', { detail: { requestId, source: li } });
-    document.dispatchEvent(ev);
-
-    // ตัวอย่าง placeholder: alert (เอาออกใน production)
-    // alert('อนุมัติคำร้อง ' + (requestId || '(no id)'));
-    // ----- ส่วนนี้เปลี่ยนเป็น fetch() เรียก API จริงได้ -----
+    // This will be handled by modals.js
+    document.dispatchEvent(new CustomEvent('request:approve', { detail: { requestId, source: li } }));
   }
 
+  // Handler for "Reject" button click
   function handleReject(li, btn) {
     const requestId = li.dataset.requestId || null;
-    // closeItem(li); // ไม่ต้องปิดทันที
-    const ev = new CustomEvent('request:rejected', { detail: { requestId, source: li } });
-    document.dispatchEvent(ev);
-    // alert('ตีกลับคำร้อง ' + (requestId || '(no id)'));
-    // ----- เปลี่ยนเป็นการเรียก API / modal confirm ได้ -----
+    if (!requestId) return;
+
+    // This will be handled by modals.js
+    document.dispatchEvent(new CustomEvent('request:reject', { detail: { requestId, source: li } }));
   }
 
-  // ===== Data Generation & Rendering (for demo) =====
+  // Function to call the approve API
+  async function approveRequest(requestId) {
+    try {
+      const response = await fetch(`/api/staff/logs/${requestId}/reviewed`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          // Include Authorization header if needed, e.g., 'Authorization': `Bearer ${token}`
+        },
+      });
 
-  // ฟังก์ชันสร้างข้อมูลคำร้องสุ่ม 1 รายการ
-  function generateRandomRequest() {
-    const names = ['สมชาย เข็มกลัด', 'สมหญิง ยิ่งสุข', 'ประยุทธ์ จันทร์ดี', 'ทักษิณ ชินวัตร', 'ยิ่งลักษณ์ ชินวัตร', 'พิธา ลิ้มเจริญรัตน์'];
-    const rooms = ['LC2-201', 'LC2-209', 'LC2-304', 'LC2-405', 'ห้องประชุม 1'];
-    const times = ['09:00-11:00', '11:00-13:00', '13:30-15:30', '15:30-18:00'];
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
 
-    const date = new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000);
-    const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear() + 543}`;
+      document.dispatchEvent(new CustomEvent('ui:show-status', {
+        detail: { title: 'สำเร็จ', message: 'อนุมัติคำร้องสำเร็จ', isError: false }
+      }));
+      fetchAndCategorizeReservations(); // Refresh data
+    } catch (error) {
+      console.error('Approve request failed:', error);
+      document.dispatchEvent(new CustomEvent('ui:show-status', {
+        detail: {
+          title: 'เกิดข้อผิดพลาด',
+          message: `เกิดข้อผิดพลาดในการอนุมัติ: ${error.message}`,
+          isError: true
+        }
+      }));
+    } finally {
+      // Notify modal to close and reset button
+      document.dispatchEvent(new CustomEvent('api:request-finished'));
+    }
+  }
 
-    return {
-      id: Math.floor(100000000 + Math.random() * 900000000),
-      date: formattedDate,
-      name: names[Math.floor(Math.random() * names.length)],
-      room: rooms[Math.floor(Math.random() * rooms.length)],
-      time: times[Math.floor(Math.random() * times.length)],
-    };
+  // Function to call the return/reject API
+  async function rejectRequest(requestId, reason) {
+    if (!reason || reason.trim() === '') {
+      document.dispatchEvent(new CustomEvent('ui:show-status', {
+        detail: { title: 'ข้อมูลไม่ครบถ้วน', message: 'กรุณาระบุเหตุผลการตีกลับ', isError: true }
+      }));
+      document.dispatchEvent(new CustomEvent('api:request-finished')); // Reset button in modal
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/staff/logs/${requestId}/returned`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          // Include Authorization header if needed
+        },
+        body: JSON.stringify({ note: reason }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      document.dispatchEvent(new CustomEvent('ui:show-status', {
+        detail: { title: 'สำเร็จ', message: 'ตีกลับคำร้องสำเร็จ', isError: false }
+      }));
+      fetchAndCategorizeReservations(); // Refresh data
+    } catch (error) {
+      console.error('Reject request failed:', error);
+      document.dispatchEvent(new CustomEvent('ui:show-status', {
+        detail: {
+          title: 'เกิดข้อผิดพลาด',
+          message: `เกิดข้อผิดพลาดในการตีกลับ: ${error.message}`,
+          isError: true
+        }
+      }));
+    } finally {
+      // Notify modal to close and reset button
+      document.dispatchEvent(new CustomEvent('api:request-finished'));
+    }
+  }
+
+  // ===== Data Fetching and Processing =====
+
+  // แปลง YYYY-MM-DD เป็น DD/MM/YYYY (พ.ศ.)
+  function formatThaiDate(isoDate) {
+    if (!isoDate) return '-';
+    const [year, month, day] = isoDate.split('-');
+    const thaiYear = parseInt(year, 10) + 543;
+    return `${day}/${month}/${thaiYear}`;
+  }
+
+  // Helper to format "HHMM" string to "HH:MM"
+  function formatHHMM(timeStr) {
+    if (timeStr && timeStr.length === 4) {
+      return `${timeStr.substring(0, 2)}:${timeStr.substring(2, 4)}`;
+    }
+    return timeStr;
+  }
+
+  // แปลง slot codes เป็นช่วงเวลาที่อ่านง่าย
+  function formatTimeSlots(slots) {
+    if (!slots || slots.length === 0) return '-';
+
+    const times = slots
+      .map(s => s.slotCode.replace('S', '').replace(/_/g, ':'))
+      .sort();
+
+    if (times.length === 1) {
+      const [start, end] = times[0].split(':');
+      return `${formatHHMM(start)}-${formatHHMM(end)}`;
+    }
+
+    // หาเวลาเริ่มต้นของ slot แรก และเวลาสิ้นสุดของ slot สุดท้าย
+    const startTime = times[0].split(':')[0];
+    const endTime = times[times.length - 1].split(':')[1];
+    return `${formatHHMM(startTime)}-${formatHHMM(endTime)}`;
+  }
+
+  // Helper to parse reason fields that might be JSON strings
+  function parseReason(reasonString) {
+    if (!reasonString) return '';
+    try {
+      // Attempt to parse the string as JSON
+      const parsed = JSON.parse(reasonString);
+      // If it has a 'note' property, return that. Otherwise, return the original string.
+      return parsed.note || reasonString;
+    } catch (e) {
+      // If parsing fails, it's likely a plain string. Return it as is.
+      return reasonString;
+    }
   }
 
   // ฟังก์ชันสร้าง HTML สำหรับ 1 รายการ
@@ -170,15 +275,30 @@
       </div>
     ` : '';
 
+    // แสดงเหตุผลการตีกลับ/ปฏิเสธ สำหรับแท็บ pending และ completed
+    const reasonDetailsHTMLForRequest = (tabKey === 'pending' || tabKey === 'completed') ? `
+      ${(request.step === 'RETURNED_FOR_FIX' && request.returnReason) ? `
+        <div class="detail-row-group status-box status-box--returned">
+          <div class="detail-row"><strong>เหตุผลที่ตีกลับ</strong><div>${parseReason(request.returnReason)}</div></div>
+        </div>
+      ` : ''}
+      ${(request.finalStatus === 'REJECTED' && request.rejectReason) ? `
+        <div class="detail-row-group status-box status-box--rejected">
+          <div class="detail-row"><strong>เหตุผลที่ปฏิเสธ</strong><div>${parseReason(request.rejectReason)}</div></div>
+        </div>
+      ` : ''}
+    ` : '';
+
+
     return `
-      <div class="list-item" data-request-id="${request.id}">
+      <div class="list-item" data-request-id="${request.reservationId}">
         <div class="item-grid">
-          <div class="item-cell">${request.date}</div>
-          <div class="item-cell">${request.id}</div>
-          <div class="item-cell">${request.name}</div>
-          <div class="item-cell">${request.room}</div>
+          <div class="item-cell">${formatThaiDate(request.reservationDate)}</div>
+          <div class="item-cell">${request.reservationId}</div>
+          <div class="item-cell">${request.userName}</div>
+          <div class="item-cell">${request.roomCode}</div>
           <div class="item-cell item-right">
-            <span class="time">${request.time}</span>
+            <span class="time">${formatTimeSlots(request.slots)}</span>
             <button class="chev" aria-expanded="false" aria-label="รายละเอียด">
               <img src="../resource/chevron-down.svg" alt="Toggle Details" />
             </button>
@@ -189,28 +309,29 @@
             <div class="details-left">
               <h3 class="details-title">รายละเอียดการจอง</h3>
               <div class="detail-row-group">
-                <div class="detail-row"><strong>ชื่อ-นามสกุล</strong><div>${request.name}</div></div>
-                <div class="detail-row"><strong>อีเมล</strong><div>xxxx@dome.tu.ac.th</div></div>
+                <div class="detail-row"><strong>ชื่อ-นามสกุล</strong><div>${request.userName}</div></div>
+                <div class="detail-row"><strong>อีเมล</strong><div>${request.userEmail}</div></div>
               </div>
               <div class="detail-row-group">
-                <div class="detail-row"><strong>วันที่ต้องการใช้ห้อง</strong><div>${request.date}</div></div>
-                <div class="detail-row"><strong>ช่วงเวลา</strong><div>${request.time}</div></div>
+                <div class="detail-row"><strong>วันที่ต้องการใช้ห้อง</strong><div>${formatThaiDate(request.reservationDate)}</div></div>
+                <div class="detail-row"><strong>ช่วงเวลา</strong><div>${formatTimeSlots(request.slots)}</div></div>
               </div>
               <div class="detail-row-group">
                 <div class="detail-row"><strong>ประเภทห้อง</strong><div>ห้องเรียน</div></div>
-                <div class="detail-row"><strong>ห้อง</strong><div>${request.room}</div></div>
+                <div class="detail-row"><strong>ห้อง</strong><div>${request.roomCode}</div></div>
               </div>
+              ${reasonDetailsHTMLForRequest}
             </div>
             <div class="details-right">
               <h3 class="details-title accent">กรุณากรอกข้อมูลเพิ่มเติม</h3>
               <div class="detail-row-group">
-                <div class="detail-row"><strong>กลุ่มผู้ยื่นคำร้อง<span class="required-star">*</span></strong><div>ชมรม xxxx</div></div>
-                <div class="detail-row"><strong>เบอร์โทรศัพท์<span class="required-star">*</span></strong><div>xxx-xxx-xxxx</div></div>
+                <div class="detail-row"><strong>กลุ่มผู้ยื่นคำร้อง<span class="required-star">*</span></strong><div>-</div></div>
+                <div class="detail-row"><strong>เบอร์โทรศัพท์<span class="required-star">*</span></strong><div>-</div></div>
               </div>
-              <div class="detail-row"><strong>จุดประสงค์การขอใช้ห้อง<span class="required-star">*</span></strong><div class="purpose">เพื่อการเรียนการสอน</div></div>
+              <div class="detail-row"><strong>จุดประสงค์การขอใช้ห้อง<span class="required-star">*</span></strong><div class="purpose">${request.reason || '-'}</div></div>
               <div class="file-upload">
-                <label for="doc-${request.id}">อัปโหลดเอกสารเพิ่มเติม</label>
-                <input id="doc-${request.id}" type="text" value="เอกสารแนบ.pdf" readonly />
+                <label for="doc-${request.reservationId}">อัปโหลดเอกสารเพิ่มเติม</label>
+                <input id="doc-${request.reservationId}" type="text" value="${request.fileAttachment || 'ไม่มีไฟล์แนบ'}" readonly />
               </div>
               ${actionButtonsHTML}
             </div>
@@ -239,12 +360,9 @@
     // แสดงสถานะกำลังโหลด
     listContainer.innerHTML = `<div class="list-item" role="status"><div class="item-grid" style="display:block; text-align:center;">กำลังโหลดข้อมูล...</div></div>`;
 
-    // --- ส่วนนี้จะถูกแทนที่ด้วยการเรียก API จริง ---
-    // จำลองการเรียก API และแสดงผลลัพธ์
     setTimeout(() => {
-      const data = requestDataByTab[tabKey] || [];
-      renderRequests(listContainer, data, tabKey);
-    }, 300); // หน่วงเวลา 0.3 วินาทีเพื่อจำลองการโหลด
+      renderRequests(listContainer, allReservations[tabKey] || [], tabKey);
+    }, 100); // หน่วงเวลาเล็กน้อยเพื่อให้ UI อัปเดต
   }
 
   function initTabs() {
@@ -268,29 +386,56 @@
     });
   }
 
+  async function fetchAndCategorizeReservations() {
+    const listContainer = document.querySelector(SELECTORS.listContainer);
+    try {
+      const response = await fetch('/api/staff/reservations');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+
+      // Clear previous data
+      allReservations.new = [];
+      allReservations.pending = [];
+      allReservations.completed = [];
+
+      // Categorize data
+      data.forEach(reservation => {
+        if (['APPROVED', 'REJECTED', 'CANCELLED'].includes(reservation.finalStatus)) {
+          allReservations.completed.push(reservation);
+        } else if (reservation.step === 'SUBMITTED' && reservation.finalStatus === 'PENDING') {
+          allReservations.new.push(reservation);
+        } else {
+          allReservations.pending.push(reservation);
+        }
+      });
+
+      // Render the currently active tab with new data
+      const activeTab = document.querySelector('.tab.tab--active');
+      const activeTabKey = activeTab ? activeTab.dataset.tabKey : 'new';
+      renderRequests(listContainer, allReservations[activeTabKey], activeTabKey);
+
+    } catch (error) {
+      console.error('Failed to fetch reservations:', error);
+      listContainer.innerHTML = `<div class="list-item error" role="alert"><div class="item-grid" style="display:block; text-align:center;">เกิดข้อผิดพลาดในการโหลดข้อมูล</div></div>`;
+    }
+  }
 
   // Public init
   function init() {
     initDelegation();
     initTabs();
-    
-    // --- สร้างข้อมูลตัวอย่างเมื่อโหลดหน้า ---
-    const TABS = ['new', 'pending', 'completed'];
-    const counts = {
-      new: Math.floor(Math.random() * 5) + 5, // 5-9
-      pending: Math.floor(Math.random() * 3) + 2, // 2-4
-      completed: Math.floor(Math.random() * 8) + 8, // 8-15
-    };
+    fetchAndCategorizeReservations();
 
-    TABS.forEach(tabKey => {
-      requestDataByTab[tabKey] = Array.from({ length: counts[tabKey] }, generateRandomRequest);
+    // Listen for confirmation events from modals
+    document.addEventListener('modal:confirm-approve', (e) => {
+      approveRequest(e.detail.requestId);
     });
 
-    // แสดงผลแท็บแรก (คำร้องใหม่)
-    const listContainer = document.querySelector(SELECTORS.listContainer);
-    if (listContainer) {
-      renderRequests(listContainer, requestDataByTab['new'], 'new');
-    }
+    document.addEventListener('modal:confirm-reject', (e) => {
+      rejectRequest(e.detail.requestId, e.detail.reason);
+    });
   }
 
   // เรียก init เมื่อ DOM โหลดแล้ว

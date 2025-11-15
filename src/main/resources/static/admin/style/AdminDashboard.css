@@ -651,6 +651,8 @@ footer {
   z-index: 2000;
   opacity: 0;
   transition: opacity .16s ease;
+  visibility: hidden; /* เพิ่ม visibility เพื่อการซ่อนที่สมบูรณ์ */
+  pointer-events: none; /* ป้องกันการคลิกเมื่อซ่อนอยู่ */
 }
 
 .modal {
@@ -743,6 +745,8 @@ footer {
 }
 .modal-backdrop.show {
   opacity: 1;
+  visibility: visible; /* ทำให้มองเห็นได้ */
+  pointer-events: auto; /* ทำให้คลิกได้ */
 }
 
 /* responsive */
