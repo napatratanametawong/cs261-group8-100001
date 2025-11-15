@@ -51,99 +51,7 @@
   --slot-check-size: 18px;
 }
 
-/* ===================== Base & Layout ===================== */
-* {
-  box-sizing: border-box
-}
 
-body {
-  margin: 0;
-  font-family: 'IBM Plex Sans Thai', sans-serif;
-  background-color: var(--bg);
-  color: #111;
-}
-
-.app {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-
-/* ===================== Top Bar & Toolbar ===================== */
-.top-bar {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 0px 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.container {
-  justify-content: space-between;
-}
-
-.brand-logo img {
-  height: 130px;
-  margin-left: -16px;
-  padding-top: 20px;
-}
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  gap: 20px
-}
-
-.icon-btn {
-  background: #fff;
-  border: none;
-  padding: 14px;
-  border-radius: 999px;
-  cursor: pointer;
-  font-size: 24px;
-  box-shadow: 0 4px 10px rgba(16, 24, 40, 0.06);
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.icon-btn img {
-  width: 24px;
-  height: 24px;
-  display: block;
-}
-
-.icon-btn:hover {
-  background-color: #111;
-  color: #fff;
-}
-
-.icon-btn:hover img {
-  /* เปลี่ยน SVG สีดำให้เป็นสีขาว */
-  filter: brightness(0) invert(1);
-}
-
-.chip {
-  background: #fff;
-  border-radius: 999px;
-  padding: 16px 24px;
-  font-weight: 600;
-  font-size: 18px;
-  box-shadow: 0 4px 10px rgba(16, 24, 40, 0.06);
-  display: flex;
-  align-items: center;
-  gap: 14px
-}
-
-.avatar-img {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background-color: #e9ecef;
-}
-
-.hidden {
-  display: none !important;
-}
 
 /* ===================== Breadcrumb ===================== */
 .breadcrumb-container {
@@ -683,6 +591,16 @@ h1 {
   transition: transform .06s ease, background .15s ease;
 }
 
+.btn-book:disabled, .btn-book[aria-disabled="true"] { background:#D9D9D9; color:#5a5a5a; opacity:1; cursor:not-allowed; filter:none; }
+.btn-book:disabled:hover, .btn-book[aria-disabled="true"]:hover { background:#D9D9D9; }
+
+.btn-book:disabled,
+.btn-book[aria-disabled="true"]{
+  opacity: .55;
+  cursor: not-allowed;
+  filter: grayscale(0.15);
+}
+
 .btn-book:hover {
   background: var(--btn-hover, #111);
 }
@@ -750,3 +668,4 @@ footer {
   font-size: var(--font-main-detail);
   font-weight: var(--weight-bold);
 }
+

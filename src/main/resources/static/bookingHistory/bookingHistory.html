@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!DOCTYPE html>
+    <html lang="th">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>ประวัติการเขียนคำร้อง - LC2 BOOKING ROOM</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+        <link rel="stylesheet" href="style/bookingHistory.css">
+        <link rel="stylesheet" href="../header/styles/header.css"/>
+
+        <script src="../header/scripts/header.js" type="module"></script>
+
+        <script src="../../global-head.js" defer></script>
+        <script src="api/bookingHistory.js" type="module"></script>
+    </head>
+
+<body>
+    <main class="container">
+        <nav class="breadcrumbs">
+            <a href="../bookingRoom/homepage_user.html">หน้าแรก</a> /
+            <span>ประวัติการเขียนคำร้อง</span>
+        </nav>
+
+        <h1 class="main-title" id="main-title-clickable">ประวัติการเขียนคำร้อง</h1>
+
+        <div class="history-table-wrapper" id="history-table">
+            <div class="history-header">
+                <div class="header-col">วัน/เดือน/ปี</div>
+                <div class="header-col">หมายเลขคำร้อง</div>
+                <div class="header-col">รายชื่อห้อง</div>
+                <div class="header-col">ช่วงเวลา</div>
+                <div class="header-col">สถานะ</div>
+                <div class="header-col"></div>
+            </div>
+
+            <div class="history-list">
+            </div>
+
+        </div>
+
+        <!-- Modal for Cancellation Confirmation -->
+        <div id="cancel-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h4>ยืนยันการยกเลิก</h4>
+                <p>คุณต้องการยกเลิกคำร้อง <strong id="modal-reservation-id">#...</strong></p>
+                <p>ใช่หรือไม่? การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+                <div class="modal-actions">
+                    <button id="modal-btn-close" class="btn btn-ghost">ยกเลิก</button>
+                    <button id="modal-btn-confirm" class="btn btn-danger">ยืนยันการยกเลิก</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-logo-container">
+            <img src="../resource/Logo_footer.png" alt="LC2 BOOKING ROOM Footer Logo" class="logo-img">
+            <div class="footer-address">
+                <p class="footer-title">ที่อยู่</p>
+                <p>อาคารบรรยายรวม 2 มหาวิทยาลัยธรรมศาสตร์ ศูนย์รังสิต</p>
+                <p>99 หมู่ 18 ตำบลคลองหนึ่ง อำเภอคลองหลวง</p>
+                <p>จังหวัดปทุมธานี 12121</p>
+            </div>
+        </div>
+        <div class="footer-contact">
+            <p class="footer-title">ติดต่อ</p>
+            <p>โทร. 061 013 6135</p>
+            <p>Email: scitu_cs@sci.tu.ac.th</p>
+        </div>
+    </footer>
+</body>
+
+</html>

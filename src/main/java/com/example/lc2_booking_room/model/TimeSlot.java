@@ -16,9 +16,10 @@ public class TimeSlot {
     @Column(name = "slot_code", length = 20, nullable = false)
     private String slotCode;    // ← ใช้ slot_code เป็น @Id
 
-    @Column(name = "start_time", nullable = false)
-    private LocalTime startTime;
+    @Column(name = "start_time")
+    private java.time.LocalTime startTime;
 
-    @Column(name = "end_time", nullable = false)
-    private LocalTime endTime;
+    @Column(name = "end_time")
+    private java.time.LocalTime endTime;
+
 }

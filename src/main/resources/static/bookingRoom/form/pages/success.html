@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="th">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LC2 Booking Rooms – ยืนยันคำร้อง</title>
+  <meta name="description" content="หน้ายืนยันการส่งคำร้องขอใช้ห้องสำเร็จ" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../../../header/styles/header.css" />
+  <script src="../../../header/scripts/header.js" type="module"></script>
+  <script src="../../../global-head.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var home = document.getElementById('breadcrumb-home');
+      if (home) { home.setAttribute('href', '/bookingRoom/homepage_user.html'); }
+    });
+  </script>
+</head>
+
+<body>
+  <main class="main-content">
+    <div id="breadcrumb" class="breadcrumb-container">
+      <a href="/" id="breadcrumb-home">หน้าหลัก</a> / <span id="breadcrumb-current">การยื่นคำร้องขอใช้ห้อง</span>
+    </div>
+
+    <section class="card booking-card" style="text-align:center;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:18px;">
+        <svg width="96" height="96" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="11" fill="#D9F7E5" stroke="#1E8F52" />
+          <path d="M7 12.5l3 3 7-7" stroke="#1E8F52" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+
+        <h2 style="margin:0;font-size:24px;font-weight:700;">บันทึกแบบฟอร์มยื่นคำร้องขอใช้ห้องเรียบร้อยแล้ว</h2>
+        <p style="margin:0;color:#6E6E6E;">กรุณารอผลการยืนยันคำร้องภายใน 3
+          วัน<br />ท่านสามารถติดตามสถานะคำร้องได้ทางอีเมลหรือทางเว็บไซต์</p>
+
+        <div class="actions" style="justify-content:center;margin-top:24px;">
+          <a class="btn btn-ghost" href="/bookingRoom/homepage_user.html">กลับสู่หน้าหลัก</a>
+          <a class="btn btn-primary" href="../../../bookingHistory/bookingHistory.html">ดูประวัติการยื่นคำร้อง</a>
+        </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-content">
+      <div class="content">
+        <img src="/resource/Logo_footer.png" alt="">
+      </div>
+      <div class="content">
+        <p><span>ที่อยู่</span></p>
+        <p>อาคารบรรยายรวม 2 มหาวิทยาลัยธรรมศาสตร์ รังสิต ชั้นล่าง</p>
+        <p>99 หมู่ 18 ถนนพหลโยธิน ตำบลคลองหนึ่ง อำเภอคลองหลวง</p>
+        <p>จังหวัดปทุมธานี 12121</p>
+      </div>
+      <div class="content">
+        <p><span>ติดต่อ</span></p>
+        <p><span>โทร.</span> 061 013 6135</p>
+        <p><span>Email:</span> scitu_cs@sci.tu.ac.th</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      document.addEventListener('DOMContentLoaded', function () {
+        var backBtn = document.querySelector('.actions .btn.btn-ghost');
+        if (backBtn) { backBtn.setAttribute('href', '/bookingRoom/homepage_user.html'); backBtn.textContent = 'กลับสู่หน้าหลัก'; }
+        var logo = document.querySelector('.brand-logo img');
+        if (logo) { logo.src = '/resource/Logo_header.png'; }
+        var logout = document.querySelector('#logout_btn img');
+        if (logout) { logout.src = '/resource/logout.svg'; }
+        var bellBtn = document.querySelector('.toolbar .icon-btn img');
+        if (bellBtn) { bellBtn.src = '/resource/bell.svg'; }
+        var footerLogo = document.querySelector('footer img');
+        if (footerLogo) { footerLogo.src = '/resource/Logo_footer.png'; }
+        var home = document.getElementById('breadcrumb-home');
+        if (home) { home.setAttribute('href', '/bookingRoom/homepage_user.html'); }
+      });
+    })();
+  </script>
+
+</body>
+
+</html>
