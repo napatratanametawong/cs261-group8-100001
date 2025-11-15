@@ -100,5 +100,4 @@ document.addEventListener("DOMContentLoaded", () => {
   import("../../header-api/profile.js").then(module => {
     module.loadDisplayName && module.loadDisplayName();
   });
-
 });
