@@ -1,6 +1,8 @@
 package com.example.lc2_booking_room.model.notification;
 
 import com.example.lc2_booking_room.model.Reservation;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -50,7 +52,9 @@ public class Notification {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservation_id")
+    @JsonIgnore
     private Reservation reservation;
+
 
     @Column(name = "user_log_id")
     private Long userLogId;
