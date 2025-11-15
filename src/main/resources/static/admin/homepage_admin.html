@@ -1,12 +1,215 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="th">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <script src="../../global-head.js" defer></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard</title>
+  <meta name="description" content="ระบบจัดการคำร้องสำหรับเจ้าหน้าที่" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style/AdminDashboard.css" />
+  <!-- All scripts deferred so DOM is ready -->
+  <script src="api/calendar.js" defer></script>
+  <script src="api/room.js" defer></script>
+  <script src="api/bookings.js" defer></script>
+  <script src="api/timeSelect.js" defer></script>
+  <script src="api/profile.js" defer></script>
+  <script src="api/logout.js" type="module"></script>
+  <script src="scripts/dashboard.js" defer></script>
+  <script src="scripts/notifications.js" defer></script>
+  <script src="scripts/modals.js" defer></script>
+  <script src="scripts/sideMenu.js" defer></script>
+  <script src="../../global-head.js" defer></script>
 </head>
+
 <body>
-    <p>ฉันคือเจ้าหน้าที่ดูแลอาคาร</p>
+  <div class="top-bar">
+    <div class="brand-logo">
+      <img src="../resource/Logo_header.png" alt="Logo" height="56" />
+    </div>
+    <div class="toolbar">
+        <!-- Notification toggle & panel (วางใน .toolbar) -->
+        <div class="notif-wrapper">
+          <button class="icon-btn" id="notifToggle" aria-haspopup="true" aria-expanded="false" title="แจ้งเตือน">
+            <img src="../resource/bell.svg" alt="แจ้งเตือน" />
+            <span class="badge-dot" aria-hidden="true"></span>
+          </button>
+      
+          <div id="notifPanel" role="dialog" aria-label="การแจ้งเตือน">
+            <div class="notif-header">การแจ้งเตือน</div>
+            <div class="notif-list">
+              <button class="notif-item unread" data-id="1">
+                <div class="title"><span class="dot" aria-hidden="true"></span> มีคำร้องใหม่ถูกส่งเข้ามา กรุณาตรวจสอบรายละเอียดคำร้อง</div>
+                <div class="meta">5 นาทีที่แล้ว</div>
+              </button>
+          
+              <button class="notif-item" data-id="2">
+                <div class="title">ผู้ใช้ได้ส่งคำร้องฉบับแก้ไขกลับมาใหม่</div>
+                <div class="meta">12 ชั่วโมงที่แล้ว</div>
+              </button>
+          
+              <button class="notif-item" data-id="3">
+                <div class="title">หมายเลขการจอง xxxx ได้ยกเลิกคำร้อง</div>
+                <div class="meta">14/09/2569</div>
+              </button>
+          
+              <div class="notif-item empty" aria-hidden="true">ดูการแจ้งเตือนทั้งหมด</div>
+            </div>
+          </div>
+        </div>
+        <!-- end notification -->
+      <div class="chip">
+        <span id="displayName" class="displayName"></span>
+      </div>
+      <button class="icon-btn" id="logout_btn" title="ออก">
+        <img src="../resource/logout.svg" alt="ออก" />
+      </button>
+    </div>
+  </div>
+
+  <!-- responsive-sidebar.html (snippet) -->
+<aside id="appSidebar" class="sidebar" aria-label="Main sidebar">
+  <div class="sidebar__inner">
+    <div class="sidebar__header">
+      <button id="sidebarToggle" class="sidebar__toggle" aria-label="Toggle sidebar" aria-expanded="true">
+        <!-- hamburger / chevron -->
+        <svg width="26" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect y="4" width="20" height="2" rx="1" fill="currentColor"/>
+          <rect y="11" width="20" height="2" rx="1" fill="currentColor"/>
+          <rect y="18" width="20" height="2" rx="1" fill="currentColor"/>
+        </svg>
+      </button>
+      <div class="sidebar__brand">
+        <img src="../resource/Logo_header.png" alt="LC2 Booking Room" />
+      </div>
+    </div>
+
+    <div class="sidebar__separator"></div>
+
+    <nav class="sidebar__nav" role="navigation" aria-label="Primary">
+      <button class="sidebar__item sidebar__item--active" data-route="home">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="currentColor"/></svg>
+        <span class="label">หน้าหลัก</span>
+      </button>
+
+      <button class="sidebar__item" data-route="history">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3a9 9 0 1 0 9 9h-2a7 7 0 1 1-7-7V3zM12 7v6l5 3 .9-1.6-4.4-2.5V7z" fill="currentColor"/></svg>
+        <span class="label">ดูประวัติคำร้อง</span>
+      </button>
+    </nav>
+
+    <div class="sidebar__spacer"></div>
+
+    <div class="sidebar__footer">
+      <div class="sidebar__separator"></div>
+
+      <button class="sidebar__item" data-route="settings" title="การตั้งค่า">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.39-1.09-.73-1.71-.98l-.37-2.65c-.06-.27-.3-.46-.57-.46h-4c-.28 0-.52.19-.57.46l-.37 2.65c-.62.25-1.19.59-1.71.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.64-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.39 1.09.73 1.71.98l.37 2.65c.06.27.3.46.57.46h4c.28 0 .52-.19.57-.46l.37-2.65c.62-.25 1.19-.59 1.71-.98l2.49 1c.22.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z" fill="currentColor"/></svg>
+        <span class="label">การตั้งค่า</span>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- backdrop for mobile drawer -->
+<div id="sidebarBackdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
+
+  <main class="main">
+      <div class="container">
+        <div class="title-row">
+          <h1 class="page-title">ระบบจัดการคำร้องสำหรับเจ้าหน้าที่</h1>
+          <div class="title-underline"></div>
+        </div>
+
+        <!-- tabs -->
+        <nav class="tabs" role="tablist" aria-label="คำร้อง">
+          <button class="tab tab--active" role="tab" data-tab-key="new">คำร้องใหม่</button>
+          <button class="tab" role="tab" data-tab-key="pending">กำลังตรวจสอบ</button>
+          <button class="tab" role="tab" data-tab-key="completed">เสร็จสิ้น</button>
+        </nav>
+
+        <!-- table header -->
+        <div class="table">
+          <div class="table-header">
+            <div>วัน/เดือน/ปี</div>
+            <div>หมายเลขคำร้อง</div>
+            <div>ผู้ส่งคำร้อง</div>
+            <div>รายชื่อห้อง</div>
+            <div>ช่วงเวลา</div>
+          </div>
+
+          <!-- list of requests (ตัวอย่างรายการ 3 แถว) -->
+          <div class="list"></div>  <!-- รายการจะถูกสร้างโดย JavaScript -->
+      </div><!-- .container -->
+    </main>
+    <!-- ===== modals: approve & reject (วางก่อน </body>) ===== -->
+    <div id="modals" aria-hidden="true">
+
+      <!-- Reject modal -->
+      <div class="modal" id="rejectModal" role="dialog" aria-modal="true" aria-labelledby="rejectTitle" hidden>
+        <div class="modal-card">
+          <h2 id="rejectTitle">ท่านต้องการตีกลับคำร้องใช่หรือไม่</h2>
+          <label class="label">เหตุผลการตีกลับ <span class="required-star">*</span></label>
+          <textarea id="rejectReason" class="input-textarea" rows="6" placeholder="กรุณาระบุเหตุผลการตีกลับ" required></textarea>
+
+          <div class="modal-actions">
+            <button class="btn btn-outline" id="rejectCancel">ยกเลิก</button>
+            <button class="btn btn-danger" id="rejectConfirm">ยืนยัน</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Approve modal -->
+      <div class="modal" id="approveModal" role="dialog" aria-modal="true" aria-labelledby="approveTitle" hidden>
+        <div class="modal-card small">
+          <h2 id="approveTitle">ท่านต้องการอนุมัติคำร้องใช่หรือไม่</h2>
+
+          <div class="modal-actions" style="justify-content:center;">
+            <button class="btn btn-outline" id="approveCancel">ยกเลิก</button>
+            <button class="btn btn-primary" id="approveConfirm">ยืนยัน</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status modal -->
+      <div class="modal" id="statusModal" role="alertdialog" aria-modal="true" aria-labelledby="statusTitle" hidden>
+        <div class="modal-card small">
+          <h2 id="statusTitle" class="status-title">สถานะ</h2>
+          <p id="statusMessage" class="status-message">ข้อความ</p>
+
+          <div class="modal-actions" style="justify-content:center;">
+            <button class="btn btn-primary" id="statusClose">ปิด</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Backdrop for all modals -->
+      <div class="modal-backdrop" id="modalBackdrop" hidden></div>
+
+    </div>
+    <!-- ===== end modals ===== -->
 </body>
+
+<footer>
+  <div class="footer-content">
+    <div class="content">
+        <img src="../resource/Logo_footer.png" alt="">
+    </div>
+    <div class="content">
+      <p><span>ที่อยู่</span></p>
+      <p>อาคารบรรยายรวม 2 มหาวิทยาลัยธรรมศาสตร์ ศูนย์รังสิต</p>
+      <p>99 หมู่ 18 ตำบลคลองหนึ่ง อำเภอคลองหลวง</p>
+      <p>จังหวัดปทุมธานี  12121</p>
+    </div>
+    <div class="content">
+      <p><span>ติดต่อเรา</span></p>
+      <p><span>โทร. </span> 061 013 6135</p>
+      <p><span>Email: </span>scitu_cs@sci.tu.ac.th</p>
+    </div>
+  </div>
+</footer>
+
 </html>
