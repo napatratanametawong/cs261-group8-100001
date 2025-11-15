@@ -1,11 +1,13 @@
 package com.example.lc2_booking_room.repository;
 
-import com.example.lc2_booking_room.model.staff_log.StaffNotification;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.example.lc2_booking_room.model.notification.Notification;
+
 import java.util.List;
 
-public interface StaffNotificationRepository extends JpaRepository<StaffNotification, Long> {
+public interface StaffNotificationRepository extends JpaRepository<Notification, Long> {
 
-    List<StaffNotification> findByStaffEmailOrderByCreatedAtDesc(String email);
+    List<Notification> findByStaffEmailOrderByCreatedAtDesc(String email);
 }
 

@@ -1,6 +1,6 @@
 package com.example.lc2_booking_room.service.staff;
 
-import com.example.lc2_booking_room.model.staff_log.StaffNotification;
+import com.example.lc2_booking_room.model.notification.StaffNotification;
 import com.example.lc2_booking_room.repository.StaffNotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

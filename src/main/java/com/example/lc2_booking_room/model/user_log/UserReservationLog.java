@@ -8,12 +8,11 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_reservation_logs", schema = "dbo",
-       indexes = {
-         @Index(name="idx_logs_reservation", columnList = "reservation_id"),
-         @Index(name="idx_logs_user_email", columnList = "user_email"),
-         @Index(name="idx_logs_changed_at", columnList = "changed_at")
-       })
+@Table(name = "user_reservation_logs", schema = "dbo", indexes = {
+        @Index(name = "idx_logs_reservation", columnList = "reservation_id"),
+        @Index(name = "idx_logs_user_email", columnList = "user_email"),
+        @Index(name = "idx_logs_changed_at", columnList = "changed_at")
+})
 public class UserReservationLog {
 
     @Id
@@ -49,14 +48,43 @@ public class UserReservationLog {
     }
 
     // getters/setters
-    public Long getUserLogId() { return userLogId; }
-    public Reservation getReservation() { return reservation; }
-    public void setReservation(Reservation reservation) { this.reservation = reservation; }
-    public String getUserEmail() { return userEmail; }
-    public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
-    public LogAction getAction() { return action; }
-    public void setAction(LogAction action) { this.action = action; }
-    public LocalDateTime getChangedAt() { return changedAt; }
-    public String getNote() { return note; }
-    public void setNote(String note) { this.note = note; }
+    public Long getUserLogId() {
+        return userLogId;
+    }
+
+    public Reservation getReservation() {
+        return reservation;
+    }
+
+    public void setReservation(Reservation reservation) {
+        this.reservation = reservation;
+    }
+
+    public String getUserEmail() {
+        return userEmail;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
+    }
+
+    public LogAction getAction() {
+        return action;
+    }
+
+    public void setAction(LogAction action) {
+        this.action = action;
+    }
+
+    public LocalDateTime getChangedAt() {
+        return changedAt;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
 }
