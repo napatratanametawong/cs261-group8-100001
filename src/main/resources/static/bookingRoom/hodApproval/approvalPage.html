@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>อนุมัติคำร้อง</title>
+    <link rel="stylesheet" href="approvalPage.css">
+</head>
+<body>
+     <main class="container">
+    <!-- กล่องแสดงสถานะ -->
+    <div id="statusBox" class="status-box" hidden></div>
+
+    <h1 id="reservationTitle">หมายเลขการจอง xxxxxxx</h1>
+
+    <section class="card">
+      <div class="two-col">
+        <!-- ซ้าย: รายละเอียดการจอง (อ่านอย่างเดียว) -->
+        <div class="col">
+          <h2 class="section-title">รายละเอียดการจอง</h2>
+          <div class="info-grid">
+            <div>
+              <div class="field-label">ชื่อ-นามสกุล</div>
+              <div class="field-value" id="userName">xxxxx xxxxxxxxxx</div>
+            </div>
+            <div>
+              <div class="field-label">อีเมล @dome</div>
+              <div class="field-value" id="userEmail">xxxx@dome.tu.ac.th</div>
+            </div>
+            <div>
+              <div class="field-label">วันที่ต้องการใช้ห้อง</div>
+              <div class="field-value" id="reservationDate">25/04/2568</div>
+            </div>
+            <div>
+              <div class="field-label">ช่วงเวลา</div>
+              <div class="field-value" id="timeSlot">13:30–15:00</div>
+              <!-- TODO: ผูกกับ field เวลาใน DTO ถ้ามี -->
+            </div>
+            <div>
+              <div class="field-label">ประเภทห้อง</div>
+              <div class="field-value" id="roomType">ห้องเรียน</div>
+              <!-- TODO: ผูกกับ field ประเภทห้องใน DTO ถ้ามี -->
+            </div>
+            <div>
+              <div class="field-label">ห้อง</div>
+              <div class="field-value" id="roomCode">LC2-308</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ขวา: ข้อมูลที่ผู้ยื่นกรอกมาแล้ว (อ่านอย่างเดียว) -->
+        <div class="col">
+          <h2 class="section-title">กรุณากรอกข้อมูลเพิ่มเติม</h2>
+
+          <!-- แถวแรก 2 คอลัมน์: กลุ่ม + เบอร์โทร -->
+          <div class="row-2">
+            <div>
+              <div class="label-req">
+                กลุ่มผู้ยื่นคำร้อง (เช่น องค์กร/ชมรม) <span class="req">*</span>
+              </div>
+              <div class="ro-input" id="groupName">ชมรม XXXX</div>
+              <!-- TODO: ผูก field กลุ่ม ถ้า backend มี -->
+            </div>
+            <div>
+              <div class="label-req">
+                เบอร์โทรศัพท์ <span class="req">*</span>
+              </div>
+              <div class="ro-input" id="phoneNumber">xxx-xxx-xxxx</div>
+              <!-- TODO: ผูก field เบอร์ ถ้า backend มี -->
+            </div>
+          </div>
+
+          <!-- จุดประสงค์ -->
+          <div class="stack">
+            <div>
+              <div class="label-req">
+                จุดประสงค์การขอใช้ห้อง <span class="req">*</span>
+              </div>
+              <div class="ro-textarea" id="reason">เพื่อจัดกิจกรรม XXXX</div>
+            </div>
+
+            <!-- อัปโหลดเอกสาร (กล่องอ่านอย่างเดียวยาวเหมือน input) -->
+            <div>
+              <div class="label-req">อัปโหลดเอกสารเพิ่มเติม</div>
+              <div class="ro-input-attach" id="fileAttachment">ไม่มีเอกสารแนบ</div>
+              <!-- ถ้าอยากให้คลิกโหลดได้: ค่อยเปลี่ยนเป็น <a> ใน JS ถ้ามี URL จริง -->
+            </div>
+          </div>
+
+          <!-- ปุ่มตัดสินใจของหัวหน้าสาขา -->
+          <div class="actions">
+            <button type="button" class="btn btn-success" id="approveBtn">
+              อนุมัติคำร้อง
+            </button>
+            <button type="button" class="btn" id="rejectBtn">
+              ตีกลับคำร้อง
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Backdrop รวม ใช้ร่วมกัน -->
+  <div id="backdrop" class="modal-backdrop" hidden></div>
+
+  <!-- Modal: อนุมัติ -->
+  <section id="approveModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="approveTitle" hidden>
+    <div class="modal-card-approve">
+      <h3 id="approveTitle" class="modal-title">ท่านต้องการอนุมัติคำร้องใช่หรือไม่</h3>
+      <div class="modal-actions">
+        <button type="button" class="btn" data-close>ยกเลิก</button>
+        <button type="button" class="btn btn-danger" id="approveConfirmBtn">ยืนยัน</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modal: ตีกลับ -->
+  <section id="rejectModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="rejectTitle" hidden>
+    <div class="modal-card-reject">
+      <h3 id="rejectTitle" class="modal-title">ท่านต้องการตีกลับคำร้องใช่หรือไม่</h3>
+
+      <label class="label-rejReason" for="rejectReason">
+        เหตุผลการตีกลับ <span class="req">*</span>
+      </label>
+      <textarea id="rejectReason" class="modal-textarea" placeholder="พิมพ์เหตุผลที่ตีกลับ..."></textarea>
+
+      <div class="modal-actions">
+        <button type="button" class="btn" data-close>ยกเลิก</button>
+        <button type="button" class="btn btn-danger" id="rejectConfirmBtn">ยืนยัน</button>
+      </div>
+    </div>
+  </section>
+<script src="approvalPage.js"></script>
+</body>
+</html>
