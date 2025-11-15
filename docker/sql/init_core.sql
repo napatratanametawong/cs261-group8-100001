@@ -120,7 +120,7 @@ BEGIN
 
     -- จำกัดค่าที่อนุญาต (ตาม enum)
     CONSTRAINT ck_reservations_step
-      CHECK (step IN ('SUBMITTED','STAFF_REVIEW','RETURNED_FOR_FIX','RESUBMITTED','HEAD_REVIEW','DECIDE') OR step IS NULL),
+      CHECK (step IN ('SUBMITTED','STAFF_REVIEW','RETURNED_FOR_FIX','RESUBMITTED','HEAD_REVIEW','DECIDED') OR step IS NULL),
 
     CONSTRAINT ck_reservations_final_status
       CHECK (final_status IN ('PENDING','APPROVED','REJECTED','CANCELLED') OR final_status IS NULL)

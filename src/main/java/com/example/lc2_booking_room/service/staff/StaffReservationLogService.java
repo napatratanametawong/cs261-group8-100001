@@ -9,6 +9,8 @@ import com.example.lc2_booking_room.repository.ReservationRepository;
 import com.example.lc2_booking_room.repository.StaffReservationLogRepository;
 import com.example.lc2_booking_room.service.login.EmailService;
 
+import com.example.lc2_booking_room.service.notification.HeadNotificationService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,48 +27,47 @@ public class StaffReservationLogService {
     private final StaffReservationLogRepository logRepo;
     private final ReservationRepository reservationRepo;
     private final EmailService emailService;
+    private final HeadNotificationService headNotificationService;
 
     // APPROVED, REJECTED, REVIEWED, RETURNED, CANCELLED
 
     @Transactional
-public StaffLogResponse createLog(Long reservationId, String staffEmail, StaffAction action, String note) {
-    Reservation reservation = reservationRepo.findById(reservationId)
-            .orElseThrow(() -> new RuntimeException("Reservation not found"));
+    public StaffLogResponse createLog(Long reservationId, String staffEmail, StaffAction action, String note) {
+        Reservation reservation = reservationRepo.findById(reservationId)
+                .orElseThrow(() -> new RuntimeException("Reservation not found"));
 
-    // 🚫 กันไม่ให้ staff แก้ reservation ที่ถูกตัดสิน/ยกเลิกไปแล้ว
-    if (reservation.getFinalStatus() != null
-            && reservation.getFinalStatus() != Reservation.FinalStatus.PENDING) {
-        // APPROVED / REJECTED / CANCELLED ทั้งหมดห้าม REVIEW/RETURN แล้ว
-        throw new IllegalStateException("Reservation already finalized. Staff cannot review it again.");
-    }
-
-    // action
-    switch (action) {
-
-        case REVIEWED -> {
-            reservation.setStep(Reservation.BookingStep.STAFF_REVIEW);
-            reservation.setFinalStatus(Reservation.FinalStatus.PENDING);
-            reservation.setStaffReviewerEmail(staffEmail);
-            reservation.setStaffReviewedAt(
-                OffsetDateTime.now(java.time.ZoneId.of("Asia/Bangkok"))
-            );
-        }
-        case RETURNED -> {
-            reservation.setStep(Reservation.BookingStep.RETURNED_FOR_FIX);
-            reservation.setFinalStatus(Reservation.FinalStatus.PENDING);
-            reservation.setReturnReason(note);
-            reservation.setStaffReviewerEmail(staffEmail);
-            reservation.setStaffReviewedAt(
-                OffsetDateTime.now(java.time.ZoneId.of("Asia/Bangkok"))
-            );
+        // 🚫 กันไม่ให้ staff แก้ reservation ที่ถูกตัดสิน/ยกเลิกไปแล้ว
+        if (reservation.getFinalStatus() != null
+                && reservation.getFinalStatus() != Reservation.FinalStatus.PENDING) {
+            throw new IllegalStateException("Reservation already finalized. Staff cannot review it again.");
         }
 
-    }
+        // ----- อัปเดตสถานะตาม action -----
+        switch (action) {
+            case REVIEWED -> {
+                reservation.setStep(Reservation.BookingStep.STAFF_REVIEW);
+                reservation.setFinalStatus(Reservation.FinalStatus.PENDING);
+                reservation.setStaffReviewerEmail(staffEmail);
+                reservation.setStaffReviewedAt(
+                        OffsetDateTime.now(java.time.ZoneId.of("Asia/Bangkok")));
+            }
+            case RETURNED -> {
+                reservation.setStep(Reservation.BookingStep.RETURNED_FOR_FIX);
+                reservation.setFinalStatus(Reservation.FinalStatus.PENDING);
+                reservation.setReturnReason(note);
+                reservation.setStaffReviewerEmail(staffEmail);
+                reservation.setStaffReviewedAt(
+                        OffsetDateTime.now(java.time.ZoneId.of("Asia/Bangkok")));
+            }
+            default -> {
+                // เผื่ออนาคตมี action อื่น
+            }
+        }
 
-        // save reservation
+        // ----- เซฟ reservation -----
         reservationRepo.save(reservation);
 
-        // save in StaffLog
+        // ----- เซฟ StaffReservationLog -----
         StaffReservationLog log = new StaffReservationLog();
         log.setReservation(reservation);
         log.setStaffEmail(staffEmail);
@@ -74,13 +75,13 @@ public StaffLogResponse createLog(Long reservationId, String staffEmail, StaffAc
         log.setNote(note);
 
         StaffReservationLog saved = logRepo.save(log);
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm น.");
 
+        // ----- เตรียม timeRanges สำหรับเมล -----
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm น.");
         List<String> timeRanges = reservation.getSlots().stream()
                 .map(ReservationSlot::getTimeSlot)
                 .filter(ts -> ts != null)
                 .map(ts -> {
-
                     var start = ts.getStartTime().atDate(reservation.getReservationDate())
                             .atZone(java.time.ZoneOffset.UTC)
                             .withZoneSameInstant(java.time.ZoneId.of("Asia/Bangkok"))
@@ -93,6 +94,7 @@ public StaffLogResponse createLog(Long reservationId, String staffEmail, StaffAc
                 })
                 .collect(Collectors.toList());
 
+        // ----- ส่งเมลแจ้ง user ตามระบบเดิม -----
         emailService.sendStaffActionNotice(
                 reservation.getUserEmail(),
                 action.name(),
@@ -101,7 +103,12 @@ public StaffLogResponse createLog(Long reservationId, String staffEmail, StaffAc
                 timeRanges,
                 note);
 
-        // DTO
+        // ----- ถ้า REVIEWED ให้แจ้งหัวหน้าด้วย -----
+        if (action == StaffAction.REVIEWED) {
+            headNotificationService.notifyHeadForReview(reservation);
+        }
+
+        // ----- map เป็น DTO -----
         return StaffLogResponse.builder()
                 .staffLogId(saved.getStaffLogId())
                 .reservationId(reservation.getId())
@@ -146,9 +153,9 @@ public StaffLogResponse createLog(Long reservationId, String staffEmail, StaffAc
 
     @Transactional
     public void logHeadDecision(Reservation reservation,
-                                String headEmail,
-                                StaffAction action,
-                                String remark) {
+            String headEmail,
+            StaffAction action,
+            String remark) {
 
         StaffReservationLog log = new StaffReservationLog();
         log.setReservation(reservation);
@@ -158,5 +165,4 @@ public StaffLogResponse createLog(Long reservationId, String staffEmail, StaffAc
 
         logRepo.save(log); // changed_at จะถูกเติมเอง
     }
-
 }
