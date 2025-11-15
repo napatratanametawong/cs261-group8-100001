@@ -16,9 +16,9 @@ import java.util.Map;
 public class ApiExceptionHandler {
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<Map<String,Object>> handleValidation(MethodArgumentNotValidException ex,
-                                                             HttpServletRequest req) {
-    var body = new LinkedHashMap<String,Object>();
+  public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex,
+      HttpServletRequest req) {
+    var body = new LinkedHashMap<String, Object>();
     body.put("path", req.getRequestURI());
     body.put("error", "ValidationError");
     body.put("message", ex.getBindingResult().getAllErrors().get(0).getDefaultMessage());
@@ -26,19 +26,19 @@ public class ApiExceptionHandler {
   }
 
   @ExceptionHandler(DataIntegrityViolationException.class)
-  public ResponseEntity<Map<String,Object>> handleConflict(DataIntegrityViolationException ex,
-                                                           HttpServletRequest req) {
-    var body = new LinkedHashMap<String,Object>();
+  public ResponseEntity<Map<String, Object>> handleConflict(DataIntegrityViolationException ex,
+      HttpServletRequest req) {
+    var body = new LinkedHashMap<String, Object>();
     body.put("path", req.getRequestURI());
     body.put("error", "Conflict");
     body.put("message", "Constraint violation (possible duplicate slot or FK error).");
     return ResponseEntity.status(409).body(body); // 409
   }
 
-  @ExceptionHandler({IllegalArgumentException.class})
-  public ResponseEntity<Map<String,Object>> handleBadRequest(RuntimeException ex,
-                                                             HttpServletRequest req) {
-    var body = new LinkedHashMap<String,Object>();
+  @ExceptionHandler({ IllegalArgumentException.class })
+  public ResponseEntity<Map<String, Object>> handleBadRequest(RuntimeException ex,
+      HttpServletRequest req) {
+    var body = new LinkedHashMap<String, Object>();
     body.put("path", req.getRequestURI());
     body.put("error", "BadRequest");
     body.put("message", ex.getMessage());
@@ -46,9 +46,9 @@ public class ApiExceptionHandler {
   }
 
   @ExceptionHandler(NoSuchElementException.class)
-  public ResponseEntity<Map<String,Object>> handleNotFound(NoSuchElementException ex,
-                                                           HttpServletRequest req) {
-    var body = new LinkedHashMap<String,Object>();
+  public ResponseEntity<Map<String, Object>> handleNotFound(NoSuchElementException ex,
+      HttpServletRequest req) {
+    var body = new LinkedHashMap<String, Object>();
     body.put("path", req.getRequestURI());
     body.put("error", "NotFound");
     body.put("message", ex.getMessage());
@@ -56,8 +56,8 @@ public class ApiExceptionHandler {
   }
 
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<Map<String,Object>> handleGeneric(Exception ex, HttpServletRequest req) {
-    var body = new LinkedHashMap<String,Object>();
+  public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex, HttpServletRequest req) {
+    var body = new LinkedHashMap<String, Object>();
     body.put("path", req.getRequestURI());
     body.put("error", ex.getClass().getSimpleName());
     body.put("message", ex.getMessage());

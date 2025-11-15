@@ -77,6 +77,7 @@ services:
       APP_JWT_EXPIRY: ${APP_JWT_EXPIRY}
       APP_TU_BASE_URL: ${APP_TU_BASE_URL}
       APP_TU_APPLICATION_KEY: ${APP_TU_APPLICATION_KEY}
+      APP_HEAD_EMAIL: ${APP_HEAD_EMAIL}
       JAVA_TOOL_OPTIONS: >-
         -Djdk.tls.client.protocols=TLSv1.2
         -Dhttps.protocols=TLSv1.2

@@ -2,8 +2,11 @@ package com.example.lc2_booking_room.dto.room;
 
 import lombok.*;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class StatusChange {
     private String fromStep;
     private String toStep;
@@ -13,6 +16,7 @@ public class StatusChange {
     public boolean hasAnyChange() {
         return notEquals(fromStep, toStep) || notEquals(fromFinalStatus, toFinalStatus);
     }
+
     private boolean notEquals(String a, String b) {
         return (a == null && b != null) || (a != null && !a.equals(b));
     }
