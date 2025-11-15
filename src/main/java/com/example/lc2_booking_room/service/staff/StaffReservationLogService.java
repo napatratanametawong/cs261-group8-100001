@@ -144,4 +144,19 @@ public StaffLogResponse createLog(Long reservationId, String staffEmail, StaffAc
 
     }
 
+    @Transactional
+    public void logHeadDecision(Reservation reservation,
+                                String headEmail,
+                                StaffAction action,
+                                String remark) {
+
+        StaffReservationLog log = new StaffReservationLog();
+        log.setReservation(reservation);
+        log.setStaffEmail(headEmail); // ใช้ field staff_email เก็บอีเมลหัวหน้าได้เลย
+        log.setAction(action);
+        log.setNote(remark);
+
+        logRepo.save(log); // changed_at จะถูกเติมเอง
+    }
+
 }

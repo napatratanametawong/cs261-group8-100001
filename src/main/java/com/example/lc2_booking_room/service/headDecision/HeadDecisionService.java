@@ -5,7 +5,10 @@ import com.example.lc2_booking_room.dto.headDecision.HeadDecisionRequest;
 import com.example.lc2_booking_room.dto.headDecision.HeadDecisionView;
 import com.example.lc2_booking_room.model.Reservation;
 import com.example.lc2_booking_room.model.Reservation.BookingStep;
+import com.example.lc2_booking_room.model.staff_log.StaffAction;
 import com.example.lc2_booking_room.repository.ReservationRepository;
+import com.example.lc2_booking_room.service.staff.StaffReservationLogService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class HeadDecisionService {
 
     private final ReservationRepository reservationRepository;
+    private final StaffReservationLogService staffReservationLogService;
+    
 
     @Value("${app.head-email}")
     private String headEmail;
@@ -68,17 +73,29 @@ public class HeadDecisionService {
         // ✅ บันทึกอีเมลหัวหน้าสาขา + เวลา
         r.setHeadApproverEmail(headEmail); // headEmail มาจาก @Value หรือ config ที่คุณตั้งไว้
         r.setHeadDecidedAt(now);
-        r.setStep(Reservation.BookingStep.DECIDE);
+        r.setStep(Reservation.BookingStep.DECIDED);
 
+        StaffAction action;
         if (req.getDecision() == HeadDecisionRequest.Decision.APPROVED) {
             r.setFinalStatus(Reservation.FinalStatus.APPROVED);
             r.setApprovedAt(now); // ใช้เวลาไทยเหมือนกัน
             r.setRejectReason(null); // เคลียร์เหตุผล reject ถ้ามีค้าง
+            action = StaffAction.APPROVED;
         } else if (req.getDecision() == HeadDecisionRequest.Decision.REJECTED) {
             r.setFinalStatus(Reservation.FinalStatus.REJECTED);
             r.setRejectReason(req.getRemark());
             r.setApprovedAt(null);
+            action = StaffAction.REJECTED;
+        } else {
+            throw new IllegalArgumentException("Unknown decision: " + req.getDecision());
         }
+        
+        staffReservationLogService.logHeadDecision(
+                r,
+                headEmail,
+                action,
+                req.getRemark()
+        );
 
         reservationRepository.save(r);
     }
