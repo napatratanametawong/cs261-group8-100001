@@ -15,8 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;     
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -32,13 +33,24 @@ public class StaffReservationLogService {
     // ส่งเมล + noti ให้ "ผู้ใช้" (เจ้าของคำร้อง)
     private final UserEmailNotificationService userEmailNotificationService;
 
-    // APPROVED, REJECTED, REVIEWED, RETURNED, CANCELLED
+    private OffsetDateTime nowBkk() {
+        return OffsetDateTime.now(ZoneId.of("Asia/Bangkok"));
+    }
 
+    /**
+     * ใช้โดย STAFF เท่านั้น
+     * action ที่ถูกต้อง: REVIEWED, RETURNED
+     */
     @Transactional
     public StaffLogResponse createLog(Long reservationId,
                                       String staffEmail,
                                       StaffAction action,
                                       String note) {
+
+        // กันผิด: staff ห้ามใช้ APPROVED / REJECTED
+        if (action == StaffAction.APPROVED || action == StaffAction.REJECTED) {
+            throw new IllegalArgumentException("Staff cannot approve or reject reservations.");
+        }
 
         // ----- หา reservation -----
         Reservation reservation = reservationRepo.findById(reservationId)
@@ -56,10 +68,9 @@ public class StaffReservationLogService {
                 reservation.setStep(Reservation.BookingStep.STAFF_REVIEW);
                 reservation.setFinalStatus(Reservation.FinalStatus.PENDING);
                 reservation.setStaffReviewerEmail(staffEmail);
-                reservation.setStaffReviewedAt(
-                        OffsetDateTime.now(java.time.ZoneId.of("Asia/Bangkok")));
+                reservation.setStaffReviewedAt(nowBkk());
 
-                // 👉 แจ้งหัวหน้าให้พิจารณา (ส่งเมล + บันทึก noti)
+                // แจ้งหัวหน้าให้พิจารณา (ส่งเมล + บันทึก noti)
                 headNotificationService.notifyHeadForReview(reservation);
             }
             case RETURNED -> {
@@ -67,11 +78,10 @@ public class StaffReservationLogService {
                 reservation.setFinalStatus(Reservation.FinalStatus.PENDING);
                 reservation.setReturnReason(note);
                 reservation.setStaffReviewerEmail(staffEmail);
-                reservation.setStaffReviewedAt(
-                        OffsetDateTime.now(java.time.ZoneId.of("Asia/Bangkok")));
+                reservation.setStaffReviewedAt(nowBkk());
             }
             default -> {
-                // เผื่อมี action อื่นในอนาคต
+                // ตอนนี้ STAFF ใช้แค่ REVIEWED / RETURNED
             }
         }
 
@@ -145,11 +155,20 @@ public class StaffReservationLogService {
                 .toList();
     }
 
+    /**
+     * ใช้โดย HEAD เท่านั้น
+     * action ที่ถูกต้อง: APPROVED, REJECTED
+     */
     @Transactional
     public void logHeadDecision(Reservation reservation,
                                 String headEmail,
                                 StaffAction action,
                                 String remark) {
+
+        // กันผิด: head ต้องใช้เฉพาะ APPROVED / REJECTED เท่านั้น
+        if (action != StaffAction.APPROVED && action != StaffAction.REJECTED) {
+            throw new IllegalArgumentException("Head decision must be APPROVED or REJECTED.");
+        }
 
         StaffReservationLog log = new StaffReservationLog();
         log.setReservation(reservation);

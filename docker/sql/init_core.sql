@@ -210,7 +210,7 @@ BEGIN
                       DEFAULT ( (SYSUTCDATETIME() AT TIME ZONE 'UTC') AT TIME ZONE 'SE Asia Standard Time' ),
     CONSTRAINT fk_stafflog_reservation FOREIGN KEY (reservation_id)
       REFERENCES dbo.reservations(reservation_id),
-    CONSTRAINT ck_staff_action CHECK (action IN ('REVIEWED','RETURNED'))
+    CONSTRAINT ck_staff_action CHECK (action IN ('REVIEWED','RETURNED','APPROVED','REJECTED'))
   );
 
   CREATE INDEX idx_stafflog_reservation ON dbo.staff_reservation_logs(reservation_id);
