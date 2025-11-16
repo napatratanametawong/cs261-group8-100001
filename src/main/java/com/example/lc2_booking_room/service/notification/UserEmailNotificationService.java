@@ -26,6 +26,10 @@ public class UserEmailNotificationService {
         return OffsetDateTime.now(ZoneId.of("Asia/Bangkok"));
     }
 
+    /**
+     * ใช้แจ้ง "ผู้ใช้" ทั้งเคสที่ staff ทำงาน (REVIEWED/RETURNED)
+     * และเคสที่ head ตัดสิน (APPROVED/REJECTED)
+     */
     public void notifyStaffActionToUser(
             Reservation r,
             StaffAction action,
@@ -33,22 +37,18 @@ public class UserEmailNotificationService {
             String note
     ) {
 
-        // ------- รวมช่วงเวลาให้เหลืออันเดียว (แบบที่ 4) -------
+        // ------- รวมช่วงเวลาให้เหลืออันเดียว เช่น "08:00 น.-18:00 น." -------
         String mergedTimeRange = null;
         if (timeRanges != null && !timeRanges.isEmpty()) {
-            // สมมติว่า list ที่ส่งเข้ามาเรียงตามเวลาแล้ว (จาก StaffReservationLogService)
             String first = timeRanges.get(0);
             String last  = timeRanges.get(timeRanges.size() - 1);
 
-            // first: "08:00 น.-09:30 น."
-            // last : "16:30 น.-18:00 น."
             String start = first.split("-", 2)[0].trim(); // "08:00 น."
             String end   = last.split("-", 2)[1].trim();  // "18:00 น."
 
-            mergedTimeRange = start + "-" + end;          // "08:00 น.-18:00 น."
+            mergedTimeRange = start + "-" + end;
         }
 
-        // ใช้สำหรับส่งเข้า EmailService (signature เดิมยังเป็น List<String>)
         List<String> timeRangesForEmail = new ArrayList<>();
         if (mergedTimeRange != null) {
             timeRangesForEmail.add(mergedTimeRange);
@@ -61,10 +61,10 @@ public class UserEmailNotificationService {
         try {
             emailService.sendStaffActionNotice(
                     r.getUserEmail(),
-                    action.name(),
+                    action.name(),                       // REVIEWED / RETURNED / APPROVED / REJECTED
                     r.getRoomCode(),
                     r.getReservationDate().toString(),
-                    timeRangesForEmail,   // 👈 ตอนนี้มีแค่ "08:00 น.-18:00 น." ตัวเดียว
+                    timeRangesForEmail,
                     note
             );
             status = SendStatus.SUCCESS;
@@ -88,6 +88,19 @@ public class UserEmailNotificationService {
                 title = "คำร้องของคุณถูกส่งกลับเพื่อแก้ไข";
                 message = "เจ้าหน้าที่ส่งคำร้องกลับ โปรดตรวจสอบและแก้ไขข้อมูลก่อนส่งใหม่อีกครั้ง";
                 type = Notification.NotificationType.STAFF_RETURNED;
+            }
+            case APPROVED -> {
+                title = "คำร้องของคุณได้รับการอนุมัติแล้ว";
+                message = "หัวหน้าสาขาได้อนุมัติการจองห้องของคุณเรียบร้อยแล้ว";
+                type = Notification.NotificationType.HEAD_APPROVED;
+            }
+            case REJECTED -> {
+                title = "คำร้องของคุณไม่ได้รับการอนุมัติ";
+                String extra = (note != null && !note.isBlank())
+                        ? " เหตุผล: " + note
+                        : "";
+                message = "หัวหน้าสาขาไม่ได้อนุมัติคำร้องของคุณ." + extra;
+                type = Notification.NotificationType.HEAD_REJECTED;
             }
             default -> {
                 title = "มีการอัปเดตคำร้องของคุณ";

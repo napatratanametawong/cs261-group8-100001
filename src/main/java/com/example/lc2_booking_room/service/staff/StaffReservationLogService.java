@@ -37,6 +37,16 @@ public class StaffReservationLogService {
         return OffsetDateTime.now(ZoneId.of("Asia/Bangkok"));
     }
 
+    private List<String> buildTimeRanges(Reservation reservation) {
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm น.");
+        return reservation.getSlots().stream()
+                .map(ReservationSlot::getTimeSlot)
+                .filter(ts -> ts != null)
+                .sorted(Comparator.comparing(ts -> ts.getStartTime()))
+                .map(ts -> ts.getStartTime().format(fmt) + "-" + ts.getEndTime().format(fmt))
+                .toList();
+    }
+
     /**
      * ใช้โดย STAFF เท่านั้น
      * action ที่ถูกต้อง: REVIEWED, RETURNED
@@ -97,16 +107,9 @@ public class StaffReservationLogService {
 
         StaffReservationLog saved = logRepo.save(log);
 
-        // ----- เตรียม timeRanges สำหรับแจ้ง user -----
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm น.");
-        List<String> timeRanges = reservation.getSlots().stream()
-                .map(ReservationSlot::getTimeSlot)
-                .filter(ts -> ts != null)
-                .sorted(Comparator.comparing(ts -> ts.getStartTime()))
-                .map(ts -> ts.getStartTime().format(fmt) + "-" + ts.getEndTime().format(fmt))
-                .toList();
+        // ----- เตรียม timeRanges และแจ้ง "ผู้ใช้" -----
+        List<String> timeRanges = buildTimeRanges(reservation);
 
-        // ----- แจ้ง "ผู้ใช้" ผ่าน service กลาง (email + in-app) -----
         userEmailNotificationService.notifyStaffActionToUser(
                 reservation,
                 action,
@@ -170,12 +173,22 @@ public class StaffReservationLogService {
             throw new IllegalArgumentException("Head decision must be APPROVED or REJECTED.");
         }
 
+        // ----- บันทึก log การตัดสินของหัวหน้า -----
         StaffReservationLog log = new StaffReservationLog();
         log.setReservation(reservation);
         log.setStaffEmail(headEmail); // ใช้ field staff_email เก็บอีเมลหัวหน้า
         log.setAction(action);
         log.setNote(remark);
+        logRepo.save(log);
 
-        logRepo.save(log); // changed_at จะถูกเติมเองใน entity
+        // ----- เตรียม timeRanges แล้วแจ้ง "ผู้ใช้" ว่าหัวหน้าตัดสินแล้ว -----
+        List<String> timeRanges = buildTimeRanges(reservation);
+
+        userEmailNotificationService.notifyStaffActionToUser(
+                reservation,
+                action,         // APPROVED / REJECTED
+                timeRanges,
+                remark
+        );
     }
 }
