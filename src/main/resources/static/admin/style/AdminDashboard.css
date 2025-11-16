@@ -586,39 +586,6 @@ footer {
   padding: 10px;
 }
 
-/* item */
-.notif-item {
-  display: block;
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  text-align: left;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: var(--font-main);
-  transition: background 120ms ease;
-  outline: none;
-}
-
-.notif-item + .notif-item { margin-top: 6px; }
-
-.notif-item:hover, .notif-item:focus {
-  background: rgba(16,24,40,0.03);
-}
-
-.notif-item .title {
-  font-weight: 600;
-  color: #111;
-  display: block;
-}
-
-.notif-item .meta {
-  font-size: 13px;
-  color: var(--font-muted);
-  margin-top: 6px;
-}
-
 /* unread marker */
 .notif-item.unread { background: linear-gradient(90deg, rgba(240,162,2,0.03), transparent); }
 .notif-item.unread .dot {
@@ -939,4 +906,146 @@ footer {
 @media (max-width: 520px) {
   :root { --sidebar-width: 280px; }
   .sidebar__item { padding: 12px 14px; }
+}
+
+/* ======================= NOTIFICATION SYSTEM ======================= */
+
+/* Wrapper ของปุ่มกระดิ่ง */
+.notif-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* Badge-dot แสดงจำนวนแจ้งเตือน (ให้ JS ควบคุม) */
+#notifToggle .badge-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 10px;
+  height: 10px;
+  background: #ef4444;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.08);
+  display: none; /* เริ่มปิดก่อน */
+}
+
+/* Panel ที่แสดงเมื่อกดกระดิ่ง */
+#notifPanel {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 20px 40px rgba(16,24,40,0.12);
+  border: 1px solid rgba(16,24,40,0.06);
+  transform-origin: top right;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px) scale(0.98);
+  transition: opacity 160ms ease, transform 180ms ease, visibility 160ms;
+  z-index: 1600;
+}
+
+/* Panel เปิด */
+#notifPanel.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+/* Header */
+#notifPanel .notif-header {
+  font-weight: 700;
+  font-size: 18px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--divider);
+}
+
+/* รายการแจ้งเตือน */
+#notifPanel .notif-list {
+  max-height: 340px;
+  overflow: auto;
+  padding: 10px;
+}
+
+/* item */
+.notif-item {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  transition: background 120ms ease;
+}
+
+.notif-item + .notif-item {
+  margin-top: 6px;
+}
+
+.notif-item:hover,
+.notif-item:focus {
+  background: rgba(16,24,40,0.03);
+}
+
+/* title + meta */
+.notif-item .title {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notif-item .meta {
+  font-size: 13px;
+  color: var(--font-muted);
+  margin-top: 6px;
+}
+
+/* ===== UNREAD (ยังไม่อ่าน) — เหลือแค่จุด ===== */
+
+/* default state: ปกติไม่โชว์จุด */
+.notif-item .dot {
+  display: none;
+}
+
+/* UNREAD – ให้มีแค่จุดแดง ไม่มีพื้นหลังพิเศษ */
+.notif-item.unread {
+  background: transparent;
+  border-left: none;
+}
+
+/* title แสดงเป็นแถวเดียวกับจุด */
+.notif-item .title {
+  font-weight: 800;
+  color: #111;
+  display: flex;         
+  align-items: center;
+  gap: 8px;
+}
+
+/* ซ่อนจุดโดยค่าเริ่มต้น */
+.notif-item .dot {
+  display: none;
+}
+
+/* โชว์จุดเฉพาะ unread */
+.notif-item.unread .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+/* Empty state */
+#notifPanel .empty {
+  padding: 14px;
+  color: var(--font-muted);
+  text-align: center;
 }

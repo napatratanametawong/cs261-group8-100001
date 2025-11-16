@@ -12,6 +12,8 @@ import com.example.lc2_booking_room.repository.TimeSlotRepository;
 import com.example.lc2_booking_room.repository.ReservationRepository;
 import com.example.lc2_booking_room.repository.ReservationSlotRepository;
 import com.example.lc2_booking_room.repository.UserReservationLogRepository;
+import com.example.lc2_booking_room.service.notification.StaffEmailNotificationService;
+
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -19,7 +21,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 import java.time.OffsetDateTime;
@@ -37,6 +38,7 @@ public class ReservationServiceBySlots {
         private final ReservationRepository reservationRepository;
         private final ReservationSlotRepository reservationSlotRepository;
         private final UserReservationLogRepository userReservationLogRepository; // direct user log
+        private final StaffEmailNotificationService notificationService; // for notifying staff
 
         @Transactional(readOnly = true)
         public ReservationResponse getById(Long id) {
@@ -170,7 +172,7 @@ public class ReservationServiceBySlots {
                 log.setAction(LogAction.CREATED);
                 log.setNote("Reservation created");
                 userReservationLogRepository.save(log);
-
+                notificationService.notifyCreated(saved);
                 return res;
         }
 
@@ -253,6 +255,7 @@ public class ReservationServiceBySlots {
                 log.setAction(LogAction.CANCELED);
                 log.setNote("Reservation cancelled by user");
                 userReservationLogRepository.save(log);
+                notificationService.notifyCanceled(saved);
                 return toResponse(saved, saved.getSlots(), List.of());
         }
 }
