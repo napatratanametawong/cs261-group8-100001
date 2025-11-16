@@ -14,6 +14,63 @@
   // TEMP: force redirect to error page after successful submit for demo/testing.
   // To revert to original behavior, set to false or remove this flag.
   const TEMP_FORCE_ERROR_REDIRECT = false;
+  const NOTIFICATION_STORAGE_KEY = 'header.notifications';
+
+  const readNotifications = () => {
+    if (typeof localStorage === 'undefined') return [];
+    try {
+      const data = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
+      const parsed = data ? JSON.parse(data) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const writeNotifications = (items) => {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(items));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('header:notifications:sync'));
+      }
+    } catch {
+      /* ignore quota/storage errors */
+    }
+  };
+
+  const buildNotificationMessage = (selection) => {
+    const roomLabel = (selection?.roomName || selection?.roomCode || 'ห้องประชุม').toString();
+    const dateLabel = (() => {
+      try {
+        if (!selection?.dateISO) return '';
+        return new Date(selection.dateISO).toLocaleDateString('th-TH', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        });
+      } catch {
+        return '';
+      }
+    })();
+    return dateLabel
+      ? `ส่งคำขอจอง ${roomLabel} วันที่ ${dateLabel} เรียบร้อยแล้ว`
+      : `ส่งคำขอจอง ${roomLabel} เรียบร้อยแล้ว`;
+  };
+
+  const queueReservationNotification = (message) => {
+    if (!message) return;
+    const existing = readNotifications();
+    const newItem = {
+      id: `reserve-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      message,
+      createdAt: new Date().toISOString(),
+      read: false,
+      visibleAt: Date.now() + 3000,
+    };
+    const updated = [newItem, ...existing].slice(0, 20);
+    writeNotifications(updated);
+  };
 
   document.addEventListener('DOMContentLoaded', () => {
     const form = document.querySelector('.booking-card form');
@@ -143,6 +200,7 @@
         const data = await res.json().catch(() => null);
         try { sessionStorage.removeItem('bookingSelection'); } catch { }
         try { if (data) sessionStorage.setItem('lastReservation', JSON.stringify(data)); } catch { }
+        queueReservationNotification(buildNotificationMessage(sel));
         if (TEMP_FORCE_ERROR_REDIRECT) {
           try { sessionStorage.setItem('lastReservationError', 'การยื่นคำร้องไม่สำเร็จ (โหมดทดสอบ)'); } catch { }
           location.href = 'error.html';
