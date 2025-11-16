@@ -10,17 +10,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style/AdminDashboard.css" />
+
   <!-- All scripts deferred so DOM is ready -->
-  <script src="api/calendar.js" defer></script>
-  <script src="api/room.js" defer></script>
-  <script src="api/bookings.js" defer></script>
-  <script src="api/timeSelect.js" defer></script>
   <script src="api/profile.js" defer></script>
-  <script src="api/logout.js" type="module"></script>
+  <script src="api/logout.js" type="module"></script> 
+  <script src="api/notification.js" defer></script>
+  
   <script src="scripts/dashboard.js" defer></script>
   <script src="scripts/notifications.js" defer></script>
   <script src="scripts/modals.js" defer></script>
   <script src="scripts/sideMenu.js" defer></script>
+  
   <script src="../../global-head.js" defer></script>
 </head>
 
@@ -40,20 +40,7 @@
           <div id="notifPanel" role="dialog" aria-label="การแจ้งเตือน">
             <div class="notif-header">การแจ้งเตือน</div>
             <div class="notif-list">
-              <button class="notif-item unread" data-id="1">
-                <div class="title"><span class="dot" aria-hidden="true"></span> มีคำร้องใหม่ถูกส่งเข้ามา กรุณาตรวจสอบรายละเอียดคำร้อง</div>
-                <div class="meta">5 นาทีที่แล้ว</div>
-              </button>
-          
-              <button class="notif-item" data-id="2">
-                <div class="title">ผู้ใช้ได้ส่งคำร้องฉบับแก้ไขกลับมาใหม่</div>
-                <div class="meta">12 ชั่วโมงที่แล้ว</div>
-              </button>
-          
-              <button class="notif-item" data-id="3">
-                <div class="title">หมายเลขการจอง xxxx ได้ยกเลิกคำร้อง</div>
-                <div class="meta">14/09/2569</div>
-              </button>
+             
           
               <div class="notif-item empty" aria-hidden="true">ดูการแจ้งเตือนทั้งหมด</div>
             </div>

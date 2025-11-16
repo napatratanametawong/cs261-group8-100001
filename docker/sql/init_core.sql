@@ -41,7 +41,9 @@ IF NOT EXISTS (
   ALTER ROLE db_owner ADD MEMBER [booking_app];
 GO
 
-/* 2) Tables (idempotent) */
+-- ===========================
+-- rooms
+-- ===========================
 IF OBJECT_ID('dbo.rooms','U') IS NULL
 BEGIN
   PRINT 'Creating table dbo.rooms';
@@ -58,6 +60,9 @@ BEGIN
   );
 END;
 
+-- ===========================
+-- Timeslot
+-- ===========================
 IF OBJECT_ID('dbo.time_slots','U') IS NULL
 BEGIN
   PRINT 'Creating table dbo.time_slots';
@@ -67,7 +72,6 @@ BEGIN
     end_time   TIME        NOT NULL
   );
 END;
-
 
 -- ===========================
 -- reservations (Head)
@@ -94,7 +98,7 @@ BEGIN
     user_email           VARCHAR(100)    NULL,
     user_name            NVARCHAR(100)   NULL,
 
-    -- การตรวจสอบ/อนุมัติ (เก็บไทย +07:00)
+    -- การตรวจสอบ/อนุมัติ (เก็บแบบ +07:00)
     staff_reviewer_email VARCHAR(100)    NULL,
     staff_reviewed_at    DATETIMEOFFSET(0) NULL,
     head_approver_email  VARCHAR(100)    NULL,
@@ -116,7 +120,7 @@ BEGIN
 
     -- จำกัดค่าที่อนุญาต (ตาม enum)
     CONSTRAINT ck_reservations_step
-      CHECK (step IN ('SUBMITTED','STAFF_REVIEW','RETURNED_FOR_FIX','RESUBMITTED','HEAD_REVIEW','DECIDE') OR step IS NULL),
+      CHECK (step IN ('SUBMITTED','STAFF_REVIEW','RETURNED_FOR_FIX','RESUBMITTED','HEAD_REVIEW','DECIDED') OR step IS NULL),
 
     CONSTRAINT ck_reservations_final_status
       CHECK (final_status IN ('PENDING','APPROVED','REJECTED','CANCELLED') OR final_status IS NULL)
@@ -168,13 +172,16 @@ GO
 -- ===========================
 IF OBJECT_ID('dbo.user_reservation_logs','U') IS NULL
 BEGIN
+  PRINT 'Creating table dbo.user_reservation_logs';
   CREATE TABLE dbo.user_reservation_logs(
     user_log_id     BIGINT IDENTITY(1,1) PRIMARY KEY,
-    reservation_id  BIGINT        NOT NULL,
-    user_email      VARCHAR(100)  NULL,
-    action          VARCHAR(100)  NOT NULL,
-    changed_at      DATETIME2     NOT NULL CONSTRAINT df_logs_changed_at DEFAULT SYSUTCDATETIME(),
-    note            NVARCHAR(MAX) NULL,
+    reservation_id  BIGINT           NOT NULL,
+    user_email      VARCHAR(100)     NULL,
+    action          VARCHAR(100)     NOT NULL,
+    changed_at      DATETIMEOFFSET(0) NOT NULL
+                     CONSTRAINT df_logs_changed_at
+                     DEFAULT ( (SYSUTCDATETIME() AT TIME ZONE 'UTC') AT TIME ZONE 'SE Asia Standard Time' ),
+    note            NVARCHAR(MAX)    NULL,
     CONSTRAINT fk_logs_reservation
       FOREIGN KEY(reservation_id) REFERENCES dbo.reservations(reservation_id),
     CONSTRAINT ck_logs_action CHECK (action IN ('CREATED','RESUBMITTED','CANCELED'))
@@ -183,27 +190,94 @@ BEGIN
   CREATE INDEX idx_logs_reservation ON dbo.user_reservation_logs(reservation_id);
   CREATE INDEX idx_logs_user_email ON dbo.user_reservation_logs(user_email);
   CREATE INDEX idx_logs_changed_at ON dbo.user_reservation_logs(changed_at);
-END
+END;
+GO
 
 -- ===========================
 -- staff_reservation_logs
 -- ===========================
 IF OBJECT_ID('dbo.staff_reservation_logs','U') IS NULL
 BEGIN
+  PRINT 'Creating table dbo.staff_reservation_logs';
   CREATE TABLE dbo.staff_reservation_logs (
     staff_log_id     BIGINT IDENTITY(1,1) PRIMARY KEY,
-    reservation_id   BIGINT        NOT NULL,
-    staff_email      VARCHAR(100)  NOT NULL,
-    action           VARCHAR(50)   NOT NULL,
-    note             NVARCHAR(MAX) NULL,
-    changed_at       DATETIME2     NOT NULL CONSTRAINT df_staff_changed_at DEFAULT SYSUTCDATETIME(),
+    reservation_id   BIGINT           NOT NULL,
+    staff_email      VARCHAR(100)     NOT NULL,
+    action           VARCHAR(50)      NOT NULL,
+    note             NVARCHAR(MAX)    NULL,
+    changed_at       DATETIMEOFFSET(0) NOT NULL
+                      CONSTRAINT df_staff_changed_at
+                      DEFAULT ( (SYSUTCDATETIME() AT TIME ZONE 'UTC') AT TIME ZONE 'SE Asia Standard Time' ),
     CONSTRAINT fk_stafflog_reservation FOREIGN KEY (reservation_id)
       REFERENCES dbo.reservations(reservation_id),
-    CONSTRAINT ck_staff_action CHECK (action IN ('REVIEWED','RETURNED'))
+    CONSTRAINT ck_staff_action CHECK (action IN ('REVIEWED','RETURNED','APPROVED','REJECTED'))
   );
 
   CREATE INDEX idx_stafflog_reservation ON dbo.staff_reservation_logs(reservation_id);
   CREATE INDEX idx_stafflog_email ON dbo.staff_reservation_logs(staff_email);
   CREATE INDEX idx_stafflog_changed_at ON dbo.staff_reservation_logs(changed_at);
-END
+END;
+GO
+
+-- ===========================
+-- notifications
+-- ===========================
+IF OBJECT_ID('dbo.notifications', 'U') IS NULL
+BEGIN
+    PRINT 'Creating table dbo.notifications';
+    CREATE TABLE dbo.notifications (
+        notification_id    BIGINT IDENTITY(1,1) PRIMARY KEY,
+
+        recipient_email    VARCHAR(100)  NOT NULL,
+        recipient_role     VARCHAR(30)   NOT NULL,   -- 'USER','STAFF','HEAD','ADMIN'
+
+        reservation_id     BIGINT        NULL,
+        user_log_id        BIGINT        NULL,
+
+        notification_type  VARCHAR(50)   NOT NULL,   -- 'NEW_REQUEST', ...
+        title              NVARCHAR(200) NULL,
+        message            NVARCHAR(500) NOT NULL,
+
+        channel            VARCHAR(20)   NOT NULL,   -- 'WEB','EMAIL'
+
+        is_read            BIT           NOT NULL
+                           CONSTRAINT DF_notifications_is_read DEFAULT (0),
+
+        created_at         DATETIMEOFFSET(0) NOT NULL
+                           CONSTRAINT DF_notifications_created_at
+                           DEFAULT ( (SYSUTCDATETIME() AT TIME ZONE 'UTC') AT TIME ZONE 'SE Asia Standard Time' ),
+
+        read_at            DATETIMEOFFSET(0) NULL,
+
+        sent_at            DATETIMEOFFSET(0) NULL,
+        send_status        VARCHAR(20)   NULL,       -- 'PENDING','SUCCESS','FAILED'
+        send_error         NVARCHAR(500) NULL,
+
+        is_deleted         BIT           NOT NULL
+                           CONSTRAINT DF_notifications_is_deleted DEFAULT (0)
+    );
+END;
+GO
+
+-- index สำหรับกล่อง noti (web)
+CREATE INDEX IX_notifications_inbox_web
+ON dbo.notifications (
+    recipient_email,
+    recipient_role,
+    channel,
+    is_deleted,
+    is_read,
+    created_at DESC
+);
+GO
+
+-- index สำหรับคิว email
+CREATE INDEX IX_notifications_email_queue
+ON dbo.notifications (
+    channel,
+    send_status,
+    created_at
+);
+GO
+
 
