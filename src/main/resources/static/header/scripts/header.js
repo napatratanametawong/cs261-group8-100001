@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="notification-dropdown">
           <div class="notification-head">
             <p class="notification-title">Notification</p>
+            <button type="button" class="mark-all-read" id="notificationMarkAll">Mark all read</button>
           </div>
           <div class="notification-list" id="notificationList">
             <p class="notification-empty">ยังไม่มีการแจ้งเตือน</p>
@@ -64,6 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const notificationDropdown = document.querySelector(".notification-dropdown");
   const notificationList = document.getElementById("notificationList");
   const badgeEl = document.getElementById("notificationBadge");
+  const markReadBtn = document.getElementById("notificationMarkAll");
 
   const supportsStorage = (() => {
     try {
@@ -117,6 +119,39 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  const formatThaiDateTime = (value) => {
+    try {
+      if (!value) return "";
+      return new Date(value).toLocaleString("th-TH", {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return "";
+    }
+  };
+
+  const formatRelativeTime = (value) => {
+    try {
+      if (!value) return "";
+      const past = new Date(value).getTime();
+      if (!Number.isFinite(past)) return "";
+      const diffMs = Date.now() - past;
+      if (diffMs < 0) return "";
+      const diffMinutes = Math.floor(diffMs / 60000);
+      if (diffMinutes < 1) return "เพิ่งส่งคำร้อง";
+      if (diffMinutes < 60) return `เป็นเวลา ${diffMinutes} นาที`;
+      const diffHours = Math.floor(diffMinutes / 60);
+      if (diffHours < 24) return `เป็นเวลา ${diffHours} ชั่วโมง`;
+      const diffDays = Math.floor(diffHours / 24);
+      return `เป็นเวลา ${diffDays} วัน`;
+    } catch {
+      return "";
+    }
+  };
+
   const renderNotifications = () => {
     if (!notificationList) return;
     const visibleItems = state.notifications.filter(isVisible);
@@ -126,24 +161,24 @@ document.addEventListener("DOMContentLoaded", () => {
       const html = visibleItems
         .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
         .map((item) => {
-          const timeLabel = (() => {
-            try {
-              return new Date(item.createdAt).toLocaleString("th-TH", {
-                hour: "2-digit",
-                minute: "2-digit",
-                day: "2-digit",
-                month: "short",
-              });
-            } catch {
-              return "";
-            }
-          })();
+          const createdAt = item.createdAt;
+          const timeLabel = formatThaiDateTime(createdAt);
+          const relativeLabel = formatRelativeTime(createdAt);
+          const calendarBlock = timeLabel
+            ? `<span class="time-meta"><span class="time-icon icon-calendar"></span>${timeLabel}</span>`
+            : "";
+          const clockBlock = relativeLabel
+            ? `<span class="time-meta"><span class="time-icon icon-clock"></span>${relativeLabel}</span>`
+            : "";
+          const timeMeta = [calendarBlock, clockBlock]
+            .filter(Boolean)
+            .join('<span class="time-separator">&nbsp;&nbsp;&nbsp;</span>');
           const classes = ["notification-item"];
           if (!item.read) classes.push("unread");
           return `
             <div class="${classes.join(" ")}" data-notification-id="${item.id}">
               <p class="notification-message">${escapeHtml(item.message || "ท่านได้ส่งคำขอเรียบร้อยแล้ว โปรดรอการตอบกลับภายใน 3 วันทำการ")}</p>
-              <span class="notification-time">${timeLabel}</span>
+              <span class="notification-time">${timeMeta}</span>
             </div>
           `;
         })
@@ -162,12 +197,16 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       badgeEl.classList.add("hidden");
     }
+    if (markReadBtn) {
+      markReadBtn.disabled = unreadCount === 0;
+      markReadBtn.classList.toggle("disabled", unreadCount === 0);
+    }
   };
 
-  const markVisibleAsRead = () => {
+  const markAllAsRead = () => {
     let changed = false;
     const updated = state.notifications.map((item) => {
-      if (isVisible(item) && !item.read) {
+      if (!item.read) {
         changed = true;
         return { ...item, read: true };
       }
@@ -210,9 +249,6 @@ document.addEventListener("DOMContentLoaded", () => {
     notificationTrigger.addEventListener("click", (event) => {
       event.stopPropagation();
       notificationMenu.classList.toggle("open");
-      if (notificationMenu.classList.contains("open")) {
-        markVisibleAsRead();
-      }
     });
     notificationDropdown?.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -221,6 +257,11 @@ document.addEventListener("DOMContentLoaded", () => {
       notificationMenu.classList.remove("open");
     });
   }
+
+  markReadBtn?.addEventListener("click", (event) => {
+    event.preventDefault();
+    markAllAsRead();
+  });
 
   window.addEventListener("storage", (event) => {
     if (event.key === STORAGE_KEY) {

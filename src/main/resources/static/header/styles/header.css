@@ -235,8 +235,8 @@ body {
 }
 
 .notification-item.unread {
-  border-color: #FFD480;
-  background: #FFF9EB;
+  border-color: #FFB347;
+  background: #FFE8CC;
 }
 
 .notification-message {
@@ -249,6 +249,9 @@ body {
 .notification-time {
   font-size: 12px;
   color: #667085;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .notification-empty {
@@ -256,4 +259,58 @@ body {
   text-align: center;
   color: #98A2B3;
   font-size: 14px;
+}
+
+.notification-time .time-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notification-time .time-icon {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  background-color: #98A2B3;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.notification-time .time-separator {
+  display: inline-block;
+  min-width: 18px;
+}
+
+.notification-time .icon-calendar {
+  -webkit-mask-image: url("../../../resource/calendar.svg");
+  mask-image: url("../../../resource/calendar.svg");
+}
+
+.notification-time .icon-clock {
+  -webkit-mask-image: url("../../../resource/clock.svg");
+  mask-image: url("../../../resource/clock.svg");
+}
+
+.mark-all-read {
+  border: none;
+  background: transparent;
+  color: #FF7A1A;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.mark-all-read:hover {
+  text-decoration: underline;
+}
+
+.mark-all-read.disabled,
+.mark-all-read:disabled {
+  color: #d0d5dd;
+  cursor: default;
+  text-decoration: none;
 }
