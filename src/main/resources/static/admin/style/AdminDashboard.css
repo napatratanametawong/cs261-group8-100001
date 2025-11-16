@@ -586,39 +586,6 @@ footer {
   padding: 10px;
 }
 
-/* item */
-.notif-item {
-  display: block;
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  text-align: left;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: var(--font-main);
-  transition: background 120ms ease;
-  outline: none;
-}
-
-.notif-item + .notif-item { margin-top: 6px; }
-
-.notif-item:hover, .notif-item:focus {
-  background: rgba(16,24,40,0.03);
-}
-
-.notif-item .title {
-  font-weight: 600;
-  color: #111;
-  display: block;
-}
-
-.notif-item .meta {
-  font-size: 13px;
-  color: var(--font-muted);
-  margin-top: 6px;
-}
-
 /* unread marker */
 .notif-item.unread { background: linear-gradient(90deg, rgba(240,162,2,0.03), transparent); }
 .notif-item.unread .dot {
@@ -940,6 +907,7 @@ footer {
   :root { --sidebar-width: 280px; }
   .sidebar__item { padding: 12px 14px; }
 }
+
 /* ======================= NOTIFICATION SYSTEM ======================= */
 
 /* Wrapper ของปุ่มกระดิ่ง */
@@ -1039,24 +1007,40 @@ footer {
   margin-top: 6px;
 }
 
-/* ===== UNREAD (ยังไม่อ่าน) ===== */
+/* ===== UNREAD (ยังไม่อ่าน) — เหลือแค่จุด ===== */
+
+/* default state: ปกติไม่โชว์จุด */
+.notif-item .dot {
+  display: none;
+}
+
+/* UNREAD – ให้มีแค่จุดแดง ไม่มีพื้นหลังพิเศษ */
 .notif-item.unread {
-  background-color: #ffe9e9;
-  border-left: 4px solid #ef4444;
+  background: transparent;
+  border-left: none;
 }
 
-.notif-item.unread .title {
-  color: #cc0000;
-  font-weight: 700;
+/* title แสดงเป็นแถวเดียวกับจุด */
+.notif-item .title {
+  font-weight: 800;
+  color: #111;
+  display: flex;         
+  align-items: center;
+  gap: 8px;
 }
 
-/* จุดแดงด้านหน้า */
+/* ซ่อนจุดโดยค่าเริ่มต้น */
+.notif-item .dot {
+  display: none;
+}
+
+/* โชว์จุดเฉพาะ unread */
 .notif-item.unread .dot {
-  width: 10px;
-  height: 10px;
-  background: #ef4444;
-  border-radius: 50%;
   display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
 }
 
 /* Empty state */
