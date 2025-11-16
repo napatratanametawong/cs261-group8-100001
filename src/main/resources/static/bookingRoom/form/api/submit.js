@@ -39,23 +39,16 @@
     }
   };
 
-  const buildNotificationMessage = (selection) => {
-    const roomLabel = (selection?.roomName || selection?.roomCode || 'ห้องประชุม').toString();
-    const dateLabel = (() => {
-      try {
-        if (!selection?.dateISO) return '';
-        return new Date(selection.dateISO).toLocaleDateString('th-TH', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        });
-      } catch {
-        return '';
-      }
+  const buildNotificationMessage = (selection, responseData) => {
+    const requestNo = (() => {
+      if (responseData?.reservationId) return responseData.reservationId;
+      if (responseData?.reservationCode) return responseData.reservationCode;
+      if (responseData?.referenceCode) return responseData.referenceCode;
+      return '-';
     })();
-    return dateLabel
-      ? `ส่งคำขอจอง ${roomLabel} วันที่ ${dateLabel} เรียบร้อยแล้ว`
-      : `ส่งคำขอจอง ${roomLabel} เรียบร้อยแล้ว`;
+    const roomType = (selection?.roomType || 'อาคาร').toString();
+    const roomLabel = (selection?.roomName || selection?.roomCode || 'ห้องประชุม').toString();
+    return `ท่านได้ส่งคำขอ หมายเลข: ${requestNo} ขอใช้สถานที่: ${roomType} ห้อง: ${roomLabel} เรียบร้อยแล้วโปรดรอการตอบกลับภายใน 3 วันทำการ`;
   };
 
   const queueReservationNotification = (message) => {
@@ -200,7 +193,7 @@
         const data = await res.json().catch(() => null);
         try { sessionStorage.removeItem('bookingSelection'); } catch { }
         try { if (data) sessionStorage.setItem('lastReservation', JSON.stringify(data)); } catch { }
-        queueReservationNotification(buildNotificationMessage(sel));
+        queueReservationNotification(buildNotificationMessage(sel, data));
         if (TEMP_FORCE_ERROR_REDIRECT) {
           try { sessionStorage.setItem('lastReservationError', 'การยื่นคำร้องไม่สำเร็จ (โหมดทดสอบ)'); } catch { }
           location.href = 'error.html';

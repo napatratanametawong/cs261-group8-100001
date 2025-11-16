@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="profile-menu">
         <button class="chip profile-trigger" type="button">
           <span id="displayName" class="displayName"></span>
-          <span class="caret">^-_</span>
+          <span class="caret">-</span>
         </button>
         <div class="profile-dropdown">
           <a href="/bookingRoom/homepage_user.html"
@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (!item.read) classes.push("unread");
           return `
             <div class="${classes.join(" ")}" data-notification-id="${item.id}">
-              <p class="notification-message">${escapeHtml(item.message || "คำขอจองของคุณถูกส่งเรียบร้อยแล้ว")}</p>
+              <p class="notification-message">${escapeHtml(item.message || "ท่านได้ส่งคำขอเรียบร้อยแล้ว โปรดรอการตอบกลับภายใน 3 วันทำการ")}</p>
               <span class="notification-time">${timeLabel}</span>
             </div>
           `;
@@ -281,5 +281,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== load display name =====
   import("../../header-api/profile.js").then(module => {
     module.loadDisplayName && module.loadDisplayName();
+  });
+
+  import("./notification-status-sync.js").catch(() => {
+    // optional sync module failed; ignore
   });
 });
