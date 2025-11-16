@@ -4,10 +4,15 @@ import com.example.lc2_booking_room.model.Reservation;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.LocalDateTime;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+
+@Getter
+@Setter
 @Entity
 @Table(name = "staff_reservation_logs", schema = "dbo", indexes = {
         @Index(name = "idx_stafflog_reservation", columnList = "reservation_id"),
@@ -37,47 +42,15 @@ public class StaffReservationLog {
     @Column(name = "note")
     private String note;
 
-    @CreationTimestamp
+    // เปลี่ยนเป็น OffsetDateTime + เก็บเป็นเวลาไทย
     @Column(name = "changed_at", nullable = false, updatable = false)
-    private LocalDateTime changedAt;
+    private OffsetDateTime changedAt;
 
-    public Long getStaffLogId() {
-        return staffLogId;
-    }
-
-    public Reservation getReservation() {
-        return reservation;
-    }
-
-    public void setReservation(Reservation reservation) {
-        this.reservation = reservation;
-    }
-
-    public String getStaffEmail() {
-        return staffEmail;
-    }
-
-    public void setStaffEmail(String staffEmail) {
-        this.staffEmail = staffEmail;
-    }
-
-    public StaffAction getAction() {
-        return action;
-    }
-
-    public void setAction(StaffAction action) {
-        this.action = action;
-    }
-
-    public String getNote() {
-        return note;
-    }
-
-    public void setNote(String note) {
-        this.note = note;
-    }
-
-    public LocalDateTime getChangedAt() {
-        return changedAt;
+    // ให้ entity เซ็ตเวลาเองตอน insert
+    @PrePersist
+    public void prePersist() {
+        if (changedAt == null) {
+            changedAt = OffsetDateTime.now(ZoneId.of("Asia/Bangkok"));
+        }
     }
 }
