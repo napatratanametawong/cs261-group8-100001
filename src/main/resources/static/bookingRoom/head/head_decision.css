@@ -1,0 +1,361 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;600;700;800&display=swap');
+
+
+/* ===============================
+   1) Base / Reset
+   =============================== */
+* { 
+  box-sizing: border-box; 
+}
+
+html, body { 
+  height: 100%; 
+}
+
+body {
+  margin: 0;
+  background: #f4f6f9;
+  color: black;
+  font-family: "IBM Plex Sans Thai", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  line-height: 1.55;
+}
+
+/* ===============================
+   2) Layout Containers
+   =============================== */
+.container {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 60px 24px 56px;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 0 24px;
+}
+
+.card {
+  background: #ffffff;
+  border: none;
+  border-radius: 5px;
+  padding: 50px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* ===============================
+   3) Two-column with center divider
+   =============================== */
+.two-col {
+  position: relative;
+  display: grid;
+  gap: 100px;
+}
+
+@media (min-width: 900px) {
+  .two-col { 
+    grid-template-columns: 1fr 1fr; 
+  }
+}
+
+/* เส้นสีเทาอ่อนแบ่งกลาง */
+.two-col::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: 0 auto;
+  width: 1px;
+  background: #d9d9d9;
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .two-col::before { 
+    display: block; 
+  }
+}
+
+/* ===============================
+   4) Section & Info blocks
+   =============================== */
+.section-title {
+  color: #cc001f;
+  font-weight: 800;
+  font-size: 20px;
+  margin: 0 0 18px;
+}
+
+.info-grid {
+  display: grid;
+  gap: 20px;
+}
+
+@media (min-width: 520px) {
+  .info-grid {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 40px;
+  }
+}
+
+.stack { 
+  display: grid; 
+  gap: 18px; 
+}
+
+/* ซ้าย: label เล็กสีเทา, ค่าเน้นหนา */
+.field-label {
+  font-size: 16px;
+  color: #6e6e6e;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+.field-value {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* ===============================
+   5) ขวา: Read-only form look
+   =============================== */
+/* ===== ฝั่งขวา: Read-only form look ===== */
+.row-2 { 
+  display: grid; 
+  gap: 20px; 
+}
+
+@media (min-width: 600px) { 
+  .row-2 { 
+    grid-template-columns: 1fr 1fr; 
+  } 
+}
+
+.label-req {
+  font-size: 16px;
+  font-weight: 600;
+  color: #6e6e6e;
+  margin-bottom: 5px;
+}
+
+.label-rejReason .req, .label-req .req { 
+  color: #cc001f; 
+} /* asterisk */
+
+.ro-input-attach {
+  width: 100%;
+  border: 1px solid #d9d9d9;
+  border-radius: 3px;
+  background: #fafbfd;
+  padding: 12px 14px;
+  font-weight: 600;
+}
+
+.ro-input, 
+.ro-textarea {
+  width: 100%;
+  border: none;
+  background: #fff;
+  font-weight: 600;
+}  
+
+.ro-textarea {
+  min-height: 30px;       /* กล่องใหญ่สำหรับข้อความหลายบรรทัด(ปรับทีหลัง) */
+  white-space: pre-wrap;
+}  
+
+.ro-input {
+  margin-bottom: 20px;
+}
+
+/* .phone-number {
+  padding-left: 35px;
+} */
+
+/* ===============================
+   6) Actions / Buttons 
+   =============================== */
+.actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 40px;
+  padding-top: 40px;
+}
+
+.btn {
+  padding: 8px 30px;
+  border-radius: 3px;
+  cursor: pointer;
+  border: 1px solid #6e6e6e;
+  background: #fff;
+  font-weight: 600;
+  color: #6e6e6e;
+  font-family: "IBM Plex Sans Thai", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  font-size: 16px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.btn:hover { 
+  background: #6e6e6e;
+  color: #fff; 
+}
+
+.btn-success {
+  background: #02c242;
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.04);
+}
+
+.btn-success:hover { 
+  background: black; 
+}
+
+
+/*======================= 
+  7) Modal / Backdrop 
+  =======================*/
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(53, 54, 54, 0.55);
+  z-index: 50;
+}
+
+.modal {
+  position: fixed; 
+  inset: 0; 
+  display: grid; 
+  place-items: center; 
+  z-index: 51;
+  padding: 24px;
+}
+
+.modal[hidden], .modal-backdrop[hidden] { 
+  display: none !important; 
+}
+
+.modal-card-approve, 
+.modal-card-reject {
+  width: min(590px, 92vw);
+  background: #fff; 
+  border-radius: 5px; 
+  padding: 60px 40px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 80%;
+  align-self: center;
+}
+
+.modal-card-approve {
+    padding: 100px 40px;
+}
+
+.modal-title {
+  text-align: center;
+  margin: 0 0 18px;
+  font-size: 24px; 
+  font-weight: 700; 
+  color: #111827;
+}
+
+.modal-textarea {
+  width: 100%;
+  min-height: 120px;
+  border: 1px solid #d9d9d9;
+  border-radius: 3px;
+  padding: 12px 14px;
+  font-family: inherit; font-size: 14px;
+  background: #fff;
+  resize: vertical;
+  margin-bottom: 16px;
+  max-width: 80%;
+  align-self: center;
+}
+
+.modal-actions {
+  display: flex; 
+  justify-content: center; 
+  gap: 40px; 
+  padding-top: 10px;
+}
+
+/* ปุ่มแดงสำหรับยืนยันในโมดัล */
+.btn-danger {
+  background: #cc001f; 
+  color: #fff; 
+  border-color: #cc001f;
+  padding: 8px 32px;
+}
+
+.btn-danger:hover { 
+  background: #000;
+  border-color: #000; 
+}
+
+/* สถานะ invalid ของเหตุผลตีกลับ */
+.modal-textarea.is-invalid { 
+  border-color: #ef4444; 
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.18); 
+}
+
+.label-rejReason {
+  font-size: 16px;
+  font-weight: 600;
+  color: #000;
+  margin-bottom: 10px;
+  display: block;
+  text-align: left;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ปิด scroll พื้นหลังเมื่อมีโมดัล */
+body.modal-open { overflow: hidden; }
+
+/* เริ่มต้นให้โปร่งและย่อเบา ๆ เพื่อเล่น transition */
+.modal, .modal-backdrop {
+  opacity: 0;
+  transition: opacity .24s ease;
+}
+.modal {
+  transform: translateY(8px) scale(.98);
+  transition: opacity .24s ease, transform .24s ease;
+}
+
+/* ตอนแสดงผล */
+.modal.show, .modal-backdrop.show { opacity: 1; }
+.modal.show { transform: translateY(0) scale(1); }
+
+/* (คงของเดิมไว้) ซ่อนจริง ๆ เมื่อ hidden */
+.modal[hidden], .modal-backdrop[hidden] { display: none !important; }
+
+/* ลด motion ให้ผู้ใช้ที่ตั้งค่าไว้ในระบบ */
+@media (prefers-reduced-motion: reduce) {
+  .modal, .modal-backdrop { transition: none; }
+}
+
+
+.status-box {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.status-box.info {
+  background: #e0f2fe;
+  border: 1px solid #38bdf8;
+  color: #075985;
+}
+
+.status-box.error {
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #991b1b;
+}
+
+.status-box.success {
+  background: #dcfce7;
+  border: 1px solid #22c55e;
+  color: #166534;
+}
