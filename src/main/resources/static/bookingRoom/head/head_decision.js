@@ -1,62 +1,100 @@
 // ==================== CONFIG ====================
-const BASE_API = ""; 
 // ว่างไว้คือใช้ origin เดียวกับหน้าเว็บ เช่น http://localhost:8080
-// ถ้า backend รันอีก port เช่น 8080, FE เปิดจาก file system ให้เขียนเป็น "http://localhost:8080"
+// ถ้า backend รันอีก port/host ให้แก้ตรงนี้
+const BASE_API = "";
 
 // ==================== อ่าน reservation id จาก URL ====================
 const params = new URLSearchParams(window.location.search);
 const reservationId = params.get("id");
 
-// ==================== DOM Elements พวกฟิลด์ข้อมูล ====================
-const statusBox = document.getElementById("statusBox");
-const titleEl = document.getElementById("reservationTitle");
+// ==================== DOM Elements ====================
+const statusBox         = document.getElementById("statusBox");
+const titleEl           = document.getElementById("reservationTitle");
 
-const userNameEl = document.getElementById("userName");
-const userEmailEl = document.getElementById("userEmail");
+const userNameEl        = document.getElementById("userName");
+const userEmailEl       = document.getElementById("userEmail");
 const reservationDateEl = document.getElementById("reservationDate");
-const timeSlotEl = document.getElementById("timeSlot");
-const roomTypeEl = document.getElementById("roomType");
-const roomCodeEl = document.getElementById("roomCode");
+const timeSlotEl        = document.getElementById("timeSlot");
+const roomTypeEl        = document.getElementById("roomType");
+const roomCodeEl        = document.getElementById("roomCode");
 
-const groupNameEl = document.getElementById("groupName");
-const phoneNumberEl = document.getElementById("phoneNumber");
-const reasonEl = document.getElementById("reason");
-const fileAttachmentEl = document.getElementById("fileAttachment");
+const groupNameEl       = document.getElementById("groupName");
+const phoneNumberEl     = document.getElementById("phoneNumber");
+const reasonEl          = document.getElementById("reason");
+const fileAttachmentEl  = document.getElementById("fileAttachment");
 
 // ปุ่ม
-const approveBtn = document.getElementById("approveBtn");
-const rejectBtn = document.getElementById("rejectBtn");
+const approveBtn        = document.getElementById("approveBtn");
+const rejectBtn         = document.getElementById("rejectBtn");
 
 // โมดัล + backdrop
-const backdrop = document.getElementById("backdrop");
-const approveModal = document.getElementById("approveModal");
-const rejectModal = document.getElementById("rejectModal");
+const backdrop          = document.getElementById("backdrop");
+const approveModal      = document.getElementById("approveModal");
+const rejectModal       = document.getElementById("rejectModal");
 const approveConfirmBtn = document.getElementById("approveConfirmBtn");
-const rejectConfirmBtn = document.getElementById("rejectConfirmBtn");
-const rejectReason = document.getElementById("rejectReason");
+const rejectConfirmBtn  = document.getElementById("rejectConfirmBtn");
+const rejectReason      = document.getElementById("rejectReason");
 
-let lastFocusedEl = null;
-let currentReservation = null; // เก็บ object ที่โหลดมา
+let lastFocusedEl       = null;
+let currentReservation  = null; // เก็บ object ที่โหลดมา
+
+// ==================== Helper: auth header (เหมือนหน้า history) ====================
+function getAuthHeaders() {
+  const token =
+    localStorage.getItem("token")        ||
+    localStorage.getItem("accessToken")  ||
+    sessionStorage.getItem("token")      ||
+    sessionStorage.getItem("accessToken");
+
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 // ==================== Helper แสดงข้อความสถานะ ====================
 function showStatus(message, type = "info") {
   if (!statusBox) return;
   statusBox.textContent = message;
-  statusBox.className = "status-box " + type; // reset + เพิ่ม type
-  statusBox.hidden = false;
+  statusBox.className   = "status-box " + type; // reset + เพิ่ม type
+  statusBox.hidden      = false;
 }
 
 function clearStatus() {
   if (!statusBox) return;
-  statusBox.hidden = true;
+  statusBox.hidden    = true;
   statusBox.textContent = "";
   statusBox.className = "status-box";
 }
 
-// ปิดการใช้งานปุ่มเมื่อใช้ไม่ได้
+// ปิด / เปิด ปุ่ม
 function disableDecisionButtons() {
-  approveBtn.disabled = true;
-  rejectBtn.disabled = true;
+  if (approveBtn) approveBtn.disabled = true;
+  if (rejectBtn)  rejectBtn.disabled  = true;
+}
+function enableDecisionButtons() {
+  if (approveBtn) approveBtn.disabled = false;
+  if (rejectBtn)  rejectBtn.disabled  = false;
+}
+
+// ==================== helper: แปลง slotCodes -> "HH:MM–HH:MM" ====================
+function slotCodesToSpan(slotCodes) {
+  if (!slotCodes) return "-";
+  const parts = String(slotCodes)
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  let minStart = null;
+  let maxEnd   = null;
+
+  for (const p of parts) {
+    const m = /^S(\d{4})_(\d{4})$/.exec(p);
+    if (!m) continue;
+    const [, s, e] = m;
+    if (!minStart || s < minStart) minStart = s;
+    if (!maxEnd   || e > maxEnd)   maxEnd   = e;
+  }
+
+  const fmt = hhmm => `${hhmm.slice(0, 2)}:${hhmm.slice(2)}`;
+  return (minStart && maxEnd) ? `${fmt(minStart)}–${fmt(maxEnd)}` : "-";
 }
 
 // ==================== โหลดข้อมูลคำร้อง ====================
@@ -71,26 +109,43 @@ async function loadReservation() {
     clearStatus();
     showStatus("กำลังโหลดข้อมูลคำร้อง...", "info");
 
-    const res = await fetch(`${BASE_API}/api/head-decide/${reservationId}`);
+    const headUrl = `${BASE_API}/api/head-decide/${reservationId}`;
+    const fullUrl = `${BASE_API}/api/reservations/${reservationId}`;
 
-    if (!res.ok) {
-      // backend อาจส่ง text หรือ json มาก็ได้ ลองอ่าน text ธรรมดา
-      let msg = `โหลดข้อมูลไม่สำเร็จ (HTTP ${res.status})`;
+    // เรียก 2 API พร้อมกัน
+    const [headRes, fullRes] = await Promise.allSettled([
+      fetch(headUrl),
+      fetch(fullUrl, {
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+      }),
+    ]);
+
+    // ---- handle /api/head-decide/{id} (ตัวหลัก) ----
+    if (headRes.status !== "fulfilled" || !headRes.value.ok) {
+      let msg = "โหลดข้อมูลไม่สำเร็จจาก /api/head-decide";
       try {
-        const text = await res.text();
-        if (text) msg += `: ${text}`;
-      } catch (e) {
-        // ignore
-      }
+        const t = await headRes.value.text();
+        if (t) msg += `: ${t}`;
+      } catch {}
       showStatus(msg, "error");
       disableDecisionButtons();
       return;
     }
+    const headData = await headRes.value.json();
+    currentReservation = headData;
 
-    const data = await res.json();
-    currentReservation = data;
-    renderReservation(data);
-    validateReservationForDecision(data);
+    // ---- /api/reservations/{id} (เสริม: เวลาจริง / ประเภทห้อง / กลุ่ม / เบอร์) ----
+    let fullData = null;
+    if (fullRes.status === "fulfilled" && fullRes.value.ok) {
+      fullData = await fullRes.value.json();
+      console.log("full reservation detail", fullData);
+    }
+
+    renderReservation(headData, fullData);
+    validateReservationForDecision(headData);
 
     showStatus("โหลดข้อมูลสำเร็จ", "success");
   } catch (err) {
@@ -100,53 +155,80 @@ async function loadReservation() {
   }
 }
 
-// เอาข้อมูลมาเติมในหน้า
-function renderReservation(data) {
+// ==================== เอาข้อมูลมาเติมในหน้า ====================
+function renderReservation(head, full) {
+  if (!head) return;
+
   // Title
-  titleEl.textContent = `หมายเลขการจอง ${data.id}`;
+  if (titleEl)
+    titleEl.textContent = `หมายเลขการจอง ${head.id ?? "-"}`;
 
-  // ฝั่งซ้าย
-  userNameEl.textContent = data.userName || "-";
-  userEmailEl.textContent = data.userEmail || "-";
+  // -------- ฝั่งซ้าย: ใช้ของจาก HeadDecisionView --------
+  if (userNameEl)        userNameEl.textContent        = head.userName        || "-";
+  if (userEmailEl)       userEmailEl.textContent       = head.userEmail       || "-";
+  if (reservationDateEl) reservationDateEl.textContent = head.reservationDate || "-";
+  if (roomCodeEl)        roomCodeEl.textContent        = head.roomCode        || "-";
 
-  // ถ้า reservationDate เป็น "2025-11-15" จะแสดงแบบเดิมก่อน
-  reservationDateEl.textContent = data.reservationDate || "-";
-
-  roomCodeEl.textContent = data.roomCode || "-";
-
-  // เวลา / ประเภทห้อง / กลุ่ม / เบอร์ ในสเปกที่ให้มาไม่มี
-  // ไว้ map เติมถ้า DTO มี field เพิ่ม (เช่น data.startTime, data.endTime, data.roomType ฯลฯ)
-  // ตอนนี้ให้แสดง "-" ไปก่อนดีกว่า
-  if (!timeSlotEl.dataset.bound) {
-    timeSlotEl.textContent = "-";
-  }
-  if (!roomTypeEl.dataset.bound) {
-    roomTypeEl.textContent = "-";
-  }
-  if (!groupNameEl.dataset.bound) {
-    groupNameEl.textContent = "-";
-  }
-  if (!phoneNumberEl.dataset.bound) {
-    phoneNumberEl.textContent = "-";
+  // -------- เวลา / ประเภทห้อง จาก reservation detail --------
+  if (timeSlotEl) {
+    if (full && (full.slotCodes || (Array.isArray(full.slots) && full.slots.length))) {
+      let slotCodes = full.slotCodes;
+      if (!slotCodes && Array.isArray(full.slots)) {
+        slotCodes = full.slots.map(s => s.slotCode).join(", ");
+      }
+      timeSlotEl.textContent = slotCodesToSpan(slotCodes);
+    } else {
+      timeSlotEl.textContent = "-";
+    }
   }
 
-  // จุดประสงค์ (ใน DTO ใช้ field "reason")
-  reasonEl.textContent = data.reason || "-";
+  if (roomTypeEl) {
+  const roomType =
+    full?.roomType ||
+    full?.roomTypeName ||
+    full?.roomCategory ||
+    full?.roomCategoryName ||
+    full?.type ||
+    full?.category ||
+    (full?.room && (
+      full.room.roomType ||
+      full.room.roomTypeName ||
+      full.room.category ||
+      full.room.roomCategory
+    ));
 
-  // ไฟล์แนบ
-  if (data.fileAttachment) {
-    fileAttachmentEl.textContent = data.fileAttachment;
-    // ถ้าในอนาคต backend ส่งเป็น URL ด้วย ค่อยเปลี่ยนเป็น <a> ที่นี่
-  } else {
-    fileAttachmentEl.textContent = "ไม่มีเอกสารแนบ";
+  roomTypeEl.textContent = roomType || "-";
+}
+
+
+  // -------- กลุ่ม / เบอร์ (ถ้า backend มี) --------
+  if (groupNameEl)
+    groupNameEl.textContent = full?.groupName || "-";
+
+  if (phoneNumberEl)
+    phoneNumberEl.textContent = full?.phoneNumber || "-";
+
+  // -------- จุดประสงค์ --------
+  if (reasonEl)
+    reasonEl.textContent = (full && full.reason) || head.reason || "-";
+
+  // -------- ไฟล์แนบ --------
+  if (fileAttachmentEl) {
+    if (head.fileAttachment) {
+      fileAttachmentEl.textContent = head.fileAttachment;
+    } else if (full && full.fileAttachment) {
+      fileAttachmentEl.textContent = full.fileAttachment;
+    } else {
+      fileAttachmentEl.textContent = "ไม่มีเอกสารแนบ";
+    }
   }
 }
 
-// เช็คว่าอยู่ใน step ที่อนุมัติได้ไหม
+// ==================== เช็ค step ว่าตัดสินได้ไหม ====================
 function validateReservationForDecision(data) {
   if (!data) return;
 
-  const step = data.step;
+  const step        = data.step;
   const finalStatus = data.finalStatus; // PENDING / APPROVED / REJECTED / null
 
   if (step !== "STAFF_REVIEW") {
@@ -167,21 +249,21 @@ function validateReservationForDecision(data) {
     return;
   }
 
-  // ถ้าผ่านสองอันนี้ แสดงว่ายัง PENDING และอยู่ใน STAFF_REVIEW ให้ปุ่มใช้งานได้
-  approveBtn.disabled = false;
-  rejectBtn.disabled = false;
+  // ยัง PENDING และอยู่ใน STAFF_REVIEW
+  enableDecisionButtons();
 }
 
-// ==================== Modal Logic เดิม ====================
+// ==================== Modal Logic ====================
 function onEscToClose(e) {
   if (e.key === "Escape") closeAll();
 }
 
 function openModal(modalEl) {
-  lastFocusedEl = document.activeElement;
+  if (!modalEl || !backdrop) return;
 
-  backdrop.hidden = false;
-  modalEl.hidden = false;
+  lastFocusedEl     = document.activeElement;
+  backdrop.hidden   = false;
+  modalEl.hidden    = false;
 
   requestAnimationFrame(() => {
     backdrop.classList.add("show");
@@ -203,6 +285,8 @@ function openModal(modalEl) {
 }
 
 function closeAll() {
+  if (!backdrop || !approveModal || !rejectModal) return;
+
   backdrop.classList.remove("show");
   approveModal.classList.remove("show");
   rejectModal.classList.remove("show");
@@ -211,20 +295,26 @@ function closeAll() {
 
   const DURATION = 250;
   setTimeout(() => {
-    backdrop.hidden = true;
+    backdrop.hidden     = true;
     approveModal.hidden = true;
-    rejectModal.hidden = true;
+    rejectModal.hidden  = true;
     lastFocusedEl?.focus();
   }, DURATION);
 }
 
 // ผูกปุ่มเปิดโมดัล
-approveBtn.addEventListener("click", () => openModal(approveModal));
-rejectBtn.addEventListener("click", () => {
-  rejectReason.classList.remove("is-invalid");
-  rejectReason.value = "";
-  openModal(rejectModal);
-});
+if (approveBtn) {
+  approveBtn.addEventListener("click", () => openModal(approveModal));
+}
+if (rejectBtn) {
+  rejectBtn.addEventListener("click", () => {
+    if (rejectReason) {
+      rejectReason.classList.remove("is-invalid");
+      rejectReason.value = "";
+    }
+    openModal(rejectModal);
+  });
+}
 
 // ==================== ฟังก์ชันยิง POST ตัดสินคำร้อง ====================
 async function sendHeadDecision(decision, remark) {
@@ -234,8 +324,8 @@ async function sendHeadDecision(decision, remark) {
   }
 
   const payload = {
-    decision, // "APPROVED" หรือ "REJECTED"
-    remark: remark || "",
+    decision,          // "APPROVED" หรือ "REJECTED"
+    remark: remark || ""
   };
 
   try {
@@ -258,14 +348,11 @@ async function sendHeadDecision(decision, remark) {
       try {
         const text = await res.text();
         if (text) msg += `: ${text}`;
-      } catch (e) {
-        // ignore
-      }
+      } catch {}
       showStatus(msg, "error");
       return;
     }
 
-    // ตามสเปก controller: 200 OK ไม่มี body
     showStatus("บันทึกผลการตัดสินเรียบร้อยแล้ว", "success");
     disableDecisionButtons();
   } catch (err) {
@@ -275,23 +362,29 @@ async function sendHeadDecision(decision, remark) {
 }
 
 // ==================== Confirm buttons events ====================
-approveConfirmBtn.addEventListener("click", async () => {
-  closeAll();
-  await sendHeadDecision("APPROVED", "เห็นสมควรอนุมัติ"); // remark default
-});
+if (approveConfirmBtn) {
+  approveConfirmBtn.addEventListener("click", async () => {
+    closeAll();
+    await sendHeadDecision("APPROVED", "เห็นสมควรอนุมัติ");
+  });
+}
 
-rejectConfirmBtn.addEventListener("click", async () => {
-  const reason = rejectReason.value.trim();
-  if (!reason) {
-    rejectReason.classList.add("is-invalid");
-    rejectReason.focus();
-    return;
-  }
-  rejectReason.classList.remove("is-invalid");
+if (rejectConfirmBtn) {
+  rejectConfirmBtn.addEventListener("click", async () => {
+    const reason = rejectReason?.value.trim() || "";
+    if (!reason) {
+      if (rejectReason) {
+        rejectReason.classList.add("is-invalid");
+        rejectReason.focus();
+      }
+      return;
+    }
+    if (rejectReason) rejectReason.classList.remove("is-invalid");
 
-  closeAll();
-  await sendHeadDecision("REJECTED", reason);
-});
+    closeAll();
+    await sendHeadDecision("REJECTED", reason);
+  });
+}
 
 // ==================== เริ่มทำงาน ====================
 window.addEventListener("DOMContentLoaded", loadReservation);
