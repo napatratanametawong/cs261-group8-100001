@@ -37,6 +37,7 @@ public class StaffReservationLogService {
         return OffsetDateTime.now(ZoneId.of("Asia/Bangkok"));
     }
 
+    /** สร้างข้อความช่วงเวลา เช่น "08:00 น.-09:30 น." เรียงจากเวลาต่ำไปสูง */
     private List<String> buildTimeRanges(Reservation reservation) {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm น.");
         return reservation.getSlots().stream()
@@ -123,8 +124,20 @@ public class StaffReservationLogService {
                 .reservationId(reservation.getId())
                 .staffEmail(saved.getStaffEmail())
                 .action(saved.getAction())
-                .changedAt(saved.getChangedAt())
+                .changedAt(saved.getChangedAt())   // OffsetDateTime -> DTO OffsetDateTime
                 .note(saved.getNote())
+                .build();
+    }
+
+    // helper แปลง entity -> DTO
+    private StaffLogResponse toDto(StaffReservationLog log) {
+        return StaffLogResponse.builder()
+                .staffLogId(log.getStaffLogId())
+                .reservationId(log.getReservation().getId())
+                .staffEmail(log.getStaffEmail())
+                .action(log.getAction())
+                .changedAt(log.getChangedAt())     // OffsetDateTime เช่นกัน
+                .note(log.getNote())
                 .build();
     }
 
@@ -132,14 +145,7 @@ public class StaffReservationLogService {
     public List<StaffLogResponse> getLogsByReservation(Long reservationId) {
         return logRepo.findByReservation_Id(reservationId)
                 .stream()
-                .map(log -> StaffLogResponse.builder()
-                        .staffLogId(log.getStaffLogId())
-                        .reservationId(log.getReservation().getId())
-                        .staffEmail(log.getStaffEmail())
-                        .action(log.getAction())
-                        .changedAt(log.getChangedAt())
-                        .note(log.getNote())
-                        .build())
+                .map(this::toDto)
                 .toList();
     }
 
@@ -147,14 +153,7 @@ public class StaffReservationLogService {
     public List<StaffLogResponse> getAllLogs() {
         return logRepo.findAll()
                 .stream()
-                .map(log -> StaffLogResponse.builder()
-                        .staffLogId(log.getStaffLogId())
-                        .reservationId(log.getReservation().getId())
-                        .staffEmail(log.getStaffEmail())
-                        .action(log.getAction())
-                        .changedAt(log.getChangedAt())
-                        .note(log.getNote())
-                        .build())
+                .map(this::toDto)
                 .toList();
     }
 
@@ -186,7 +185,7 @@ public class StaffReservationLogService {
 
         userEmailNotificationService.notifyStaffActionToUser(
                 reservation,
-                action,         // APPROVED / REJECTED
+                action,   // APPROVED / REJECTED
                 timeRanges,
                 remark
         );
