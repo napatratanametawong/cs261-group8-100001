@@ -353,7 +353,16 @@ async function sendHeadDecision(decision, remark) {
       return;
     }
 
-    showStatus("บันทึกผลการตัดสินเรียบร้อยแล้ว", "success");
+     // เปลี่ยนข้อความตามผลการตัดสิน
+    if (decision === "APPROVED") {
+      showStatus("บันทึกผลการอนุมัติเรียบร้อยแล้ว", "success");
+    } else if (decision === "REJECTED") {
+      showStatus("ตีกลับคำร้องเรียบร้อยแล้ว", "success");
+    } else {
+      // กันเหนียว ถ้ามีค่าอื่นในอนาคต
+      showStatus("บันทึกผลการตัดสินเรียบร้อยแล้ว", "success");
+    }
+
     disableDecisionButtons();
   } catch (err) {
     console.error(err);
