@@ -7,8 +7,8 @@ import com.example.lc2_booking_room.model.staff_log.StaffAction;
 import com.example.lc2_booking_room.model.staff_log.StaffReservationLog;
 import com.example.lc2_booking_room.repository.ReservationRepository;
 import com.example.lc2_booking_room.repository.StaffReservationLogRepository;
-import com.example.lc2_booking_room.service.head.HeadEmailNotificationService;
-import com.example.lc2_booking_room.service.login.EmailService;
+import com.example.lc2_booking_room.service.notification.HeadEmailNotificationService;
+import com.example.lc2_booking_room.service.notification.UserEmailNotificationService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,8 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;     
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,13 +25,22 @@ public class StaffReservationLogService {
 
     private final StaffReservationLogRepository logRepo;
     private final ReservationRepository reservationRepo;
-    private final EmailService emailService;
+
+    // ส่งเมล + noti ให้ "หัวหน้า" ตอนที่ staff REVIEWED เสร็จ
     private final HeadEmailNotificationService headNotificationService;
+
+    // ส่งเมล + noti ให้ "ผู้ใช้" (เจ้าของคำร้อง)
+    private final UserEmailNotificationService userEmailNotificationService;
 
     // APPROVED, REJECTED, REVIEWED, RETURNED, CANCELLED
 
     @Transactional
-    public StaffLogResponse createLog(Long reservationId, String staffEmail, StaffAction action, String note) {
+    public StaffLogResponse createLog(Long reservationId,
+                                      String staffEmail,
+                                      StaffAction action,
+                                      String note) {
+
+        // ----- หา reservation -----
         Reservation reservation = reservationRepo.findById(reservationId)
                 .orElseThrow(() -> new RuntimeException("Reservation not found"));
 
@@ -49,6 +58,9 @@ public class StaffReservationLogService {
                 reservation.setStaffReviewerEmail(staffEmail);
                 reservation.setStaffReviewedAt(
                         OffsetDateTime.now(java.time.ZoneId.of("Asia/Bangkok")));
+
+                // 👉 แจ้งหัวหน้าให้พิจารณา (ส่งเมล + บันทึก noti)
+                headNotificationService.notifyHeadForReview(reservation);
             }
             case RETURNED -> {
                 reservation.setStep(Reservation.BookingStep.RETURNED_FOR_FIX);
@@ -59,7 +71,7 @@ public class StaffReservationLogService {
                         OffsetDateTime.now(java.time.ZoneId.of("Asia/Bangkok")));
             }
             default -> {
-                // เผื่ออนาคตมี action อื่น
+                // เผื่อมี action อื่นในอนาคต
             }
         }
 
@@ -75,39 +87,24 @@ public class StaffReservationLogService {
 
         StaffReservationLog saved = logRepo.save(log);
 
-        // ----- เตรียม timeRanges สำหรับเมล -----
+        // ----- เตรียม timeRanges สำหรับแจ้ง user -----
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm น.");
         List<String> timeRanges = reservation.getSlots().stream()
                 .map(ReservationSlot::getTimeSlot)
                 .filter(ts -> ts != null)
-                .map(ts -> {
-                    var start = ts.getStartTime().atDate(reservation.getReservationDate())
-                            .atZone(java.time.ZoneOffset.UTC)
-                            .withZoneSameInstant(java.time.ZoneId.of("Asia/Bangkok"))
-                            .toLocalTime();
-                    var end = ts.getEndTime().atDate(reservation.getReservationDate())
-                            .atZone(java.time.ZoneOffset.UTC)
-                            .withZoneSameInstant(java.time.ZoneId.of("Asia/Bangkok"))
-                            .toLocalTime();
-                    return start.format(fmt) + "-" + end.format(fmt);
-                })
-                .collect(Collectors.toList());
+                .sorted(Comparator.comparing(ts -> ts.getStartTime()))
+                .map(ts -> ts.getStartTime().format(fmt) + "-" + ts.getEndTime().format(fmt))
+                .toList();
 
-        // ----- ส่งเมลแจ้ง user ตามระบบเดิม -----
-        emailService.sendStaffActionNotice(
-                reservation.getUserEmail(),
-                action.name(),
-                reservation.getRoomCode(),
-                reservation.getReservationDate().toString(),
+        // ----- แจ้ง "ผู้ใช้" ผ่าน service กลาง (email + in-app) -----
+        userEmailNotificationService.notifyStaffActionToUser(
+                reservation,
+                action,
                 timeRanges,
-                note);
+                note
+        );
 
-        // ----- ถ้า REVIEWED ให้แจ้งหัวหน้าด้วย -----
-        if (action == StaffAction.REVIEWED) {
-            headNotificationService.notifyHeadForReview(reservation);
-        }
-
-        // ----- map เป็น DTO -----
+        // ----- สร้าง DTO ตอบกลับ -----
         return StaffLogResponse.builder()
                 .staffLogId(saved.getStaffLogId())
                 .reservationId(reservation.getId())
@@ -134,7 +131,6 @@ public class StaffReservationLogService {
     }
 
     // ดึง StaffLog ทั้งหมด
-
     public List<StaffLogResponse> getAllLogs() {
         return logRepo.findAll()
                 .stream()
@@ -147,21 +143,20 @@ public class StaffReservationLogService {
                         .note(log.getNote())
                         .build())
                 .toList();
-
     }
 
     @Transactional
     public void logHeadDecision(Reservation reservation,
-            String headEmail,
-            StaffAction action,
-            String remark) {
+                                String headEmail,
+                                StaffAction action,
+                                String remark) {
 
         StaffReservationLog log = new StaffReservationLog();
         log.setReservation(reservation);
-        log.setStaffEmail(headEmail); // ใช้ field staff_email เก็บอีเมลหัวหน้าได้เลย
+        log.setStaffEmail(headEmail); // ใช้ field staff_email เก็บอีเมลหัวหน้า
         log.setAction(action);
         log.setNote(remark);
 
-        logRepo.save(log); // changed_at จะถูกเติมเอง
+        logRepo.save(log); // changed_at จะถูกเติมเองใน entity
     }
 }

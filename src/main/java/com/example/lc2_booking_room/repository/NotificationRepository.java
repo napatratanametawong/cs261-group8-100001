@@ -24,6 +24,13 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             Notification.NotificationChannel channel
     );
 
+    // ใช้ตอน user กดอ่าน noti (เช็คว่าเป็นของตัวเอง + role ถูก)
+    Optional<Notification> findByIdAndRecipientEmailAndRecipientRole(
+            Long id,
+            String recipientEmail,
+            Notification.RecipientRole recipientRole
+    );
+
     // ====== ใช้ตอนจะอัปเดต send_status / sent_at ของ noti เดิม ======
     // ดึง noti ล่าสุดของ STAFF สำหรับ reservationId นั้น + ประเภทแจ้งเตือนที่ต้องการ + channel
     Optional<Notification> findTopByRecipientRoleAndReservation_IdAndNotificationTypeAndChannelOrderByCreatedAtDesc(

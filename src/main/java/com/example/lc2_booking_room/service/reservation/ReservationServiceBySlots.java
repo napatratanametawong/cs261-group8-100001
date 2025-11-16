@@ -12,7 +12,7 @@ import com.example.lc2_booking_room.repository.TimeSlotRepository;
 import com.example.lc2_booking_room.repository.ReservationRepository;
 import com.example.lc2_booking_room.repository.ReservationSlotRepository;
 import com.example.lc2_booking_room.repository.UserReservationLogRepository;
-import com.example.lc2_booking_room.service.staff.StaffEmailNotificationService;
+import com.example.lc2_booking_room.service.notification.StaffEmailNotificationService;
 
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;

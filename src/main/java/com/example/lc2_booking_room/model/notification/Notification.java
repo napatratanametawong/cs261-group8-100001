@@ -55,7 +55,6 @@ public class Notification {
     @JsonIgnore
     private Reservation reservation;
 
-
     @Column(name = "user_log_id")
     private Long userLogId;
 
@@ -77,7 +76,7 @@ public class Notification {
     private boolean read;
 
     @Column(name = "created_at", nullable = false)
-    private OffsetDateTime createdAt;   // map กับ DATETIMEOFFSET(0)
+    private OffsetDateTime createdAt; // map กับ DATETIMEOFFSET(0)
 
     @Column(name = "read_at")
     private OffsetDateTime readAt;

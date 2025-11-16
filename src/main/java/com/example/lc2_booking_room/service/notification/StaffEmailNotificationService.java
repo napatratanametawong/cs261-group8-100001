@@ -1,10 +1,11 @@
-package com.example.lc2_booking_room.service.staff;
+package com.example.lc2_booking_room.service.notification;
 
 import com.example.lc2_booking_room.model.Reservation;
 import com.example.lc2_booking_room.model.notification.Notification;
 import com.example.lc2_booking_room.model.notification.Notification.SendStatus;
 import com.example.lc2_booking_room.repository.NotificationRepository;
 import com.example.lc2_booking_room.service.login.EmailService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

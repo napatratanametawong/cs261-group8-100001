@@ -1,4 +1,4 @@
-package com.example.lc2_booking_room.service.head;
+package com.example.lc2_booking_room.service.notification;
 
 import com.example.lc2_booking_room.model.Reservation;
 import com.example.lc2_booking_room.model.notification.Notification;

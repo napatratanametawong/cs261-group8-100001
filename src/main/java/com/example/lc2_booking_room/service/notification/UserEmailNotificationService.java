@@ -1,0 +1,131 @@
+package com.example.lc2_booking_room.service.notification;
+
+import com.example.lc2_booking_room.model.Reservation;
+import com.example.lc2_booking_room.model.notification.Notification;
+import com.example.lc2_booking_room.model.notification.Notification.SendStatus;
+import com.example.lc2_booking_room.model.staff_log.StaffAction;
+import com.example.lc2_booking_room.repository.NotificationRepository;
+import com.example.lc2_booking_room.service.login.EmailService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class UserEmailNotificationService {
+
+    private final EmailService emailService;
+    private final UserInAppNotificationService inApp;
+    private final NotificationRepository notificationRepository;
+
+    private OffsetDateTime nowBkk() {
+        return OffsetDateTime.now(ZoneId.of("Asia/Bangkok"));
+    }
+
+    public void notifyStaffActionToUser(
+            Reservation r,
+            StaffAction action,
+            List<String> timeRanges,
+            String note
+    ) {
+
+        // ------- รวมช่วงเวลาให้เหลืออันเดียว (แบบที่ 4) -------
+        String mergedTimeRange = null;
+        if (timeRanges != null && !timeRanges.isEmpty()) {
+            // สมมติว่า list ที่ส่งเข้ามาเรียงตามเวลาแล้ว (จาก StaffReservationLogService)
+            String first = timeRanges.get(0);
+            String last  = timeRanges.get(timeRanges.size() - 1);
+
+            // first: "08:00 น.-09:30 น."
+            // last : "16:30 น.-18:00 น."
+            String start = first.split("-", 2)[0].trim(); // "08:00 น."
+            String end   = last.split("-", 2)[1].trim();  // "18:00 น."
+
+            mergedTimeRange = start + "-" + end;          // "08:00 น.-18:00 น."
+        }
+
+        // ใช้สำหรับส่งเข้า EmailService (signature เดิมยังเป็น List<String>)
+        List<String> timeRangesForEmail = new ArrayList<>();
+        if (mergedTimeRange != null) {
+            timeRangesForEmail.add(mergedTimeRange);
+        }
+
+        // -------- 1) ส่งอีเมลไปหา user พร้อมจับ status --------
+        SendStatus status;
+        String error = null;
+
+        try {
+            emailService.sendStaffActionNotice(
+                    r.getUserEmail(),
+                    action.name(),
+                    r.getRoomCode(),
+                    r.getReservationDate().toString(),
+                    timeRangesForEmail,   // 👈 ตอนนี้มีแค่ "08:00 น.-18:00 น." ตัวเดียว
+                    note
+            );
+            status = SendStatus.SUCCESS;
+        } catch (Exception ex) {
+            status = SendStatus.FAILED;
+            error = ex.getMessage();
+        }
+
+        // -------- 2) เขียน log ลงตาราง notifications (EMAIL) --------
+        String title;
+        String message;
+        Notification.NotificationType type;
+
+        switch (action) {
+            case REVIEWED -> {
+                title = "คำร้องของคุณได้รับการตรวจสอบแล้ว";
+                message = "เจ้าหน้าที่ได้ตรวจสอบคำร้องของคุณแล้ว รอการอนุมัติจากหัวหน้าสาขา";
+                type = Notification.NotificationType.STAFF_REVIEWED;
+            }
+            case RETURNED -> {
+                title = "คำร้องของคุณถูกส่งกลับเพื่อแก้ไข";
+                message = "เจ้าหน้าที่ส่งคำร้องกลับ โปรดตรวจสอบและแก้ไขข้อมูลก่อนส่งใหม่อีกครั้ง";
+                type = Notification.NotificationType.STAFF_RETURNED;
+            }
+            default -> {
+                title = "มีการอัปเดตคำร้องของคุณ";
+                message = "คำร้องหมายเลข #" + r.getId() + " มีการอัปเดตโดยเจ้าหน้าที่";
+                type = Notification.NotificationType.NEW_REQUEST;
+            }
+        }
+
+        Notification emailNoti = new Notification();
+        emailNoti.setRecipientEmail(r.getUserEmail());
+        emailNoti.setRecipientRole(Notification.RecipientRole.USER);
+        emailNoti.setReservation(r);
+        emailNoti.setNotificationType(type);
+        emailNoti.setTitle(title);
+        emailNoti.setMessage(message);
+        emailNoti.setChannel(Notification.NotificationChannel.EMAIL);
+        emailNoti.setRead(false);
+        emailNoti.setDeleted(false);
+        emailNoti.setCreatedAt(nowBkk());
+        emailNoti.setSendStatus(status);
+
+        if (status == SendStatus.SUCCESS) {
+            emailNoti.setSentAt(nowBkk());
+            emailNoti.setSendError(null);
+        } else {
+            emailNoti.setSentAt(null);
+            emailNoti.setSendError(error);
+        }
+
+        notificationRepository.save(emailNoti);
+
+        // -------- 3) In-App noti (WEB) ให้ user --------
+        inApp.send(
+                r.getUserEmail(),
+                r.getId(),
+                type,
+                title,
+                message
+        );
+    }
+}
