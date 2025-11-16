@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface StaffNotificationRepository extends JpaRepository<Notification, Long> {
 
-    List<Notification> findByStaffEmailOrderByCreatedAtDesc(String email);
-}
+    List<Notification> findByRecipientEmailOrderByCreatedAtDesc(String email);
 
+}
