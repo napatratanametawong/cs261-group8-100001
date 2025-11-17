@@ -126,6 +126,11 @@ public class ReservationServiceBySlots {
                                         "slot ต่อไปนี้ไม่พบหรือไม่เปิดใช้งาน: " + String.join(", ", missingOrInactive));
                 }
 
+                // กันไม่ให้จองวันที่ผ่านมาแล้ว
+                if (date.isBefore(LocalDate.now(ZoneId.of("Asia/Bangkok")))) {
+                        throw new IllegalArgumentException("ไม่สามารถจองวันที่ผ่านมาแล้วได้");
+                }
+
                 // ---- 2) conflict check ----
                 boolean hasConflict = reservationSlotRepository.anyActiveConflict(roomCode, date, requestedSlotCodes);
                 if (hasConflict) {
@@ -229,10 +234,7 @@ public class ReservationServiceBySlots {
 
                 // เงื่อนไขยกเลิก: ต้องเป็น SUBMITTED + PENDING เท่านั้น
                 if (reservation.getStep() != Reservation.BookingStep.SUBMITTED
-                                || reservation.getFinalStatus() != Reservation.FinalStatus.PENDING) { // PENDING is the
-                                                                                                      // only
-                                                                                                      // cancellable
-                                                                                                      // status
+                                || reservation.getFinalStatus() != Reservation.FinalStatus.PENDING) {
                         // Use IllegalArgumentException for 400 Bad Request, as the client sent a
                         // request for an un-cancellable resource.
                         throw new IllegalArgumentException("Reservation cannot be canceled");
