@@ -5,8 +5,10 @@ import com.example.lc2_booking_room.dto.headDecision.HeadDecisionRequest;
 import com.example.lc2_booking_room.dto.headDecision.HeadDecisionView;
 import com.example.lc2_booking_room.model.Reservation;
 import com.example.lc2_booking_room.model.Reservation.BookingStep;
+import com.example.lc2_booking_room.model.Room;
 import com.example.lc2_booking_room.model.staff_log.StaffAction;
 import com.example.lc2_booking_room.repository.ReservationRepository;
+import com.example.lc2_booking_room.repository.RoomRepository;
 import com.example.lc2_booking_room.service.staff.StaffReservationLogService;
 
 import lombok.RequiredArgsConstructor;
@@ -21,8 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class HeadDecisionService {
 
     private final ReservationRepository reservationRepository;
+    private final RoomRepository roomRepository;
     private final StaffReservationLogService staffReservationLogService;
-    
 
     @Value("${app.head-email}")
     private String headEmail;
@@ -37,9 +39,18 @@ public class HeadDecisionService {
             throw new IllegalStateException("Reservation is not in STAFF_REVIEW step");
         }
 
+        // 🔹 ดึง roomType จากตาราง rooms
+        String roomType = null;
+        if (r.getRoomCode() != null) {
+            roomType = roomRepository.findById(r.getRoomCode())
+                    .map(Room::getRoomType) // ชื่อ getter ปรับให้ตรงกับ entity ของคุณ
+                    .orElse(null);
+        }
+
         return HeadDecisionView.builder()
                 .id(r.getId())
                 .roomCode(r.getRoomCode())
+                .roomType(roomType)
                 .reservationDate(r.getReservationDate() != null ? r.getReservationDate().toString() : null)
                 .userName(r.getUserName())
                 .userEmail(r.getUserEmail())
@@ -89,13 +100,12 @@ public class HeadDecisionService {
         } else {
             throw new IllegalArgumentException("Unknown decision: " + req.getDecision());
         }
-        
+
         staffReservationLogService.logHeadDecision(
                 r,
                 headEmail,
                 action,
-                req.getRemark()
-        );
+                req.getRemark());
 
         reservationRepository.save(r);
     }

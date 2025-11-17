@@ -8,6 +8,7 @@ import lombok.Data;
 public class HeadDecisionView {
     private Long id;                
     private String roomCode;
+    private String roomType;
     private String reservationDate;
     private String userName;
     private String userEmail;
