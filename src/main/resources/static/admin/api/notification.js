@@ -19,6 +19,9 @@ document.addEventListener("DOMContentLoaded", function () {
       staffEmail = "lc2.serviceadm@gmail.com";
     }
 
+    // ===== เก็บสถานะ unread เดิมไว้ใช้เทียบ =====
+    let lastUnreadIds = new Set();
+
     // ----------------------------------------------------
     // 🟩 แปลงข้อความ "Type" → ไทย พร้อมดึง #ID
     // ----------------------------------------------------
@@ -29,7 +32,6 @@ document.addEventListener("DOMContentLoaded", function () {
       let messageTH = "";
 
       switch (n.notificationType) {
-
         case "NEW_REQUEST":
           titleTH = "มีคำขอจองใหม่เข้ามา";
           messageTH = `คำร้องหมายเลข #${id}`;
@@ -55,9 +57,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // ----------------------------------------------------
     // 🟧 โหลดแจ้งเตือนจาก API
+    //   isAuto = true ถ้าเป็นการ refresh แบบอัตโนมัติ
     // ----------------------------------------------------
-    async function loadNotifications() {
-
+    async function loadNotifications(isAuto = false) {
       try {
         const res = await fetch(`/api/staff/notifications?email=${staffEmail}`);
         if (!res.ok) throw new Error("Load failed");
@@ -65,11 +67,15 @@ document.addEventListener("DOMContentLoaded", function () {
         const data = await res.json();
         notifList.innerHTML = "";
 
-        if (data.length === 0) {
+        if (!Array.isArray(data) || data.length === 0) {
           notifList.innerHTML = `<div class="notif-item empty">ไม่มีการแจ้งเตือน</div>`;
-          window.NotificationsUI.updateBadge();
+          window.NotificationsUI?.updateBadge?.(0);
+          lastUnreadIds = new Set();
           return;
         }
+
+        const currentUnreadIds = new Set();
+        let unreadCount = 0;
 
         data.forEach(n => {
           const el = document.createElement("button");
@@ -77,22 +83,71 @@ document.addEventListener("DOMContentLoaded", function () {
           el.type = "button";
           el.dataset.id = n.id;
 
+          if (!n.read) {
+            unreadCount++;
+            currentUnreadIds.add(String(n.id));
+          }
+
           const t = mapNotificationText(n);
 
           // ถ้า unread ให้มี span.dot นำหน้า
           const dotHTML = n.read ? '' : '<span class="dot"></span>';
+          const createdAtText = formatThaiDateTime(n.createdAt);
 
           el.innerHTML = `
-    <div class="title">
-      ${dotHTML}${t.titleTH}
-    </div>
-    <div class="meta">${t.messageTH} · ${timeAgo(n.createdAt)}</div>
-  `;
+            <div class="title">
+              ${dotHTML}${t.titleTH}
+            </div>
+
+            <!-- บรรทัดที่ 1: ข้อความหลัก -->
+            <div class="meta">
+              ${t.messageTH}
+            </div>
+
+            <!-- บรรทัดล่างสุด: วันที่ + time ago -->
+            <div class="meta meta-time">
+              ส่งเมื่อ ${createdAtText} · ${timeAgo(n.createdAt)}
+            </div>
+          `;
+
 
           notifList.appendChild(el);
         });
 
-        window.NotificationsUI.updateBadge();
+        // อัปเดต badge (ถ้า NotificationsUI รองรับส่งจำนวน)
+        if (window.NotificationsUI?.updateBadge) {
+          window.NotificationsUI.updateBadge(unreadCount);
+        }
+
+        // เช็คว่ามี noti ใหม่โผล่มาเมื่อเทียบกับรอบที่แล้วไหม
+        let hasNewUnread = false;
+        if (isAuto) {
+          for (const id of currentUnreadIds) {
+            if (!lastUnreadIds.has(id)) {
+              hasNewUnread = true;
+              break;
+            }
+          }
+        }
+        lastUnreadIds = currentUnreadIds;
+
+        // ถ้าเป็น auto-refresh และมี noti ใหม่ → ให้ "เด้ง" ขึ้นมาอัตโนมัติ
+        if (hasNewUnread) {
+          console.log("📢 New notifications arrived!");
+
+          // ถ้ามีฟังก์ชันเปิด panel ใน NotificationsUI
+          if (window.NotificationsUI?.openPanel) {
+            window.NotificationsUI.openPanel();
+          } else {
+            // หรือใช้ class / event ตามที่คุณใช้ในไฟล์ notifications.js
+            notifPanel.classList.add("open");
+
+            // หรือยิง event ให้ไฟล์อื่นจัดการ UI
+            document.dispatchEvent(new CustomEvent("notification:new", {
+              detail: { unreadCount }
+            }));
+          }
+        }
 
       } catch (err) {
         console.error("❌ Load failed:", err);
@@ -108,7 +163,6 @@ document.addEventListener("DOMContentLoaded", function () {
         await fetch(`/api/staff/notifications/${id}/read?email=${staffEmail}`, {
           method: "PUT"
         });
-
       } catch (err) {
         console.error("❌ Mark-read error:", err);
       }
@@ -139,8 +193,27 @@ document.addEventListener("DOMContentLoaded", function () {
       return "เมื่อสักครู่";
     }
 
-    // เรียกโหลดตอนเปิดหน้า
-    loadNotifications();
+    // ✅ โหลดตอนเปิดหน้า
+    loadNotifications(false);
+
+    // ✅ ตั้งให้ refresh อัตโนมัติทุก 30 วินาที (จะเด้ง panel ถ้ามี noti ใหม่)
+    setInterval(() => {
+      loadNotifications(true);
+    }, 30_000);
+
+    function formatThaiDateTime(iso) {
+      if (!iso) return "-";
+      const d = new Date(iso);
+
+      const day = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const year = d.getFullYear() + 543; // แปลงเป็น พ.ศ.
+
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+
+      return `${day}/${month}/${year} ${hh}:${mm} น.`;
+    }
 
   })();
 });

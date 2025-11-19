@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="caret">-</span>
         </button>
         <div class="profile-dropdown">
-          <a href="/bookingRoom/homepage_user.html"
+          <a href="/bookingRoom/homepage.html"
              class="profile-item"
              id="profile-home-link">
             <span class="profile-icon">
@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <span class="profile-label">หน้าหลัก</span>
           </a>
 
-          <a href="/bookingHistory/bookingHistory.html"
+          <a href="/bookingHistory/history.html"
              class="profile-item"
              id="profile-history-link">
             <span class="profile-icon">

@@ -184,6 +184,7 @@ function renderReservation(head, full) {
 
   if (roomTypeEl) {
   const roomType =
+    head?.roomType ||
     full?.roomType ||
     full?.roomTypeName ||
     full?.roomCategory ||
